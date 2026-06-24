@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Illustrative rendering sample for the Simler Digital edition (tei_simler.odd).
+  The verse and conventions are taken from the ODD's own <exemplum>s: a
+  line- and page-faithful diplomatic transcription of J. W. Simler's
+  "Teutsche Gedichte" (1663), set in Fraktur. Source appearance is recorded
+  on @rendition (pointing to <tagsDecl> in the ODD), entities with <rs>.
+-->
+<TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Johann Wilhelm Simler, Teutsche Gedichte (C, 1663) — rendering sample</title>
+        <author><persName ref="http://d-nb.info/gnd/119151693">Johann Wilhelm Simler</persName></author>
+      </titleStmt>
+      <publicationStmt><p>Simler Digital — illustrative sample for the ODD-to-static PoC.</p></publicationStmt>
+      <sourceDesc><bibl><idno type="URLIIIF">https://www.e-rara.ch/i3f/v20/4049159/manifest</idno></bibl></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <front>
+      <titlePage>
+        <docTitle>
+          <titlePart type="main"><hi rendition="#b #c">Teutsche Gedichte</hi></titlePart>
+          <lb/>
+          <titlePart type="sub"><hi rendition="#c #g">die dritte Aussfertigung</hi></titlePart>
+        </docTitle>
+        <lb/>
+        <docImprint><hi rendition="#c">Zürich, <docDate>1663</docDate></hi></docImprint>
+        <figure><head>Titelkupfer</head></figure>
+      </titlePage>
+    </front>
+    <body>
+      <fw type="pageNum" place="top">194</fw>
+      <pb n="194" facs="https://www.e-rara.ch/i3f/v20/4049203"/>
+      <div n="3">
+          <head><hi rendition="#b #c">Haubtbegriff des ersten<lb/> Psalms.</hi></head>
+          <lb/>
+          <lg type="poem">
+              <l><hi rendition="#in">W</hi>Er schälk’ und spötter fleucht/ und Gottes
+                  wort be<lb break="no"/>trachtet/</l>
+              <lb/>
+              <l rendition="#et">der <choice><sic>gru&#x366;net</sic><corr>grünet</corr></choice> wie ein baum an einem
+                  wasserfluß/</l>
+              <lb/>
+              <l rendition="#et">ist selig hier und dort: sein tuhn gerahten muß:</l>
+              <lb/>
+              <l>wie leichte spreu verfliegt wer Gottes wort verachtet.</l>
+          </lg>
+      </div>
+      <lb/>
+      <div n="3">
+          <head><hi rendition="#aq #c">II.</hi></head>
+          <lb/>
+          <lg type="poem">
+              <l>Die gwaltigen umsonst sich wider Christum lehnen:</l>
+              <lb/>
+              <l rendition="#et">dann Gottes rahtschluß muß fortgehen immerzu/</l>
+              <lb/>
+              <l rendition="#et">er schaffet seiner kirch in seim Gesalbten ruh/</l>
+              <lb/>
+              <l>zerschmeißt hingegen die/ so nicht nach ihme sehnen.</l>
+          </lg>
+      </div>
+      <lb/>
+      <div n="3">
+          <head><hi rendition="#aq #c">III.</hi></head>
+          <lb/>
+          <lg type="poem">
+              <l>Der <rs type="person" key="person_049">David</rs><note type="annotation" place="comment">The stanza alludes to King David's flight from his son <rs type="person" key="person_053">Absolon</rs> (2 Samuel 15).</note> setzt auf Gott sein
+                  hoffnung und vertrauen/</l>
+              <lb/>
+              <l rendition="#et">alß ihn von seinem reich vertriben in die flucht</l>
+              <lb/>
+              <l rendition="#et">sein sohn/ der <rs type="person" key="person_053"
+                      >Absolon</rs>/ der ihn zu töden sucht:</l>
+              <lb/>
+              <l>mit bitt/ daß Gottes hülff er würklich möge schauen.</l>
+          </lg>
+      </div>
+      <lb/>
+      <div n="3">
+          <head><hi rendition="#aq #c">IV.</hi></head>
+          <lb/>
+          <lg type="poem">
+              <l>Die fürsten <rs type="place" key="place_029">Israels</rs> begeren zu
+                  zerstören</l>
+              <lb/>
+              <l rendition="#et">Des <rs type="person" key="person_049">Davids</rs>
+                  wahl und reich: welchs ihnen er ver<lb break="no"/>weißt/</l>
+              <lb/>
+              <l rendition="#et">vermahnet sie zur buß/ und Gottes güte
+                  preißt/</l>
+              <lb/>
+              <l>der ihn/ wie vor so jetz/ unfehlbar werd erhören.</l>
+          </lg>
+      </div>
+      <lb/>
+      <div n="3">
+          <head><hi rendition="#aq #c">V.</hi></head>
+          <lb/>
+          <lg type="poem">
+              <l>Die schmeichelrähte <rs type="person" key="person_052">Sauls</rs> des
+                      <rs type="person" key="person_049">Davids</rs> elend mehren</l>
+              <lb/>
+              <l rendition="#et">durch vil verlümdungen; welchs er dem Herren
+                  <lb/>klagt/</l>
+              <lb/>
+              <pb n="5" facs="https://www.e-rara.ch/i3f/v20/4049204"/>
+              <l rendition="#et">wünscht ihren untergang/ und wartet unverzagt</l>
+              <lb/>
+              <l>auf Gottes hülff und gnad/ gelobet ihn zu ehren.</l>
+          </lg>
+      </div>
+      <lb/>      
+    </body>
+  </text>
+</TEI>

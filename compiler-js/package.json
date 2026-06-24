@@ -1,0 +1,32 @@
+{
+  "name": "odd-rendering-compiler",
+  "version": "0.3.0",
+  "description": "Build-time pipeline: TEI ODD Processing Model → CSS, XSLT, unified/xast handlers, and CETEIcean behaviours — with end-to-end HTML rendering for static editions",
+  "type": "module",
+  "main": "odd-to-css.mjs",
+  "scripts": {
+    "build": "node odd-to-css.mjs --odd ../examples/tei_simler.odd --out output",
+    "build:xslt": "node odd-to-xslt.mjs --odd ../examples/tei_simler.odd --out output",
+    "build:unified": "node odd-to-unified.mjs --odd ../examples/tei_simler.odd --out output",
+    "build:ceteicean": "node odd-to-ceteicean.mjs --odd ../examples/tei_simler.odd --tei ../examples/simler-poem.xml --out output",
+    "build:all": "npm run build && npm run build:xslt && npm run build:unified && npm run build:ceteicean",
+    "render:xslt": "node render-xslt.mjs --xsl output/edition.xsl --tei ../examples/simler-poem.xml --css output/edition.css --out output",
+    "render:unified": "node render-unified.mjs --handlers output/tei-handlers.mjs --tei ../examples/simler-poem.xml --css output/edition.css --out output",
+    "render:interactive": "node render-unified-interactive.mjs --handlers output/tei-handlers.mjs --tei ../examples/simler-poem.xml --css output/edition.css --out output",
+    "render:ceteicean": "node odd-to-ceteicean.mjs --odd ../examples/tei_simler.odd --tei ../examples/simler-poem.xml --out output",
+    "render:all": "npm run render:xslt && npm run render:unified && npm run render:interactive && npm run render:ceteicean",
+    "render:multi": "node render-unified-interactive.mjs --handlers output/tei-handlers.mjs --tei \"../examples/simler-*.xml\" --css output/edition.css --out output/edition-interactive",
+    "demo": "npm run build && npm run build:unified && npm run render:unified && npm run render:interactive",
+    "demo:multi": "npm run build && npm run build:unified && npm run render:multi",
+    "build:simpleprint": "node odd-to-css.mjs --odd ../examples/tei_simplePrint.odd --out output/simpleprint",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@rgrove/parse-xml": "4.2.0"
+  },
+  "license": "BSD-2-Clause",
+  "author": "Christian Forney"
+}

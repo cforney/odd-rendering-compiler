@@ -1,0 +1,11 @@
+# Dependencies — installed via `npm install` (the dependency is pinned in
+# package.json / package-lock.json), never committed.
+node_modules/
+
+# Build output — regenerate with `npm run demo` / `build:all` / `render:all`.
+# Not committed: deterministically reproduced, and the smoke tests guarantee
+# correctness. (Mirrors compiler-xslt/.gitignore.)
+output/
+
+# npm debug logs
+npm-debug.log*

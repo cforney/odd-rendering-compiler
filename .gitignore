@@ -1,0 +1,12 @@
+# Node dependencies — installed with `npm install`, never committed.
+node_modules/
+
+_deprecated/
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

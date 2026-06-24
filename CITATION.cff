@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software itself and the article it accompanies."
+title: "ODD Rendering Compiler"
+abstract: >-
+  Reference implementations (JavaScript and XSLT) of the define -> generate ->
+  render pattern: compiling a TEI ODD Processing Model into rendering artefacts
+  (CSS, XSLT, unified/xast handlers, and CETEIcean behaviours) that produce
+  static HTML for scholarly editions.
+type: software
+authors:
+  - given-names: Christian
+    family-names: Forney
+    affiliation: "Data Science Lab, University of Bern"
+    email: christian.forney@unibe.ch
+version: 0.3.0
+license: BSD-2-Clause
+repository-code: "https://github.com/cforney/odd-rendering-compiler"
+url: "https://github.com/cforney/odd-rendering-compiler"
+keywords:
+  - TEI
+  - ODD
+  - Processing Model
+  - XSLT
+  - digital scholarly editions
+  - static site
+  - minimal computing
+# A Zenodo DOI will be added here (as `doi:` and a versioned `identifiers:` entry)
+# once the v0.1.0 release is archived. See companion-repo-plan.md, step 8.
+preferred-citation:
+  type: article
+  title: "The TEI ODD as Static-Build Configuration: Compiling the Processing Model into Edition Rendering"
+  authors:
+    - given-names: Christian
+      family-names: Forney
+      affiliation: "Data Science Lab, University of Bern"
+  journal: "The Code4Lib Journal"
+  year: 2026
+  # Issue number and article URL/DOI to be filled in on publication.

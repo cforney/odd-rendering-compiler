@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Rendering sample for the Simler Digital edition (tei_simler.odd): the
+  "Buchstabwächsel" poem (VI), a complex page whose two text columns interleave
+  line-by-line while two marginal letter-columns spell WILHELM (left) and SIMMLER
+  (right) as an acrostic/telestich on the poet's name.
+
+  SOURCE / CREDIT. Text and encoding adapted from the Simler Digital edition
+  (https://www.simler.unibe.ch/) — Johann Wilhelm Simler, *Teutsche Gedichte*
+  (1663). 
+  Used here by permission as an illustrative example for the proof of concept. Facsimile:
+  e-rara (https://www.e-rara.ch/i3f/v20/4049159/manifest), CC BY-SA.
+
+  The poem is one ordered sequence of <l> (reading order = document order); the two columns
+  are expressed as a CSS-grid <rendition> on the <lg> (#twocol), not with <cb/>,
+  because the columns alternate per line; the marginal capitals are <hi> pinned to
+  fixed margin cells (#acroInit / #acroFin) so they reconstruct as aligned name
+  columns. All renditions are declared in tei_simler.odd's <tagsDecl> and compiled
+  to .r-* CSS by the build — the layout *is* the rendition declarations.
+-->
+<TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Johann Wilhelm Simler, Buchstabwächsel (Teutsche Gedichte, C 1663, VI) — layout sample</title>
+        <author><persName ref="http://d-nb.info/gnd/119151693">Johann Wilhelm Simler</persName></author>
+      </titleStmt>
+      <publicationStmt><p>Simler Digital (simler.unibe.ch) — illustrative sample for the ODD-to-static PoC.</p></publicationStmt>
+      <sourceDesc>
+        <bibl>Simler Digital, C_1663_Teil-0.xml, div xml:id="xi". <idno type="URLIIIF">https://www.e-rara.ch/i3f/v20/4049159/manifest</idno></bibl>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <fw type="pageNum" place="top">[A vii r]</fw>
+      <pb n="[A vii r]" facs="https://www.e-rara.ch/i3f/v20/4049188"/>
+      <div n="3" type="poem">
+        <head>
+          <label>[xi.]</label>
+          <lb/>
+          <hi rendition="#b #c">
+            <hi rendition="#aq">VI.</hi><lb/>
+            <hi rendition="#aq">U</hi>ber Herrn Tichters namen Bu&#x366;chstabwächsel<lb/>
+            <rs type="person" key="person_001">JOHANN WJLHELM SJMLER</rs>/<lb/>
+            W/ in <hi rendition="#aq">U</hi>/ und V/ aufgelöset:<lb/>
+            Nu mahl/ i<hi rendition="#aq">ô</hi>! vil reins mehl;<lb/> und<lb/> Lobspruch.</hi>
+        </head>
+        <lb/>
+        <!-- One ordered line sequence; #twocol lays it out as a 2-column grid
+             (line 1 → left, line 2 → right, line 3 → left …). The seven #acrostic
+             lines carry the marginal capitals that spell WILHELM / SIMMLER. -->
+        <lg type="poem" rendition="#twocol">
+          <l><hi rendition="#larger"><hi rendition="#in">H</hi>Err <rs type="person" key="person_001">Simler</rs></hi> euer mehl</l>
+          <l rendition="#acrostic"><hi rendition="#acroInit">W</hi>ird finden seinen preis<hi rendition="#acroFin">S</hi></l>
+          <l rendition="#et">beym <hi rendition="#larger">fruchtbereichten volk</hi>/</l>
+          <l rendition="#et2">dieweil mit sonderm fleiß</l>
+          <l>Jhr trachtet/ daß es rein;</l>
+          <l rendition="#acrostic"><hi rendition="#acroInit">J</hi>a simmelweisse se<hi rendition="#acroFin">J</hi></l>
+          <l rendition="#et">darunter nichts vermängt</l>
+          <l rendition="#et">von träbern oder kley.</l>
+          <l>O schöne schreibensart</l>
+          <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>ehrreicher reden blu<hi rendition="#acroFin">M</hi></l>
+          <l rendition="#et">wodurch zur sonnen steigt</l>
+          <l rendition="#et2">der <hi rendition="#larger">Teutschen Sprache</hi> ruhm.</l>
+          <l>Hier eine quell ohn schlam[m];</l>
+          <l rendition="#acrostic"><hi rendition="#acroInit">H</hi>oldseligkeit ohn grim<hi rendition="#acroFin">M</hi></l>
+          <l rendition="#et">hier ist nichts ärgerlichs/</l>
+          <l rendition="#et2">und daß sich nicht gezim[m].</l>
+          <l>Arbeitet dessen viel</l>
+          <l rendition="#acrostic"><hi rendition="#acroInit">E</hi>s ist rein simmelmeh<hi rendition="#acroFin">L</hi></l>
+          <l rendition="#et">die dichtling fallen wol</l>
+          <l rendition="#et2">und fliessen ohne fehl.</l>
+          <l>Nur immer frisch daran;</l>
+          <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>aßt sparen uns kein müh<hi rendition="#acroFin">E</hi></l>
+          <l rendition="#et">damit die <hi rendition="#larger">Jndisch Nuß</hi></l>
+          <l rendition="#et2">auch diser enden blu&#x364;he!</l>
+          <l><rs type="person" key="person_046">Neid hart</rs> du tuhst uns nichts.</l>
+          <l rendition="#acrostic"><hi rendition="#acroInit">M</hi>an wird der Teutschen eh<hi rendition="#acroFin">R</hi></l>
+          <l rendition="#et">auß <rs type="person" key="person_045">Phöbus</rs> namenbuch</l>
+          <l rendition="#et">außtilgen nimmermehr.</l>
+        </lg>
+        <note type="annotation" place="comment">Linke Randspalte: <hi rendition="#g">WILHELM</hi>; rechte Randspalte: <hi rendition="#g">SIMMLER</hi> — Akrostichon und Telestichon des Tichternamens.</note>
+        <lb/>
+        <closer>
+          <signed><hi rendition="#right"><rs type="person" key="person_009">Georg Müller</rs>/ Pfarrer zu <rs type="place" key="place_008">Tahlweil</rs>/<lb/> am <rs type="place" key="place_007">Zürichsee</rs>.</hi></signed>
+        </closer>
+      </div>
+    </body>
+  </text>
+</TEI>
