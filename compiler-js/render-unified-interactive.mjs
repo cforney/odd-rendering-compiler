@@ -293,12 +293,12 @@ ${editionCss}
     }
     .render-info {
       font-family: system-ui, sans-serif;
-      background: #ede9fe; border: 1px solid #a78bfa;
+      background: #fef3c7; border: 1px solid #fbbf24;
       padding: 1em; border-radius: 6px; margin-bottom: 2em;
       font-size: 0.85em;
     }
-    .render-info h3 { margin: 0 0 0.5em; color: #7c3aed; }
-    .render-info code { background: #f5f3ff; padding: 0.1em 0.3em; border-radius: 3px; }
+    .render-info h3 { margin: 0 0 0.5em; color: #d97706; }
+    .render-info code { background: #fef9c3; padding: 0.1em 0.3em; border-radius: 3px; }
 
     /* Renderer scaffolding + interactive layer: classes this renderer
        synthesises (note refs/bodies, choice toggles) and the petite-vue

@@ -143,12 +143,32 @@ body.facs-hidden a.tei-pb { display: none; }
                  so the image overflows onto the text). -->
             <style>
 body.tei-edition { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
+/* Preview chrome: the banner naming the pipeline, not part of the edition. */
+.render-info { font-family: system-ui, sans-serif; background: #e0f2fe; border: 1px solid #38bdf8; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
+.render-info h3 { margin: 0 0 0.5em; color: #0284c7; }
+.render-info code { background: #f0f9ff; padding: 0.1em 0.3em; border-radius: 3px; }
 a.tei-pb { display: block; clear: both; height: auto; width: auto; max-width: 150px; margin: 1.2em auto; padding: 4px; border: 1px solid #ccc; background: #fafafa; line-height: 0; }
 a.tei-pb figure.tei-pb { display: block; height: auto; max-width: none; margin: 0; border: 0; }
 a.tei-pb img { display: block; width: 100%; height: auto; }
 </style>
           </head>
           <body class="tei-edition">
+            <div class="render-info">
+              <axsl:choose>
+                <axsl:when test="$interactive = 'true'">
+                  <h3>Interactive XSLT Rendering Path (progressive enhancement)</h3>
+                  <p><strong>Pipeline:</strong> ODD &#8594; <code>odd-to-xsl.xsl</code> &#8594; <code>edition.xsl</code> &#8594; (TEI) &#8594; HTML + ~12 lines of vanilla JS (Saxon, build time)</p>
+                  <p>Every Processing-Model behaviour is compiled into an XSLT template and <code>edition.css</code> is inlined for a self-contained file. A framework-free script toggles notes, apparatus readings and facsimiles; with JavaScript off the page degrades to the static floor.</p>
+                </axsl:when>
+                <axsl:otherwise>
+                  <h3>XSLT Rendering Path (static, zero-JS)</h3>
+                  <p><strong>Pipeline:</strong> ODD &#8594; <code>odd-to-xsl.xsl</code> &#8594; <code>edition.xsl</code> &#8594; (TEI) &#8594; HTML (Saxon, build time)</p>
+                  <p>Every Processing-Model behaviour is compiled into an XSLT template; XPath predicates stay native XSLT match patterns, so there is no translation gap. Footnotes are collected at the document end.</p>
+                </axsl:otherwise>
+              </axsl:choose>
+              <p><strong>Styling:</strong> from <code>edition.css</code> (<code>odd-to-css.xsl</code>) plus <code>@rendition</code> &#8594; <code>r-&lt;id&gt;</code> classes.</p>
+              <p><strong>Notes collected:</strong> <axsl:value-of select="count(//tei:note)"/></p>
+            </div>
             <axsl:if test="$interactive = 'true'">
               <div class="facs-toggle"><button type="button" data-facs-toggle="">Hide facsimiles</button></div>
             </axsl:if>
