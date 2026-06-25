@@ -11,8 +11,9 @@ entities coloured by `@type`, and CSS-grid acrostic layouts.
 ```
 compiler-xslt/
 ├── generate/
-│   ├── odd-to-xsl.xsl   ODD → edition.xsl   (XSLT generating XSLT)
-│   └── odd-to-css.xsl   ODD → edition.css   (XSLT generating CSS)
+│   ├── odd-to-xsl.xsl        ODD → edition.xsl   (XSLT generating XSLT)
+│   ├── odd-to-css.xsl        ODD → edition.css   (XSLT generating CSS)
+│   └── odd-to-ceteicean.xsl  ODD → CETEIcean behaviours + demo page
 ├── build.sh / build.ps1 drivers (run generate + render with Saxon)
 └── output/              generated artefacts + rendered pages (gitignored)
 ```
@@ -34,8 +35,10 @@ bash build.sh ../examples/tei_simler.odd ../examples/simler-buchstabwechsel.xml 
 ./build.ps1                                                                     # Windows / PowerShell
 ```
 
-Outputs: `edition.xsl`, `edition.css`, `rendered-xslt.html` (Tier 1, zero-JS) and
-`rendered-xslt-interactive.html` (Tier 2, progressively enhanced).
+Outputs: `edition.xsl`, `edition.css`, `rendered-xslt.html` (Tier 1, zero-JS),
+`rendered-xslt-interactive.html` (Tier 2, progressively enhanced), and — from
+`odd-to-ceteicean.xsl` — `tei-ceteicean-behaviours.js` plus a self-contained
+`rendered-ceteicean.html` that renders the TEI client-side with CETEIcean.
 
 ## How "generate" works in XSLT
 
@@ -54,7 +57,13 @@ So a `<model behaviour="inline">` becomes an `<xsl:template>` emitting
 `<span class="tei-…">…</span>`, and a `@predicate` becomes an XPath `match`
 predicate — XSLT speaks XPath natively, so there is no translation gap.
 `generate/odd-to-css.xsl` does the same for the CSS floor (one rule per `<model>`;
-CSS-inexpressible predicates become comments).
+CSS-inexpressible predicates become comments). `generate/odd-to-ceteicean.xsl`
+emits a third target — a CETEIcean behaviour map (JavaScript) and a self-contained
+demo page — the XSLT counterpart of the JS `odd-to-ceteicean.mjs`, showing the same
+generate step can produce a client-side rendering back-end. (Its emitted behaviour
+bodies are the same JavaScript the `.mjs` produces; multi-predicate elements like
+`<rs>` use CETEIcean's function form rather than the `.mjs`'s array form — both
+equivalent.)
 
 Both generators resolve `<specGrp>`/`<specGrpRef>` composition within one document
 (reference order, cycle guard, unreferenced groups skipped) — the pattern the TEI's

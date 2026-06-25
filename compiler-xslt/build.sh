@@ -43,10 +43,13 @@ saxon -s:"$ODD" -xsl:generate/odd-to-xsl.xsl -o:output/edition.xsl
 echo "① generate  edition.css  ← $ODD"
 saxon -s:"$ODD" -xsl:generate/odd-to-css.xsl -o:output/edition.css
 
+echo "① generate  tei-ceteicean-behaviours.js + rendered-ceteicean.html  ← $ODD"
+saxon -s:"$ODD" -xsl:generate/odd-to-ceteicean.xsl -o:output/tei-ceteicean-behaviours.js tei="$(basename "$TEI")"
+
 echo "② render    rendered-xslt.html  ← $TEI (static, zero-JS)"
 saxon -s:"$TEI" -xsl:output/edition.xsl -o:output/rendered-xslt.html
 
 echo "② render    rendered-xslt-interactive.html  ← $TEI (progressively enhanced)"
 saxon -s:"$TEI" -xsl:output/edition.xsl -o:output/rendered-xslt-interactive.html interactive=true
 
-echo "done — output/{edition.xsl, edition.css, rendered-xslt.html, rendered-xslt-interactive.html}"
+echo "done — output/{edition.xsl, edition.css, rendered-xslt.html, rendered-xslt-interactive.html, tei-ceteicean-behaviours.js, rendered-ceteicean.html}"

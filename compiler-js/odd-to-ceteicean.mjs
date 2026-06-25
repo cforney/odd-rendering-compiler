@@ -292,6 +292,73 @@ function behaviourToCode(model, ident) {
   }
 }
 
+/**
+ * Compile a link/graphic uri/url param to a JS expression over the CETEIcean
+ * element: an attribute (`@facs`), a string literal, or a `concat()` of those
+ * (the IIIF-URL pattern). Mirrors odd-to-unified's paramValueToJS, but reads via
+ * el.getAttribute().
+ */
+function paramValueToCeteiJs(value) {
+  const v = (value || "").trim();
+  const attr = v.match(/^@([\w:.-]+)$/);
+  if (attr) return `el.getAttribute('${escStr(attr[1])}') || ''`;
+  const lit = v.match(/^'([^']*)'$/);
+  if (lit) return `'${escStr(lit[1])}'`;
+  const concat = v.match(/^concat\(([\s\S]*)\)$/);
+  if (concat) {
+    const parts = [];
+    let cur = "", inQuote = false;
+    for (const ch of concat[1]) {
+      if (ch === "'") { inQuote = !inQuote; cur += ch; }
+      else if (ch === "," && !inQuote) { parts.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    if (cur.trim()) parts.push(cur);
+    return parts.map((p) => `(${paramValueToCeteiJs(p)})`).join(" + ");
+  }
+  return `'${escStr(v)}'`;
+}
+
+/**
+ * A compound (Boot nested-model) behaviour. When the sub-models are a link + a
+ * graphic, the link WRAPS the graphic so a <pb> renders as one clickable
+ * thumbnail (<a href="full"><figure><img src="thumb"></figure></a>) — matching
+ * the unified/XSLT output. Other shapes fall back to the first sub-model.
+ */
+function compoundToCode(subModels, ident) {
+  const link = subModels.find((sm) => sm.behaviour === "link");
+  const graphic = subModels.find((sm) => sm.behaviour === "graphic");
+  if (link && graphic) {
+    const lp = Object.fromEntries(link.params.map((p) => [p.name, p.value]));
+    const gp = Object.fromEntries(graphic.params.map((p) => [p.name, p.value]));
+    const hrefExpr = paramValueToCeteiJs(lp.uri || "@target");
+    const srcExpr = paramValueToCeteiJs(gp.url || "@url");
+    return `      // compound (Boot nested model): link wraps graphic — one clickable thumbnail
+      var href = ${hrefExpr};
+      var src = ${srcExpr};
+      var a = document.createElement('a');
+      a.className = 'tei-${ident}';
+      a.href = href;
+      var fig = document.createElement('figure');
+      fig.className = 'tei-${ident}';
+      var img = document.createElement('img');
+      img.src = src;
+      img.loading = 'lazy';
+      var desc = el.querySelector('tei-desc');
+      if (desc) { img.alt = desc.textContent; }
+      fig.appendChild(img);
+      a.appendChild(fig);
+      el.innerHTML = '';
+      el.appendChild(a);`;
+  }
+  return behaviourToCode(subModels[0], ident);
+}
+
+/** Emit one flattened unit: a compound, or a plain behaviour. */
+function emitOne(m, ident) {
+  return m.isCompound ? compoundToCode(m.subModels, ident) : behaviourToCode(m, ident);
+}
+
 // ---------------------------------------------------------------------------
 // Generate CETEIcean behaviour map
 // ---------------------------------------------------------------------------
@@ -333,8 +400,9 @@ function generateBehaviours(elements) {
       if (m.type === "sequence") {
         for (const sm of m.models || []) flatModels.push(sm);
       } else if (m.nested) {
-        // Boot's nested-model extension: expand compound sub-models
-        for (const nm of m.nested) flatModels.push({ ...nm, __compoundPredicate: m.predicate });
+        // Boot's nested-model extension: keep the sub-models together as one
+        // compound unit (link wraps graphic) rather than flattening them apart.
+        flatModels.push({ isCompound: true, subModels: m.nested, predicate: m.predicate || null });
       } else {
         flatModels.push(m);
       }
@@ -348,7 +416,7 @@ function generateBehaviours(elements) {
       // Single model, no predicate → simple function
       const m = flatModels[0];
       lines.push(`    "${el.ident}": function(el) {`);
-      lines.push(behaviourToCode(m, el.ident));
+      lines.push(emitOne(m, el.ident));
       lines.push(`    },`);
     } else {
       // Multiple models or predicates → array of [selector, handler] or function with conditions
@@ -370,7 +438,7 @@ function generateBehaviours(elements) {
           if (m.predicate) {
             const pred = predicateToCETEI(m.predicate);
             lines.push(`      ["${escStr(pred.selector)}", function(el) {`);
-            lines.push(behaviourToCode(m, el.ident));
+            lines.push(emitOne(m, el.ident));
             lines.push(`      }],`);
           }
         }
@@ -378,7 +446,7 @@ function generateBehaviours(elements) {
         const defaults = flatModels.filter(m => !m.predicate);
         if (defaults.length > 0) {
           lines.push(`      function(el) {`);
-          lines.push(behaviourToCode(defaults[0], el.ident));
+          lines.push(emitOne(defaults[0], el.ident));
           lines.push(`      }`);
         }
         lines.push(`    ],`);
@@ -392,7 +460,7 @@ function generateBehaviours(elements) {
               ? `el.matches('${escStr(pred.selector)}')`
               : pred.code;
             lines.push(`      if (${condition}) {`);
-            lines.push(`  ${behaviourToCode(m, el.ident)}`);
+            lines.push(`  ${emitOne(m, el.ident)}`);
             lines.push(`        return;`);
             lines.push(`      }`);
           }
@@ -401,7 +469,7 @@ function generateBehaviours(elements) {
         const defaults = flatModels.filter(m => !m.predicate);
         if (defaults.length > 0) {
           lines.push(`      // default (no predicate)`);
-          lines.push(behaviourToCode(defaults[0], el.ident));
+          lines.push(emitOne(defaults[0], el.ident));
         }
         lines.push(`    },`);
       }

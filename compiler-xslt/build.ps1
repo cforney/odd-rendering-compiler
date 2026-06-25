@@ -31,6 +31,8 @@ Write-Host "(1) generate edition.xsl  <- $Odd"
 Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-xsl.xsl", "-o:output/edition.xsl")
 Write-Host "(1) generate edition.css  <- $Odd"
 Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-css.xsl", "-o:output/edition.css")
+Write-Host "(1) generate tei-ceteicean-behaviours.js + rendered-ceteicean.html  <- $Odd"
+Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-ceteicean.xsl", "-o:output/tei-ceteicean-behaviours.js", "tei=$([System.IO.Path]::GetFileName($Tei))")
 Write-Host "(2) render rendered-xslt.html  <- $Tei (static)"
 Invoke-Saxon @("-s:$Tei", "-xsl:output/edition.xsl", "-o:output/rendered-xslt.html")
 Write-Host "(2) render rendered-xslt-interactive.html  <- $Tei (progressively enhanced)"
