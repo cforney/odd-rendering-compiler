@@ -117,7 +117,8 @@
           $q, ') !== null')"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:sequence select="concat('true /* TODO: ', $pred, ' */')"/>
+        <xsl:message select="'[odd-to-ceteicean] ⚠ unsupported predicate, left as fallback: ' || $pred"/>
+        <xsl:sequence select="concat('true /* TODO: ', replace($pred, '\*/', '* /'), ' */')"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:function>

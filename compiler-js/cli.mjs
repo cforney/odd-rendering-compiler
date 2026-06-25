@@ -201,6 +201,15 @@ export function createLogger(scope) {
 }
 
 /**
+ * Warn that a `@predicate` could not be translated for this target and was left
+ * as a fallback. Keeps the message uniform across generators; the supported
+ * shapes are in docs/predicate-grammar.md.
+ */
+export function warnUnsupportedPredicate(log, predicate) {
+  log(`⚠ unsupported predicate, left as fallback: ${predicate}`);
+}
+
+/**
  * Timestamp for a generated file's header, or null when the date should be
  * omitted for reproducible output. Pass `--no-timestamp`, or set
  * SOURCE_DATE_EPOCH (Unix seconds) to pin it.

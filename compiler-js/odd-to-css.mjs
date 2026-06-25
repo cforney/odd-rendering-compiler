@@ -16,7 +16,7 @@ import {
   createOddParser, findElementSpecs, extractModels, extractRenditions,
 } from "./odd-parser.mjs";
 import { behaviourBaseCss, BEHAVIOURS } from "./behaviour-map.mjs";
-import { parseArgs, createLogger, writeOut, teiClass, generatedStamp } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, teiClass, generatedStamp, warnUnsupportedPredicate, escapeJsComment } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI + parse
@@ -100,9 +100,10 @@ function predicateToCSS(pred, ident) {
   }
 
   // Complex: fall back to base with comment
+  warnUnsupportedPredicate(log, pred);
   return {
     selector: base,
-    comment: `/* TODO: Complex predicate not translatable to CSS: ${pred} */`,
+    comment: `/* TODO: Complex predicate not translatable to CSS: ${escapeJsComment(pred)} */`,
   };
 }
 

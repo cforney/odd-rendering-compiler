@@ -145,7 +145,8 @@
           </xsl:call-template>
         </xsl:when>
         <xsl:when test="@predicate">
-          <xsl:value-of select="'/* .tei-' || $ident || ' — predicate not translatable to CSS: ' || @predicate || ' */&#10;'"/>
+          <xsl:message select="'[odd-to-css] ⚠ unsupported predicate, left as fallback: ' || @predicate"/>
+          <xsl:value-of select="'/* .tei-' || $ident || ' — predicate not translatable to CSS: ' || replace(@predicate, '\*/', '* /') || ' */&#10;'"/>
           <!-- still emit the base rule so the element has its display -->
           <xsl:call-template name="rule">
             <xsl:with-param name="sel" select="'.tei-' || $ident"/>

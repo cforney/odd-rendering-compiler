@@ -19,7 +19,7 @@ import {
   createOddParser, findElementSpecs, extractModels,
 } from "./odd-parser.mjs";
 import { BEHAVIOURS } from "./behaviour-map.mjs";
-import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment, generatedStamp } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment, generatedStamp, warnUnsupportedPredicate } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -113,6 +113,7 @@ function predicateToJS(pred) {
   }
 
   // Fallback: wrap in a comment — JS can't auto-translate all XPath
+  warnUnsupportedPredicate(log, pred);
   return `true /* TODO: complex predicate: ${escapeJsComment(pred)} */`;
 }
 

@@ -20,7 +20,7 @@ import {
   createOddParser, findElementSpecs, extractModels,
 } from "./odd-parser.mjs";
 import { BEHAVIOURS } from "./behaviour-map.mjs";
-import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment, generatedStamp } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment, generatedStamp, warnUnsupportedPredicate } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -102,6 +102,7 @@ function predicateToCETEI(pred) {
   }
 
   // Fallback: JavaScript with comment
+  warnUnsupportedPredicate(log, pred);
   return { type: "js", code: `true /* TODO: ${escapeJsComment(pred)} */` };
 }
 
