@@ -5,6 +5,10 @@
  * every PM behaviour natively, including the ones that reshape the tree
  * (alternate, note, link, graphic), and XPath predicates pass through verbatim.
  *
+ * Source appearance (the source element's own @rendition) is carried as r-<id>
+ * classes — the same mechanism odd-to-unified.mjs and odd-to-xsl.xsl use, with
+ * the matching .r-<id> rules supplied by odd-to-css. See tei-rendition-classes.
+ *
  * Usage:  node odd-to-xslt.mjs --odd <path> [--out <dir>]
  * Output: <dir>/edition.xsl
  */
@@ -91,23 +95,9 @@ function behaviourToXSLT(model, ident) {
     ? ` style="${escXml(cssFragments.join(" "))}"`
     : "";
 
-  // Emit useSourceRendition logic as conditional
-  const srcRendLines = [];
-  if (model.useSourceRendition) {
-    srcRendLines.push(
-      `      <!-- @useSourceRendition: merge source @rendition/@style -->`,
-      `      <xsl:if test="@rendition or @style">`,
-      `        <xsl:attribute name="style">`,
-      `          <xsl:if test="@style"><xsl:value-of select="@style"/><xsl:text> </xsl:text></xsl:if>`,
-      `          <xsl:if test="@rendition">`,
-      `            <xsl:variable name="rendId" select="substring-after(@rendition, '#')"/>`,
-      `            <xsl:value-of select="//tei:rendition[@xml:id=$rendId]"/>`,
-      `          </xsl:if>`,
-      `          <xsl:text>${escXml(cssFragments.join(" "))}</xsl:text>`,
-      `        </xsl:attribute>`,
-      `      </xsl:if>`,
-    );
-  }
+  // Source appearance (the source element's own @rendition) is carried via
+  // r-<id> classes on the wrapper, not merged into an inline style — see the
+  // shared tei-rendition-classes template.
 
   const beforePseudo = beforeCSS.length > 0
     ? [`      <span style="${escXml(beforeCSS.join(" "))}">`, `      </span>`]
@@ -124,8 +114,8 @@ function behaviourToXSLT(model, ident) {
     const tag = BEHAVIOURS[b].tag;
     const cls = simple.className || `tei-${ident}`;
     return [
-      `    <${tag} class="${cls}"${styleAttr}>`,
-      ...srcRendLines,
+      `    <${tag}${styleAttr}>`,
+      `      <xsl:attribute name="class">${cls}<xsl:call-template name="tei-rendition-classes"/></xsl:attribute>`,
       ...(simple.pseudo ? beforePseudo : []),
       `      <xsl:apply-templates/>`,
       ...(simple.pseudo ? afterPseudo : []),
@@ -149,7 +139,6 @@ function behaviourToXSLT(model, ident) {
           `    </xsl:variable>`,
           `    <xsl:element name="h{$hlevel}">`,
           `      <xsl:attribute name="class">tei-${ident}</xsl:attribute>`,
-          ...srcRendLines,
           `      <xsl:apply-templates/>`,
           `    </xsl:element>`,
         ];
@@ -157,7 +146,6 @@ function behaviourToXSLT(model, ident) {
       const tag = `h${Math.min(6, Math.max(1, parseInt(level, 10) || 1))}`;
       return [
         `    <${tag} class="tei-${ident}"${styleAttr}>`,
-        ...srcRendLines,
         `      <xsl:apply-templates/>`,
         `    </${tag}>`,
       ];
@@ -182,15 +170,14 @@ function behaviourToXSLT(model, ident) {
         `      <xsl:attribute name="href">`,
         `        <xsl:value-of select="${escXml(uri)}"/>`,
         `      </xsl:attribute>`,
-        ...srcRendLines,
         `      <xsl:apply-templates/>`,
         `    </a>`,
       ];
     }
 
     case "alternate": {
-      const def = params.default || ".";
-      const alt = params.alternate || ".";
+      const def = params.default || "*[1]";
+      const alt = params.alternate || "*[2]";
       return [
         `    <span class="tei-alternate tei-${ident}">`,
         `      <span class="tei-alternate-default">`,
@@ -315,6 +302,32 @@ function generateXSLT(elements) {
     ``,
     `  <!-- Suppress teiHeader by default -->`,
     `  <xsl:template match="tei:teiHeader"/>`,
+    ``,
+    `  <!-- Source appearance: turn an element's @rendition pointer list (e.g.`,
+    `       "#aq #c") into space-prefixed r-<id> classes that edition.css (from`,
+    `       <tagsDecl>) styles. XSLT 1.0 has no tokenize(), so recurse over the`,
+    `       space-separated list; a token's leading # is stripped if present. -->`,
+    `  <xsl:template name="tei-rendition-classes">`,
+    `    <xsl:param name="tokens" select="normalize-space(@rendition)"/>`,
+    `    <xsl:if test="$tokens != ''">`,
+    `      <xsl:variable name="tok">`,
+    `        <xsl:choose>`,
+    `          <xsl:when test="contains($tokens, ' ')"><xsl:value-of select="substring-before($tokens, ' ')"/></xsl:when>`,
+    `          <xsl:otherwise><xsl:value-of select="$tokens"/></xsl:otherwise>`,
+    `        </xsl:choose>`,
+    `      </xsl:variable>`,
+    `      <xsl:text> r-</xsl:text>`,
+    `      <xsl:choose>`,
+    `        <xsl:when test="starts-with($tok, '#')"><xsl:value-of select="substring-after($tok, '#')"/></xsl:when>`,
+    `        <xsl:otherwise><xsl:value-of select="$tok"/></xsl:otherwise>`,
+    `      </xsl:choose>`,
+    `      <xsl:if test="contains($tokens, ' ')">`,
+    `        <xsl:call-template name="tei-rendition-classes">`,
+    `          <xsl:with-param name="tokens" select="normalize-space(substring-after($tokens, ' '))"/>`,
+    `        </xsl:call-template>`,
+    `      </xsl:if>`,
+    `    </xsl:if>`,
+    `  </xsl:template>`,
     ``,
   ];
 
