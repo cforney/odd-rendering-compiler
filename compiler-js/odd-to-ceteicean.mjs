@@ -20,7 +20,7 @@ import {
   createOddParser, findElementSpecs, extractModels,
 } from "./odd-parser.mjs";
 import { BEHAVIOURS } from "./behaviour-map.mjs";
-import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment, generatedStamp } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -31,6 +31,7 @@ const log = createLogger("odd-to-ceteicean");
 const oddPath = cli.get("--odd");
 const teiPath = cli.get("--tei") || "../examples/simler-poem.xml";
 const outDir  = cli.get("--out") || "output";
+const stamp = generatedStamp(cli);
 
 if (!oddPath) {
   console.error("Usage: node odd-to-ceteicean.mjs --odd <path> --tei <path> [--out <dir>]");
@@ -302,7 +303,7 @@ function generateBehaviours(elements) {
     ` * CETEIcean behaviour definitions generated from TEI ODD Processing Model`,
     ` *`,
     ` * Source ODD: ${basename(oddPath)}`,
-    ` * Generated: ${new Date().toISOString()}`,
+    ...(stamp ? [` * Generated: ${stamp}`] : []),
     ` *`,
     ` * CETEIcean (https://github.com/TEIC/CETEIcean) renders TEI XML in the browser`,
     ` * by registering custom elements (tei-head, tei-p, etc.) and applying`,

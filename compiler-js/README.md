@@ -46,6 +46,10 @@ default to `../examples/tei_simler.odd`; individual renderers (`render:unified`,
 `render:interactive`, `render:xslt`, `render:ceteicean`, `render:multi`) default to
 `../examples/simler-poem.xml`.
 
+**Reproducible output.** Each generator writes a `Generated:` timestamp into its
+header by default. Pass `--no-timestamp` to omit it, or set `SOURCE_DATE_EPOCH`
+(Unix seconds) to pin it — useful for byte-identical diffs and CI.
+
 ## Layout
 
 ```

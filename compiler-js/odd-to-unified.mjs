@@ -19,7 +19,7 @@ import {
   createOddParser, findElementSpecs, extractModels,
 } from "./odd-parser.mjs";
 import { BEHAVIOURS } from "./behaviour-map.mjs";
-import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment, generatedStamp } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -29,6 +29,7 @@ const log = createLogger("odd-to-unified");
 
 const oddPath = cli.get("--odd");
 const outDir = cli.get("--out") || "output";
+const stamp = generatedStamp(cli);
 
 if (!oddPath) {
   console.error("Usage: node odd-to-unified.mjs --odd <path> [--out <dir>]");
@@ -319,7 +320,7 @@ function generateHandlersModule(elements) {
     ` * unified/xast handler functions generated from TEI ODD Processing Model`,
     ` *`,
     ` * Source ODD: ${basename(oddPath)}`,
-    ` * Generated: ${new Date().toISOString()}`,
+    ...(stamp ? [` * Generated: ${stamp}`] : []),
     ` *`,
     ` * This module exports a teiToHast() function that converts a TEI/XML xast`,
     ` * tree to hast (HTML AST), using handler functions derived from the ODD's`,

@@ -15,7 +15,7 @@ import {
   createOddParser, findElementSpecs, extractModels,
 } from "./odd-parser.mjs";
 import { BEHAVIOURS } from "./behaviour-map.mjs";
-import { parseArgs, createLogger, writeOut, escapeXml as escXml } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, escapeXml as escXml, generatedStamp } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -25,6 +25,7 @@ const log = createLogger("odd-to-xslt");
 
 const oddPath = cli.get("--odd");
 const outDir = cli.get("--out") || "output";
+const stamp = generatedStamp(cli);
 
 if (!oddPath) {
   console.error("Usage: node odd-to-xslt.mjs --odd <path> [--out <dir>]");
@@ -270,7 +271,7 @@ function generateXSLT(elements) {
     `<!--`,
     `  XSLT 1.0 stylesheet generated from TEI ODD Processing Model`,
     `  Source: ${basename(oddPath)}`,
-    `  Generated: ${new Date().toISOString()}`,
+    ...(stamp ? [`  Generated: ${stamp}`] : []),
     ``,
     `  Unlike the CSS output, this stylesheet can express ALL 25 PM behaviours`,
     `  including note, link, alternate, and graphic. XPath predicates are`,

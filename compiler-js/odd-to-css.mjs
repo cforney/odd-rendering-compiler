@@ -16,7 +16,7 @@ import {
   createOddParser, findElementSpecs, extractModels, extractRenditions,
 } from "./odd-parser.mjs";
 import { behaviourBaseCss, BEHAVIOURS } from "./behaviour-map.mjs";
-import { parseArgs, createLogger, writeOut, teiClass } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, teiClass, generatedStamp } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI + parse
@@ -26,6 +26,7 @@ const log = createLogger("odd-to-css");
 
 const oddPath = cli.get("--odd");
 const outDir = cli.get("--out") || "output";
+const stamp = generatedStamp(cli);
 
 if (!oddPath) {
   console.error("Usage: node odd-to-css.mjs --odd <path> [--out <dir>]");
@@ -110,7 +111,7 @@ function generateCSS(elements, renditions = []) {
     "/* ============================================================ */",
     "/* CSS generated from TEI ODD Processing Model                  */",
     `/* Source: ${basename(oddPath)}                                  */`,
-    `/* Generated: ${new Date().toISOString()}                        */`,
+    ...(stamp ? [`/* Generated: ${stamp}                        */`] : []),
     "/* ============================================================ */",
     "",
     "/* Convention: each TEI element is rendered as a semantic HTML tag that  */",

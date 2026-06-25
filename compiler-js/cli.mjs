@@ -200,6 +200,18 @@ export function createLogger(scope) {
   return (...parts) => console.log(prefix, ...parts);
 }
 
+/**
+ * Timestamp for a generated file's header, or null when the date should be
+ * omitted for reproducible output. Pass `--no-timestamp`, or set
+ * SOURCE_DATE_EPOCH (Unix seconds) to pin it.
+ */
+export function generatedStamp(cli) {
+  if (cli?.has?.("--no-timestamp")) return null;
+  const epoch = process.env.SOURCE_DATE_EPOCH;
+  if (epoch && /^\d+$/.test(epoch)) return new Date(Number(epoch) * 1000).toISOString();
+  return new Date().toISOString();
+}
+
 // ---------------------------------------------------------------------------
 // File output
 // ---------------------------------------------------------------------------
