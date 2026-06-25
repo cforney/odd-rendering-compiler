@@ -166,8 +166,6 @@ a.tei-pb img { display: block; width: 100%; height: auto; }
                   <p>Every Processing-Model behaviour is compiled into an XSLT template; XPath predicates stay native XSLT match patterns, so there is no translation gap. Footnotes are collected at the document end.</p>
                 </axsl:otherwise>
               </axsl:choose>
-              <p><strong>Styling:</strong> from <code>edition.css</code> (<code>odd-to-css.xsl</code>) plus <code>@rendition</code> &#8594; <code>r-&lt;id&gt;</code> classes.</p>
-              <p><strong>Notes collected:</strong> <axsl:value-of select="count(//tei:note)"/></p>
             </div>
             <axsl:if test="$interactive = 'true'">
               <div class="facs-toggle"><button type="button" data-facs-toggle="">Hide facsimiles</button></div>
