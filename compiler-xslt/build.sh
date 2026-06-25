@@ -13,9 +13,16 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Java classpath separator: ';' on Windows (incl. git-bash, which calls the
+# native java.exe), ':' on Linux/macOS.
+case "$(uname -s)" in
+  CYGWIN*|MINGW*|MSYS*) SEP=';' ;;
+  *) SEP=':' ;;
+esac
+
 SAXON_HOME="${SAXON_HOME:-./vendor/SaxonHE12-9J}"
 SAXON_JAR="$(ls "$SAXON_HOME"/saxon-he-12*.jar 2>/dev/null | grep -v test | grep -v xqj | head -1 || true)"
-RESOLVER="$(ls "$SAXON_HOME"/lib/xmlresolver-*.jar 2>/dev/null | tr '\n' ';' || true)"
+RESOLVER="$(ls "$SAXON_HOME"/lib/xmlresolver-*.jar 2>/dev/null | tr '\n' "$SEP" || true)"
 [ -n "$SAXON_JAR" ] || {
   echo "Saxon HE 12 not found under SAXON_HOME=$SAXON_HOME" >&2
   echo "  Set SAXON_HOME to your unpacked SaxonHE12 dir, e.g.:" >&2
@@ -23,7 +30,7 @@ RESOLVER="$(ls "$SAXON_HOME"/lib/xmlresolver-*.jar 2>/dev/null | tr '\n' ';' || 
   echo "  Download: https://www.saxonica.com/download/java.xml" >&2
   exit 1
 }
-CP="$SAXON_JAR;$RESOLVER"
+CP="$SAXON_JAR$SEP$RESOLVER"
 saxon() { java -cp "$CP" net.sf.saxon.Transform "$@"; }
 
 ODD="${1:-../examples/tei_simler.odd}"
