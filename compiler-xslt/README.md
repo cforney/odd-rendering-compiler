@@ -38,7 +38,10 @@ bash build.sh ../examples/tei_simler.odd ../examples/simler-buchstabwechsel.xml 
 Outputs: `edition.xsl`, `edition.css`, `rendered-xslt.html` (Tier 1, zero-JS),
 `rendered-xslt-interactive.html` (Tier 2, progressively enhanced), and — from
 `odd-to-ceteicean.xsl` — `tei-ceteicean-behaviours.js` plus a self-contained
-`rendered-ceteicean.html` that renders the TEI client-side with CETEIcean.
+`rendered-ceteicean.html` that renders the TEI client-side with CETEIcean. The
+build also renders the whole `simler-*.xml` corpus into `edition-interactive/`
+(one self-contained interactive page per source plus a linking `index.html`,
+built by `generate-index.xsl`).
 
 ## How "generate" works in XSLT
 

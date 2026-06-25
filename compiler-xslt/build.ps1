@@ -37,4 +37,20 @@ Write-Host "(2) render rendered-xslt.html  <- $Tei (static)"
 Invoke-Saxon @("-s:$Tei", "-xsl:output/edition.xsl", "-o:output/rendered-xslt.html")
 Write-Host "(2) render rendered-xslt-interactive.html  <- $Tei (progressively enhanced)"
 Invoke-Saxon @("-s:$Tei", "-xsl:output/edition.xsl", "-o:output/rendered-xslt-interactive.html", "interactive=true")
+
+# Corpus -> output/edition-interactive/: one interactive page per source plus a
+# linking index.html, mirroring the JS render:multi output. The corpus is every
+# simler-*.xml next to $Tei.
+$teiDir = Split-Path -Parent $Tei
+Write-Host "(3) corpus output/edition-interactive/  <- $teiDir/simler-*.xml"
+New-Item -ItemType Directory -Force output/edition-interactive | Out-Null
+$names = @()
+Get-ChildItem "$teiDir/simler-*.xml" | Sort-Object Name | ForEach-Object {
+  Invoke-Saxon @("-s:$($_.FullName)", "-xsl:output/edition.xsl", "-o:output/edition-interactive/$($_.BaseName).html", "interactive=true")
+  $names += $_.Name
+}
+$filesParam = $names -join '|'
+$subtitle = "$($names.Count) documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
+Invoke-Saxon @("-s:$Odd", "-xsl:generate/generate-index.xsl", "-o:output/edition-interactive/index.html",
+  "files=$filesParam", "title=TEI Edition — XSLT (progressively enhanced)", "subtitle=$subtitle")
 Write-Host "done."

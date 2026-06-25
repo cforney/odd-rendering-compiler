@@ -85,17 +85,16 @@
     <xsl:text>/* edition.css — generated from the TEI ODD Processing Model (odd-to-css.xsl).&#10;</xsl:text>
     <xsl:text>   The visual subset of the PM: one rule per &lt;model&gt;, display + outputRendition. */&#10;&#10;</xsl:text>
 
+    <xsl:apply-templates select="$specs" mode="css"/>
+
     <!-- Source renditions declared in <tagsDecl> (the simplePrint @rendition convention) -->
     <xsl:variable name="rends" select="//tei:tagsDecl/tei:rendition[@xml:id]"/>
     <xsl:if test="$rends">
-      <xsl:text>/* Source renditions (from &lt;tagsDecl&gt;, via @rendition) */&#10;</xsl:text>
+      <xsl:text>&#10;/* Source renditions (from &lt;tagsDecl&gt;, via @rendition) */&#10;</xsl:text>
       <xsl:for-each select="$rends">
         <xsl:value-of select="'.r-' || @xml:id || ' { ' || normalize-space(.) || ' }&#10;'"/>
       </xsl:for-each>
-      <xsl:text>&#10;</xsl:text>
     </xsl:if>
-
-    <xsl:apply-templates select="$specs" mode="css"/>
   </xsl:template>
 
   <xsl:template match="tei:elementSpec" mode="css">

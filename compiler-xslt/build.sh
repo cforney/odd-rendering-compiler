@@ -52,4 +52,23 @@ saxon -s:"$TEI" -xsl:output/edition.xsl -o:output/rendered-xslt.html
 echo "② render    rendered-xslt-interactive.html  ← $TEI (progressively enhanced)"
 saxon -s:"$TEI" -xsl:output/edition.xsl -o:output/rendered-xslt-interactive.html interactive=true
 
-echo "done — output/{edition.xsl, edition.css, rendered-xslt.html, rendered-xslt-interactive.html, tei-ceteicean-behaviours.js, rendered-ceteicean.html}"
+# Corpus → output/edition-interactive/: one interactive page per source plus a
+# linking index.html, mirroring the JS render:multi output. The corpus is every
+# simler-*.xml next to $TEI (the glob expands alphabetically, as the JS glob does).
+TEI_DIR="$(dirname "$TEI")"
+echo "③ corpus    output/edition-interactive/  ← $TEI_DIR/simler-*.xml"
+mkdir -p output/edition-interactive
+NAMES=""
+COUNT=0
+for f in "$TEI_DIR"/simler-*.xml; do
+  base="$(basename "$f" .xml)"
+  saxon -s:"$f" -xsl:output/edition.xsl -o:"output/edition-interactive/$base.html" interactive=true
+  NAMES="${NAMES:+$NAMES|}$(basename "$f")"
+  COUNT=$((COUNT + 1))
+done
+saxon -s:"$ODD" -xsl:generate/generate-index.xsl -o:output/edition-interactive/index.html \
+  files="$NAMES" \
+  title="TEI Edition — XSLT (progressively enhanced)" \
+  subtitle="$COUNT documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
+
+echo "done — output/{edition.xsl, edition.css, rendered-xslt.html, rendered-xslt-interactive.html, tei-ceteicean-behaviours.js, rendered-ceteicean.html, edition-interactive/}"
