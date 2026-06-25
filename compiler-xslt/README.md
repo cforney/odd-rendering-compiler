@@ -6,9 +6,8 @@ artefacts (an `edition.xsl` stylesheet and an `edition.css`) by XSLT itself, whi
 then run over a TEI document to produce static HTML. (The JavaScript implementation
 of the same chain is in [`../compiler-js`](../compiler-js).)
 
-Run with no arguments it builds the **Simler** edition — Fraktur renditions,
-entities coloured by `@type`, and CSS-grid acrostic layouts — so the page is richly
-styled.
+Run with no arguments, it builds the **Simler** edition — Fraktur renditions,
+entities coloured by `@type`, and CSS-grid acrostic layouts.
 
 ```
 compiler-xslt/

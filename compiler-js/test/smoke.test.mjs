@@ -1,21 +1,12 @@
 /**
- * smoke.test.mjs
+ * End-to-end smoke tests for the canonical pipeline (odd-to-css →
+ * odd-to-unified → render-unified), using only Node's built-in test runner.
+ * Run with `npm test`.
  *
- * End-to-end smoke tests for the canonical pipeline, using only Node's built-in
- * test runner and assert (no extra dependencies). Run with:
- *
- *   npm test            (→ node --test)
- *
- * The suite exercises the dependency-free happy path over the shipping example
- * inputs (the Simler edition + the TEI's simplePrint exemplar):
- *   1. odd-to-css.mjs      ODD → edition.css
- *   2. odd-to-unified.mjs  ODD → tei-handlers.mjs
- *   3. render-unified.mjs  tei-handlers.mjs + TEI → rendered HTML
- *
- * and asserts the rendered HTML actually contains a heading, a footnote
- * reference, a tagged entity, an apparatus, and a compiled facsimile — proving
- * the pipeline genuinely runs end to end rather than just exiting 0. The
- * XSLT/CETEIcean paths need optional engines, so they are out of scope here.
+ * Each test asserts the rendered HTML actually contains the expected output — a
+ * heading, a footnote ref, a tagged entity, an apparatus, a compiled facsimile —
+ * so a passing run means the pipeline ran end to end, not just exited 0. The
+ * XSLT and CETEIcean paths need optional engines and are out of scope here.
  */
 
 import { test, before, after } from "node:test";

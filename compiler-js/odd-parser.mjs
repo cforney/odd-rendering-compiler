@@ -1,18 +1,9 @@
 /**
- * odd-parser.mjs
- *
- * Shared ODD extraction library for all generator modules.
- *
- * Provides:
- *   - createOddParser()    — ODD parser (parse-xml) → extractor object tree
- *   - parseXmlToXast()     — TEI/XML → xast tree (for the unified renderers)
- *   - parseXmlToPreserveOrder() — TEI/XML → preserveOrder array (web components)
- *   - findElementSpecs()   — recursive elementSpec extraction
- *   - findClassSpecs()     — recursive classSpec extraction
- *   - extractModels()      — PM model/modelSequence extraction
- *   - extractAttDefs()     — attList / attDef / valList extraction
- *   - arr()                — coerce to array
- *   - textContent()        — recursive text extraction from parsed nodes
+ * Shared ODD extraction library used by every generator. Wraps
+ * @rgrove/parse-xml and exposes the parsers (createOddParser, parseXmlToXast,
+ * parseXmlToPreserveOrder), the spec finders (findElementSpecs, findClassSpecs),
+ * the model/attribute extractors (extractModels, extractAttDefs,
+ * extractRenditions), and small helpers (arr, textContent, extractTeiTitle).
  */
 
 import { parseXml } from "@rgrove/parse-xml";
@@ -20,10 +11,9 @@ import { parseXml } from "@rgrove/parse-xml";
 // ---------------------------------------------------------------------------
 // XML Parser factory
 // ---------------------------------------------------------------------------
-// XML is parsed with @rgrove/parse-xml. parse-xml returns a clean, ordered node
-// tree; createOddParser() adapts it to the object shape the extraction
-// functions below expect, and parseXmlToXast()/parseXmlToPreserveOrder() expose
-// the two tree shapes the renderers consume.
+// parse-xml returns a clean, ordered node tree. createOddParser() adapts it to
+// the object shape the extractors expect; parseXmlToXast()/
+// parseXmlToPreserveOrder() expose the two tree shapes the renderers consume.
 
 const DEFAULT_ARRAY_TAGS = [
   "elementSpec", "model", "modelSequence", "modelGrp",
@@ -72,28 +62,23 @@ function buildValue(el, arrayTags) {
 /**
  * Resolve `<specGrpRef target="#id"/>` indirection within a single document.
  *
- * Real-world ODDs rarely list every `<elementSpec>` inline under `<schemaSpec>`.
- * They keep reusable groups of specs in `<specGrp xml:id="…">` blocks (often in
- * the body or `<back>`) and pull them into the schema with
- * `<specGrpRef target="#id"/>`. This expands each reference in place — in
- * reference order — with a copy of the matching group's children, so the
- * extractors that follow see the schema as it is actually composed. The TEI's
- * own `tei_simplePrint` ODD is built this way (seven `<specGrpRef>`s).
+ * Many ODDs keep reusable specs in `<specGrp xml:id="…">` blocks and pull them
+ * into the schema with `<specGrpRef target="#id"/>` rather than inlining every
+ * `<elementSpec>` (the TEI's own tei_simplePrint uses seven references). This
+ * expands each reference in place, in reference order, so the extractors see the
+ * composed schema.
  *
- * Scope is deliberately single-document — not the full `odd2odd` flattening:
+ * Single-document scope, not full odd2odd flattening:
  *   - external `@source` modules are not fetched;
- *   - an addressable `<specGrp xml:id="…">` is a library entry, contributing
- *     only where it is referenced — so an unreferenced group is not silently
- *     merged into the schema, and a referenced one is never double-counted;
- *   - a `<specGrp>` without `xml:id` is an inline grouping and is kept in place;
- *   - a reference to a missing id is dropped with a warning (e.g. simplePrint
- *     references `#simplechanges`, which it never defines);
- *   - cyclic references are broken by a visited-set guard;
- *   - a group referenced more than once is expanded each time (not deduplicated).
+ *   - an addressable `<specGrp xml:id>` contributes only where referenced (an
+ *     unreferenced group is skipped, not merged);
+ *   - a `<specGrp>` without `xml:id` is an inline grouping, kept in place;
+ *   - a missing target is dropped with a warning;
+ *   - cycles are broken by a visited-set guard;
+ *   - a group referenced more than once is expanded each time.
  *
- * Returns a (possibly rewritten) copy of the root element. When the document
- * contains no `<specGrpRef>`, the original tree is returned untouched, so
- * existing self-contained ODDs produce byte-for-byte identical output.
+ * Returns a rewritten copy of the root, or the original tree unchanged when the
+ * document has no `<specGrpRef>`.
  *
  * @param {object} root — a parse-xml element node (the document root)
  * @param {(msg:string)=>void} [warn] — sink for unresolved/cyclic warnings
@@ -152,10 +137,9 @@ export function resolveSpecGrpRefs(root, warn = (m) => console.error(m)) {
 }
 
 /**
- * Create an ODD parser whose `.parse(xml)` returns the extractor-friendly
- * object tree. Drop-in replacement for the previous fast-xml-parser instance.
- * `<specGrpRef>` indirection is resolved within the document first (see
- * resolveSpecGrpRefs), so the extractors see a self-contained schema.
+ * Create an ODD parser whose `.parse(xml)` returns the extractor-friendly object
+ * tree. `<specGrpRef>` indirection is resolved first (see resolveSpecGrpRefs),
+ * so the extractors see a self-contained schema.
  * @param {string[]} [extraArrayTags] — additional tag names to force as arrays
  */
 export function createOddParser(extraArrayTags = []) {
@@ -195,9 +179,8 @@ export function parseXmlToXast(xml) {
 
 /**
  * Parse TEI/XML into the preserveOrder array shape (`{ tag: [children] }`,
- * `{ '#text': value }`, attributes under `:@`) consumed by the web-components
- * renderer's walk(). The leading XML declaration is reproduced as a `?xml`
- * node so that renderer's output is unchanged.
+ * `{ '#text': value }`, attributes under `:@`). The leading XML declaration is
+ * reproduced as a `?xml` node. Used by the preserveOrder-based renderer.
  */
 export function parseXmlToPreserveOrder(xml) {
   const toPO = (n) => {
@@ -395,14 +378,11 @@ export function extractAttDefs(spec) {
 }
 
 /**
- * Extract source-appearance renditions declared in <tagsDecl>.
- *
- * Following the tei_simplePrint convention, an edition records how a passage
- * *looks in the source* as <rendition xml:id="…" scheme="css">…</rendition>
- * declarations in the header's <tagsDecl>, pointed to from the global
- * @rendition attribute. These are presentational CSS the editors already
- * maintain inside the ODD/TEI — a second stylesheet source alongside the
- * Processing Model's <outputRendition>. Returns { id, scheme, css } records.
+ * Extract source-appearance renditions from <tagsDecl>. Following the
+ * tei_simplePrint convention, how a passage looks in the source is recorded as
+ * <rendition xml:id="…" scheme="css">…</rendition> in the header and pointed to
+ * from @rendition — presentational CSS the editors maintain alongside the PM's
+ * <outputRendition>. Returns { id, scheme, css } records.
  */
 export function extractRenditions(obj, out = []) {
   if (!obj || typeof obj !== "object") return out;

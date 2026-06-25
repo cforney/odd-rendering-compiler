@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  odd-to-xsl.xsl  —  the "generate" step, done the XSLT way.
+  odd-to-xsl.xsl — the "generate" step, done the XSLT way.
 
-  Reads a TEI ODD and GENERATES a rendering stylesheet (edition.xsl) from its
-  Processing Model. This is the XSLT counterpart of the JS reference implementation's
-  odd-to-unified.mjs / odd-to-xslt.mjs: it shows that the *generate* step is
-  itself generic — it can be written in any language, here in XSLT itself.
+  Reads a TEI ODD and generates a rendering stylesheet (edition.xsl) from its
+  Processing Model — the XSLT counterpart of odd-to-unified.mjs / odd-to-xslt.mjs,
+  showing the generate step can be written in any language, here in XSLT itself.
 
-  Idiomatic technique: <xsl:namespace-alias>. Elements we want to appear as
-  `xsl:*` in the generated stylesheet are written here in the `axsl:` namespace
-  and aliased to the real XSLT namespace on output. Literal HTML elements (div,
-  span, h2 …) are written in no namespace and pass straight through.
-
-  The axsl / xsl split is the whole game:
-    * xsl:*  runs NOW, over the ODD     (choose tag, bake class/style, dispatch)
-    * axsl:* runs LATER, over the TEI   (apply-templates, value-of @target, …)
+  Technique: <xsl:namespace-alias>. Elements that must appear as `xsl:*` in the
+  generated stylesheet are written in the `axsl:` namespace and aliased to the
+  XSLT namespace on output; literal HTML (div, span, h2 …) passes straight
+  through. The two evaluation times are the key:
+    * xsl:*  runs now, over the ODD    (choose tag, bake class/style, dispatch)
+    * axsl:* runs later, over the TEI  (apply-templates, value-of @target, …)
 
   Run:  saxon  -s:../examples/tei_simler.odd  -xsl:generate/odd-to-xsl.xsl
                -o:output/edition.xsl
@@ -31,19 +28,13 @@
   <xsl:output method="xml" indent="yes"/>
   <xsl:namespace-alias stylesheet-prefix="axsl" result-prefix="xsl"/>
 
-  <!-- ===================================================================== -->
-  <!-- Resolve <specGrpRef> indirection within one document.                  -->
-  <!--                                                                        -->
-  <!-- Real ODDs (incl. the TEI's own tei_simplePrint) compose the schema     -->
-  <!-- from <specGrp xml:id="…"> groups pulled in with <specGrpRef            -->
-  <!-- target="#id"/>, rather than inlining every <elementSpec>. This returns -->
-  <!-- the elementSpecs in schema-composition (reference) order. Scope is     -->
-  <!-- single-document — no @source fetching, no full odd2odd flattening:     -->
-  <!--   * an addressable <specGrp xml:id> contributes only where referenced; -->
-  <!--   * an unreferenced (library) group is skipped, not merged;            -->
-  <!--   * a dangling reference is ignored;                                   -->
-  <!--   * a visited-set guard breaks reference cycles.                       -->
-  <!-- ===================================================================== -->
+  <!-- Resolve <specGrpRef> within one document, returning the elementSpecs in
+       reference order. Real ODDs (incl. tei_simplePrint) compose the schema from
+       <specGrp xml:id="…"> groups pulled in with <specGrpRef target="#id"/>.
+       Single-document scope: no @source fetching, no odd2odd flattening; an
+       addressable <specGrp> contributes only where referenced, unreferenced
+       groups and dangling references are skipped, and a visited-set guard breaks
+       cycles. -->
   <xsl:function name="local:schema-specs" as="element(tei:elementSpec)*">
     <xsl:param name="nodes" as="node()*"/>
     <xsl:param name="seen" as="xs:string*"/>
@@ -75,8 +66,8 @@
             then local:schema-specs(//tei:schemaSpec/node(), ())[tei:model or tei:modelSequence]
             else //tei:elementSpec[tei:model or tei:modelSequence]"/>
 
-  <!-- behaviour → HTML element. The single source of truth for simple
-       wrapper behaviours, mirroring the JS behaviour-map. -->
+  <!-- behaviour → HTML element for simple wrapper behaviours (mirrors the JS
+       behaviour-map). -->
   <xsl:variable name="tag" as="map(xs:string, xs:string)" select="map {
     'inline'   : 'span',
     'block'    : 'div',
@@ -93,9 +84,7 @@
     'cell'     : 'td'
   }"/>
 
-  <!-- ===================================================================== -->
-  <!-- Root: emit the edition.xsl skeleton, then a template per elementSpec   -->
-  <!-- ===================================================================== -->
+  <!-- Root: emit the edition.xsl skeleton, then a template per elementSpec. -->
   <xsl:template match="/">
     <axsl:stylesheet version="3.0" exclude-result-prefixes="tei local">
       <!-- tei and local must survive onto the generated stylesheet
@@ -225,9 +214,7 @@ document.addEventListener('click', function (e) {
     </axsl:stylesheet>
   </xsl:template>
 
-  <!-- ===================================================================== -->
-  <!-- One elementSpec → one or more <xsl:template>s                          -->
-  <!-- ===================================================================== -->
+  <!-- One elementSpec → one or more <xsl:template>s. -->
   <xsl:template match="tei:elementSpec" mode="spec">
     <xsl:variable name="ident" select="@ident"/>
     <xsl:variable name="models" select="tei:model"/>
@@ -258,9 +245,7 @@ document.addEventListener('click', function (e) {
     </xsl:if>
   </xsl:template>
 
-  <!-- ===================================================================== -->
-  <!-- Emit the body of one template for a given <model>                      -->
-  <!-- ===================================================================== -->
+  <!-- Emit the body of one template for a given <model>. -->
   <xsl:template name="emit-body">
     <xsl:param name="model" as="element(tei:model)"/>
     <xsl:param name="ident" as="xs:string"/>

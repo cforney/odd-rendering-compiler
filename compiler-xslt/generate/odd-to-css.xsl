@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  odd-to-css.xsl  —  the "generate" step for the CSS floor, in XSLT.
+  odd-to-css.xsl — the "generate" step for the CSS floor, in XSLT.
 
   Reads a TEI ODD and emits edition.css from the Processing Model: one rule per
-  <model>, with the behaviour's base `display` plus the <outputRendition>
-  declarations. Simple `@a='v'` predicates become attribute selectors
-  (`.tei-x[data-a="v"]`); predicates CSS cannot express are emitted as a comment
-  (the "untranslatable predicate" floor edge) — mirroring the JS odd-to-css.
-
-  This is the XSLT counterpart of odd-to-css.mjs's CSS path: it is functionally
-  equivalent (same selectors and declarations); it does not attempt to match that
-  tool's byte-for-byte whitespace.
+  <model> with the behaviour's `display` plus its <outputRendition> declarations.
+  Simple `@a='v'` predicates become attribute selectors (.tei-x[data-a="v"]); the
+  rest are emitted as comments. The XSLT counterpart of odd-to-css.mjs — same
+  selectors and declarations, but not its exact whitespace.
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/odd-to-css.xsl
               -o:output/edition.css
@@ -25,19 +21,13 @@
 
   <xsl:output method="text" encoding="UTF-8"/>
 
-  <!-- ===================================================================== -->
-  <!-- Resolve <specGrpRef> indirection within one document.                  -->
-  <!--                                                                        -->
-  <!-- Real ODDs (incl. the TEI's own tei_simplePrint) compose the schema     -->
-  <!-- from <specGrp xml:id="…"> groups pulled in with <specGrpRef            -->
-  <!-- target="#id"/>, rather than inlining every <elementSpec>. This returns -->
-  <!-- the elementSpecs in schema-composition (reference) order. Scope is     -->
-  <!-- single-document — no @source fetching, no full odd2odd flattening:     -->
-  <!--   * an addressable <specGrp xml:id> contributes only where referenced; -->
-  <!--   * an unreferenced (library) group is skipped, not merged;            -->
-  <!--   * a dangling reference is ignored;                                   -->
-  <!--   * a visited-set guard breaks reference cycles.                       -->
-  <!-- ===================================================================== -->
+  <!-- Resolve <specGrpRef> within one document, returning the elementSpecs in
+       reference order. Real ODDs (incl. tei_simplePrint) compose the schema from
+       <specGrp xml:id="…"> groups pulled in with <specGrpRef target="#id"/>.
+       Single-document scope: no @source fetching, no odd2odd flattening; an
+       addressable <specGrp> contributes only where referenced, unreferenced
+       groups and dangling references are skipped, and a visited-set guard breaks
+       cycles. -->
   <xsl:function name="local:schema-specs" as="element(tei:elementSpec)*">
     <xsl:param name="nodes" as="node()*"/>
     <xsl:param name="seen" as="xs:string*"/>

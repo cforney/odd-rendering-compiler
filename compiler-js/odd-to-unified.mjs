@@ -1,31 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * odd-to-unified.mjs
+ * Compile a TEI ODD Processing Model to a unified/xast handler module: an ES
+ * module mapping TEI elements to hast (HTML AST) handlers. The unified/xast
+ * companion to odd-to-css.mjs and odd-to-xslt.mjs.
  *
- * Build-time pipeline: TEI ODD Processing Model → unified/xast handler map
+ * It evaluates XPath predicates as JS at build time (no translation step),
+ * covers every PM behaviour, and runs in Node with no XSLT engine; the hast
+ * output plugs into the unified ecosystem (rehype, Astro/Eleventy).
  *
- * Generates a JavaScript module that maps TEI elements to hast (HTML AST)
- * transformation handlers, driven by the ODD's Processing Model. This is
- * the unified/xast companion to odd-to-css.mjs (CSS) and odd-to-xslt.mjs
- * (XSLT).
- *
- * Unlike the CSS output, this pipeline can:
- * - Evaluate XPath predicates at build time (no translation gap)
- * - Handle all 25 PM behaviours including note, link, alternate, graphic
- * - Resolve @useSourceRendition by reading <rendition> from the TEI header
- *
- * Unlike the XSLT output, this pipeline:
- * - Runs in Node.js (no Saxon or browser XSLT processor needed)
- * - Produces a hast tree that integrates with the unified ecosystem
- *   (rehype plugins, markdown pipelines, Astro/Eleventy content layers)
- *
- * Usage:
- *   node odd-to-unified.mjs --odd <path-to-odd> [--tei <tei-file>] [--out <output-dir>]
- *
- * Outputs:
- *   <output-dir>/tei-handlers.mjs   — ES module with handler functions
- *   <output-dir>/unified-result.html — (if --tei given) rendered HTML
+ * Usage:  node odd-to-unified.mjs --odd <path> [--out <dir>]
+ * Output: <dir>/tei-handlers.mjs   (render it with render-unified.mjs)
  */
 
 import { readFileSync } from "fs";
@@ -71,21 +56,13 @@ log(`  With PM: ${elements.filter((e) => e.models.length > 0).length}`);
 // ---------------------------------------------------------------------------
 // Generate tei-handlers.mjs — a unified/xast handler module
 // ---------------------------------------------------------------------------
-// NOTE ON STRING GENERATION: this module emits JavaScript *source* (handler
-// bodies built from template strings) rather than emitting data interpreted by
-// a fixed runtime. The trade-off is deliberate: the generated tei-handlers.mjs
-// is a standalone ESM module a reader can open and run without this generator.
-// Because the output is code, every ODD-derived value spliced into a string
-// literal goes through escStr (cli.mjs's escapeJsString), which escapes
-// backslashes, quotes, backticks and ${ so generated literals cannot be broken
-// out of. Simple element behaviours take their HTML tag from the shared
-// behaviour-map.mjs table rather than re-listing it here.
+// This emits JavaScript source, not data for a runtime, so tei-handlers.mjs is
+// a standalone module a reader can run without this generator. Every ODD-derived
+// value spliced into a string literal goes through escStr (escapeJsString) so it
+// can't break out of the literal. Simple behaviours take their tag from
+// behaviour-map.mjs.
 
-/**
- * Translate a PM @predicate to a JavaScript function body.
- * This is the key advantage over CSS: we can evaluate XPath predicates
- * as JS conditions over the xast tree at build time.
- */
+/** Translate a PM @predicate to a JS condition over the xast tree (evaluated at build time). */
 function predicateToJS(pred) {
   if (!pred) return null;
 

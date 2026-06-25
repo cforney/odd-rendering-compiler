@@ -221,15 +221,11 @@ export function writeOut(outDir, filename, content) {
 // ---------------------------------------------------------------------------
 
 /**
- * The single HTML class prefix that marks a rendered TEI element: a TEI
- * `<persName>` becomes `<span class="tei-persName">`, a `<head>` becomes
- * `<h1 class="tei-head">`, and so on. TEI attributes are mirrored as `data-*`
- * attributes (`@type` → `data-type`).
- *
- * Centralised here so the CSS generator (`odd-to-css`) and the renderers
- * agree on ONE convention — the prerequisite for the prebuilt-HTML tier and the
- * generated-CSS tier to actually compose. The unified/xast and XSLT generators 
- * already emit this same `tei-<ident>` literal.
+ * Class prefix for a rendered TEI element: `<persName>` → `<span
+ * class="tei-persName">`, `<head>` → `<h1 class="tei-head">`. TEI attributes
+ * are mirrored as `data-*` (`@type` → `data-type`). Centralised so the CSS
+ * generator and the renderers share one convention; the unified/xast and XSLT
+ * generators emit the same `tei-<ident>` literal directly.
  */
 export const TEI_CLASS_PREFIX = "tei-";
 
@@ -240,11 +236,7 @@ export const teiClass = (ident) => TEI_CLASS_PREFIX + ident;
 // Escaping
 // ---------------------------------------------------------------------------
 
-/**
- * Escape text for HTML/XML element content or double-quoted attribute values.
- * Consolidates the former escapeHtml / escHtml / escXml / esc helpers, which
- * were byte-for-byte identical apart from their names.
- */
+/** Escape text for HTML/XML content or double-quoted attribute values. */
 export function escapeXml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -271,11 +263,9 @@ export function escapeJsString(value) {
 }
 
 /**
- * Make text safe to embed inside a JavaScript block comment. ODD predicates can
- * legitimately contain the comment-terminator sequence (an asterisk directly
- * followed by a slash, as in an XPath wildcard child step), which would
- * otherwise close the comment early and break the generated code; a space is
- * inserted between the two characters to neutralise it while staying readable.
+ * Make text safe inside a JS block comment. An ODD predicate can contain the
+ * comment terminator `* /` (e.g. an XPath wildcard child step), which would
+ * close the comment early; a space between the two chars neutralises it.
  */
 export function escapeJsComment(value) {
   return String(value).replace(/\*\//g, "* /");

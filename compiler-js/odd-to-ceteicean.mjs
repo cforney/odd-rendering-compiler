@@ -1,32 +1,17 @@
 #!/usr/bin/env node
 
 /**
- * odd-to-ceteicean.mjs
+ * Compile a TEI ODD Processing Model to CETEIcean behaviours plus a
+ * self-contained HTML page that renders the TEI in the browser.
  *
- * Build-time pipeline: TEI ODD Processing Model → CETEIcean behaviour
- * definitions + self-contained HTML rendering page.
+ * CETEIcean (https://github.com/TEIC/CETEIcean) registers TEI elements as
+ * `tei-` custom elements and applies "behaviours" — functions that reshape each
+ * element's DOM. PM predicates that map to CSS attribute selectors become
+ * CETEIcean predicate arrays; tree-context predicates (parent::, ancestor::) are
+ * evaluated in JS inside the behaviour.
  *
- * CETEIcean (https://github.com/TEIC/CETEIcean) is a JavaScript library
- * that renders TEI XML in the browser by registering custom elements with
- * a `tei-` prefix and applying "behaviours" — functions that transform
- * the DOM of each element.
- *
- * This script translates the ODD Processing Model to CETEIcean behaviour
- * definitions.  PM predicates that map to CSS attribute selectors are
- * emitted as CETEIcean predicate arrays; predicates requiring tree context
- * (parent::, ancestor::) are evaluated in JavaScript inside the behaviour.
- *
- * Pipeline:
- *   1. Parse ODD: extract elementSpecs with PM
- *   2. Map PM behaviours → CETEIcean behaviour definitions
- *   3. Output: tei-ceteicean-behaviours.js + rendered-ceteicean.html
- *
- * Usage:
- *   node odd-to-ceteicean.mjs --odd <path> --tei <path> [--out <dir>]
- *
- * Outputs:
- *   <output-dir>/tei-ceteicean-behaviours.js  — CETEIcean behaviour map
- *   <output-dir>/rendered-ceteicean.html      — self-contained HTML page
+ * Usage:   node odd-to-ceteicean.mjs --odd <path> --tei <path> [--out <dir>]
+ * Outputs: <dir>/tei-ceteicean-behaviours.js, <dir>/rendered-ceteicean.html
  */
 
 import { readFileSync } from "fs";
@@ -73,12 +58,10 @@ log(`  With PM: ${elements.filter(e => e.models.length > 0).length}`);
 // ---------------------------------------------------------------------------
 // Predicate translation: XPath → CETEIcean CSS selector (where possible)
 // ---------------------------------------------------------------------------
-// NOTE ON STRING GENERATION: like odd-to-unified, this module emits JavaScript
-// (CETEIcean behaviour function bodies) so the resulting tei-ceteicean-
-// behaviours.js runs directly in the browser. ODD-derived values spliced into
-// generated string literals pass through escStr (cli.mjs's escapeJsString).
-// Behaviours that just set a CSS `display` take that value from the shared
-// behaviour-map.mjs table.
+// Like odd-to-unified, this emits JavaScript (CETEIcean behaviour bodies) so the
+// resulting file runs directly in the browser; ODD-derived values go through
+// escStr (escapeJsString). Display-only behaviours take their value from
+// behaviour-map.mjs.
 
 /**
  * Try to convert an XPath predicate to a CETEIcean-compatible CSS selector.

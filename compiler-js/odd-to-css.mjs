@@ -1,20 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * odd-to-css.mjs
+ * Compile a TEI ODD Processing Model to CSS. Each <model> behaviour +
+ * <outputRendition> becomes a rule, and each <tagsDecl> rendition an .r-<id>
+ * rule. XPath predicates CSS can express become selectors; the rest are left as
+ * comments for the HTML and JS tiers to handle.
  *
- * Build-time pipeline: TEI ODD Processing Model → CSS rendering artefact.
- *
- * Compiles each <model> behaviour + <outputRendition> into CSS, and each
- * <tagsDecl> rendition into an .r-<id> rule. XPath predicates that CSS can
- * express become selectors; the rest are flagged as comments and resolved by
- * the prebuilt-HTML and JavaScript tiers instead.
- *
- * Usage:
- *   node odd-to-css.mjs --odd <path-to-odd> [--out <output-dir>]
- *
- * Output:
- *   <output-dir>/edition.css — CSS generated from the Processing Model
+ * Usage:  node odd-to-css.mjs --odd <path> [--out <dir>]
+ * Output: <dir>/edition.css
  */
 
 import { readFileSync } from "fs";
@@ -59,12 +52,11 @@ log(`Found ${elements.length} elementSpec(s); ${elements.filter((e) => e.models.
 // CSS declaration string.
 
 /**
- * Translate a simple XPath predicate into a CSS selector for the element
- * `ident`, using the shared HTML convention (see cli.mjs `teiClass`): each TEI
- * element is matched by its `tei-<ident>` class and each TEI attribute by a
- * `data-<attr>` selector. This is what makes the generated stylesheet style the
- * very DOM the renderers emit. Returns { selector, comment }, where `comment`
- * (when set) flags a predicate too complex to express in CSS.
+ * Translate a simple XPath predicate into a CSS selector for `ident`, using the
+ * shared convention (cli.mjs `teiClass`): a TEI element matches on its
+ * `tei-<ident>` class, an attribute on a `data-<attr>` selector — so the rules
+ * target the DOM the renderers emit. Returns { selector, comment }; `comment` is
+ * set when the predicate is too complex for CSS.
  */
 function predicateToCSS(pred, ident) {
   const base = `.${teiClass(ident)}`;

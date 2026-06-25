@@ -1,19 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * odd-to-xslt.mjs
+ * Compile a TEI ODD Processing Model to an XSLT 1.0 stylesheet. XSLT expresses
+ * every PM behaviour natively, including the ones that reshape the tree
+ * (alternate, note, link, graphic), and XPath predicates pass through verbatim.
  *
- * Build-time pipeline: TEI ODD Processing Model → XSLT 1.0 stylesheet
- *
- * Unlike the CSS output path, XSLT can natively express all 25 PM behaviours
- * including those that require DOM manipulation (alternate, note, link, graphic).
- * XPath predicates pass through verbatim — no translation gap.
- *
- * Usage:
- *   node odd-to-xslt.mjs --odd <path-to-odd> [--out <output-dir>]
- *
- * Outputs:
- *   <output-dir>/edition.xsl — XSLT 1.0 stylesheet generated from PM
+ * Usage:  node odd-to-xslt.mjs --odd <path> [--out <dir>]
+ * Output: <dir>/edition.xsl
  */
 
 import { readFileSync } from "fs";

@@ -86,11 +86,12 @@ to probe how far the CSS floor reaches on a large real-world ODD.
 
 ## Architecture
 
-All generators import from **`odd-parser.mjs`** (`createOddParser().parse()`,
-`findElementSpecs()`, `extractModels()`, …), share **`behaviour-map.mjs`** — one
-table mapping each PM behaviour to its HTML element, CSS `display`, and JS-required
-flag, so retargeting a behaviour is a one-line edit — and **`cli.mjs`** (arg
-parsing, file output, escaping, and the multi-file `--tei` resolver).
+All generators build on three shared modules: **`odd-parser.mjs`** (ODD
+extraction — `createOddParser().parse()`, `findElementSpecs()`,
+`extractModels()`, …), **`behaviour-map.mjs`** (one table from each PM behaviour
+to its HTML element, CSS `display`, and JS-required flag, so retargeting a
+behaviour is a one-line edit), and **`cli.mjs`** (args, file output, escaping,
+the multi-file `--tei` resolver).
 
 **`<specGrpRef>` resolution.** Real customisations keep reusable specs in
 `<specGrp xml:id="…">` blocks pulled in with `<specGrpRef target="#id"/>` (the TEI's

@@ -1,27 +1,21 @@
 /**
- * behaviour-map.mjs
+ * Maps each PM behaviour to its HTML element and base style. Every generator
+ * imports BEHAVIOURS and reads the fields it needs:
  *
- * THE single source of truth for "PM behaviour → HTML element + base style".
+ *   tag          HTML element (span/div/p/h/ul/…); used by the XSLT and
+ *                unified/xast paths.
+ *   display      CSS `display` value; used by the CSS and CETEIcean paths.
+ *                Absent where there is no single display (document root,
+ *                JS-driven, pass-through).
+ *   css          extra base declarations the CSS path appends after `display`.
+ *   requiresJS   behaviour needs a script at runtime; drives the CSS path's
+ *                "flagged for JS" warnings.
+ *   omit         produces no visible output.
+ *   passthrough  emits only its children.
  *
- * Each generator imports BEHAVIOURS and reads the fields it needs:
- *
- *   - tag         HTML element a behaviour maps to (span/div/p/h/ul/…).
- *                 Consumed by the XSLT, unified/xast, and JSON-mapping paths.
- *   - display     CSS `display` value for behaviours laid out by CSS alone.
- *                 Consumed by the CSS path (odd-to-css) and the CETEIcean
- *                 path. Absent for behaviours that have no single CSS display
- *                 (document root, JS-driven, pass-through).
- *   - css         Extra base CSS declarations the CSS path appends after the
- *                 `display` rule (e.g. list padding, paragraph margins).
- *   - requiresJS  true for behaviours that cannot be expressed in static CSS
- *                 and need a script (e.g. a CETEIcean behaviour) at runtime.
- *                 Drives the CSS path's "flagged for JS" warnings.
- *   - omit        true for behaviours that produce no visible output.
- *   - passthrough true for behaviours that emit only their children.
- *
- * Behaviours whose richer logic genuinely differs per pipeline (note, link,
- * alternate, graphic, heading levels, …) still carry their DOM-manipulation
- * code inside each generator; only the shared element/style core lives here.
+ * Behaviours with per-pipeline logic (note, link, alternate, graphic, heading)
+ * keep their DOM code in each generator; only the shared element/style core is
+ * here.
  */
 
 export const BEHAVIOURS = {
@@ -76,10 +70,9 @@ export const JS_BEHAVIOURS = new Set(
 );
 
 /**
- * Base CSS declaration string for a behaviour, as used by the CSS path.
- * Returns a real `display: …;` rule for behaviours with a CSS display, or a
- * CSS-comment sentinel (never emitted as a property) for behaviours that have
- * no static CSS representation.
+ * Base CSS declaration for a behaviour: a real `display: …;` rule where the
+ * behaviour has a display, otherwise a CSS-comment sentinel (never emitted as a
+ * property) for behaviours with no static CSS form.
  */
 export function behaviourBaseCss(behaviour) {
   const def = BEHAVIOURS[behaviour];

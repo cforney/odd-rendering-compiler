@@ -1,43 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * render-unified-interactive.mjs
+ * The interactive variant of render-unified.mjs. It reuses the same
+ * tei-handlers.mjs but post-processes the hast tree to inject petite-vue
+ * (https://github.com/vuejs/petite-vue) directives: notes become inline
+ * open/close toggles and choice/alternate elements toggle between readings on
+ * click. The page is fully rendered at build time and stays readable without JS
+ * (graceful degradation); petite-vue (~7 KB) adds the interactivity at load.
  *
- * ⑤ Interactive unified pipeline: TEI XML → HTML with petite-vue directives
- * for reactive behaviours (note toggle, choice/alternate toggle).
+ * As in render-unified.mjs, edition.css is inlined and this script owns only the
+ * page chrome and interactive scaffolding. --tei accepts the same inputs; one
+ * input → rendered-unified-interactive.html, several → per-source pages + index.
  *
- * This script reuses the same tei-handlers.mjs from odd-to-unified.mjs but
- * post-processes the hast tree to inject petite-vue (https://github.com/vuejs/petite-vue)
- * directives.  The result is a page that is server-rendered at build time
- * (all content visible) and progressively enhanced with interactivity (~7 KB
- * petite-vue runtime).
- *
- * Compared to the static render-unified.mjs:
- *   - Notes are inline (toggle open/close) rather than a footnote section
- *   - Choice/alternate elements toggle between readings on click
- *   - All content is still visible without JS (graceful degradation)
- *
- * Pipeline:
- *   1. odd-to-unified.mjs            → tei-handlers.mjs  (build-time)
- *   2. render-unified-interactive.mjs → rendered HTML      (this script)
- *   3. petite-vue (CDN, ~7 KB)       → reactive UI        (browser)
- *
- * Multiple inputs: like render-unified.mjs, --tei accepts a single file, a
- * directory, a glob, a comma-separated list, or a repeated --tei flag. One
- * input → output/rendered-unified-interactive.html (as before); several →
- * one <basename>.html page per source plus an index.html.
- *
- * Usage:
- *   node render-unified-interactive.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
- *
- * Like render-unified.mjs, the ODD-generated edition.css (odd-to-css.mjs) is
- * inlined so element styling comes from the ODD, not a hand-maintained mapping;
- * this script owns only the demo page chrome and the interactive scaffolding
- * (note toggles, choice toggles, petite-vue directives).
- *
- * Outputs:
- *   <output-dir>/rendered-unified-interactive.html   (single input)
- *   <output-dir>/<basename>.html + index.html        (multiple inputs)
+ * Usage:  node render-unified-interactive.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
  */
 
 import {

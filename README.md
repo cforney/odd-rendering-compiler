@@ -20,6 +20,10 @@ The chain is implemented **twice — in JavaScript and in XSLT** — on purpose:
 produce a byte-identical static body. That equivalence is itself part of the
 article's argument.
 
+> **Note.** This is an illustrative reference implementation: it exists to make
+> the *define → generate → render* idea concrete and reproduce the article, not
+> as production code.
+
 ## What's here
 
 | Directory | What it is |
@@ -60,22 +64,15 @@ Outputs land in `compiler-xslt/output/`. See
 
 ## Examples, licensing, and credits
 
-- The **code** in this repository is licensed under **BSD-2-Clause** (see
-  [`LICENSE`](LICENSE)).
-- The **example texts** in [`examples/`](examples/) are **not** covered by that
-  licence. They remain under their originating projects' terms and are included
-  only as illustrative input — see [`examples/README.md`](examples/README.md) for
-  full provenance and credits (Simler Digital / e-rara, CC BY-SA; the TEI
-  Consortium's simplePrint exemplar).
+- The **code** is licensed **BSD-2-Clause** (see [`LICENSE`](LICENSE)).
+- The **example texts** in [`examples/`](examples/) are **not** covered by it —
+  they keep their originating projects' terms and are included only as
+  illustration. See [`examples/README.md`](examples/README.md) for provenance and
+  credits (Simler Digital / e-rara, CC BY-SA; the TEI Consortium's simplePrint
+  exemplar).
 
 ## How to cite
 
 See [`CITATION.cff`](CITATION.cff). Please cite both this software and the
 article it accompanies. A Zenodo DOI for the archived release will be added to
 `CITATION.cff` once minted.
-
-## Status
-
-These are **reference implementations** that reproduce the article — not
-production tools. The scope and intended trajectory are tracked separately; this
-release is the companion to the paper.
