@@ -3,8 +3,7 @@
 A reference implementation of the **define → generate → render** chain built
 entirely in **XSLT**: a TEI ODD's Processing Model is compiled into the rendering
 artefacts (an `edition.xsl` stylesheet and an `edition.css`) by XSLT itself, which
-then run over a TEI document to produce static HTML. (The JavaScript implementation
-of the same chain is in [`../compiler-js`](../compiler-js).)
+then run over a TEI document to produce static HTML.
 
 Run with no arguments, it builds the **Simler** edition — Fraktur renditions,
 entities coloured by `@type`, and CSS-grid acrostic layouts.

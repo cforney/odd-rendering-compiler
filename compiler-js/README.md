@@ -3,8 +3,7 @@
 Build-time pipelines that compile a TEI ODD Processing Model (PM) into rendering
 artefacts for static scholarly editions — CSS, XSLT, unified/xast handlers, and
 CETEIcean behaviours — plus a shared ODD parser and support for Boot's (2024)
-nested-model extension. (The XSLT implementation of the same chain is in
-[`../compiler-xslt`](../compiler-xslt).)
+nested-model extension.
 
 ## Generators (ODD → artefacts)
 
@@ -14,10 +13,6 @@ nested-model extension. (The XSLT implementation of the same chain is in
 | `odd-to-xslt.mjs` | XSLT 1.0 stylesheet | 100% |
 | `odd-to-unified.mjs` | unified/xast handler module (ESM) | 100% |
 | `odd-to-ceteicean.mjs` | CETEIcean behaviours + rendered HTML | 100% |
-
-Other targets explored earlier — a Web Components generator, an encoding-guide
-generator, a JSON interchange mapping, and an ODD diff — are kept out of this
-repository to keep the compiler focused on the core pattern.
 
 ## Renderers (artefacts + TEI → HTML)
 

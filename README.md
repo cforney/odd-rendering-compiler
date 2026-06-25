@@ -73,6 +73,4 @@ Outputs land in `compiler-xslt/output/`. See
 
 ## How to cite
 
-See [`CITATION.cff`](CITATION.cff). Please cite both this software and the
-article it accompanies. A Zenodo DOI for the archived release will be added to
-`CITATION.cff` once minted.
+See [`CITATION.cff`](CITATION.cff).
