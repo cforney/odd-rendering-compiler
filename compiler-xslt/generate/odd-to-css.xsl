@@ -73,7 +73,9 @@
     'cit'      : 'block',
     'table'    : 'table',
     'row'      : 'table-row',
-    'cell'     : 'table-cell'
+    'cell'     : 'table-cell',
+    'metadata' : 'none',
+    'omit'     : 'none'
   }"/>
 
   <!-- behaviours with no static CSS expression (need JS) -->
@@ -104,16 +106,40 @@
         select="normalize-space(string-join(tei:outputRendition[not(@scope)], ' '))"/>
       <xsl:variable name="disp" select="if (map:contains($display,$b)) then $display($b) else ()"/>
 
-      <!-- selector: base, attribute selector for @a='v', or a comment for the rest -->
+      <!-- selector: base; parent::/ancestor:: combinators; @a='v'/@a attribute
+           selectors; or a comment for predicates CSS cannot express. Matches the
+           simple shapes the JS odd-to-css translates; compound predicates
+           (with or/and/count(…)) fall through to a comment. -->
       <xsl:choose>
         <xsl:when test="$b = $jsBehaviours">
           <xsl:value-of select="'/* .tei-' || $ident || ' — ' || $b || ' behaviour needs JavaScript */&#10;'"/>
+        </xsl:when>
+        <xsl:when test="@predicate and matches(@predicate, '^parent::\i\c*$')">
+          <xsl:call-template name="rule">
+            <xsl:with-param name="sel" select="'.tei-' || substring-after(@predicate, 'parent::') || ' > .tei-' || $ident"/>
+            <xsl:with-param name="disp" select="$disp"/>
+            <xsl:with-param name="decls" select="$decls"/>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="@predicate and matches(@predicate, '^ancestor::\i\c*$')">
+          <xsl:call-template name="rule">
+            <xsl:with-param name="sel" select="'.tei-' || substring-after(@predicate, 'ancestor::') || ' .tei-' || $ident"/>
+            <xsl:with-param name="disp" select="$disp"/>
+            <xsl:with-param name="decls" select="$decls"/>
+          </xsl:call-template>
         </xsl:when>
         <xsl:when test="@predicate and matches(@predicate, '^@\i\c*=''[^'']*''$')">
           <xsl:variable name="sel"
             select="replace(@predicate, '^@(\i\c*)=''([^'']*)''$', '.tei-' || $ident || '[data-$1=&quot;$2&quot;]')"/>
           <xsl:call-template name="rule">
             <xsl:with-param name="sel" select="$sel"/>
+            <xsl:with-param name="disp" select="$disp"/>
+            <xsl:with-param name="decls" select="$decls"/>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="@predicate and matches(@predicate, '^@\i\c*$')">
+          <xsl:call-template name="rule">
+            <xsl:with-param name="sel" select="'.tei-' || $ident || '[data-' || substring(@predicate, 2) || ']'"/>
             <xsl:with-param name="disp" select="$disp"/>
             <xsl:with-param name="decls" select="$decls"/>
           </xsl:call-template>
