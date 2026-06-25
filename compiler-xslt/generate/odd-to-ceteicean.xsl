@@ -64,19 +64,11 @@
             then local:schema-specs(//tei:schemaSpec/node(), ())[tei:model or tei:modelSequence]
             else //tei:elementSpec[tei:model or tei:modelSequence]"/>
 
-  <!-- Behaviours whose CETEIcean handling is just "set this CSS display value"
-       (display from behaviour-map.mjs). -->
-  <xsl:variable name="ceteiDisplay" as="map(xs:string, xs:string)" select="map {
-    'block'    : 'block',
-    'paragraph': 'block',
-    'section'  : 'block',
-    'body'     : 'block',
-    'break'    : 'block',
-    'cit'      : 'block',
-    'table'    : 'table',
-    'row'      : 'table-row',
-    'cell'     : 'table-cell'
-  }"/>
+  <!-- Behaviours that are just "this element is the styled node": teiStamp puts
+       the tei-<id>/r-<id> classes on the custom element and edition.css does the
+       rest. (Mirrors CETEI_DISPLAY in the .mjs.) -->
+  <xsl:variable name="ceteiDisplay" as="xs:string*"
+    select="('inline', 'block', 'paragraph', 'section', 'body', 'cit', 'table', 'row', 'cell', 'title')"/>
 
   <!-- Escape a string for a single-quoted JS literal (backslash first). -->
   <xsl:function name="local:js" as="xs:string">
@@ -85,14 +77,6 @@
     <xsl:variable name="t2" select="replace($t1, &quot;'&quot;, &quot;\\'&quot;)"/>
     <xsl:variable name="t3" select="replace($t2, '&#10;', '\\n')"/>
     <xsl:sequence select="replace($t3, '&#13;', '\\r')"/>
-  </xsl:function>
-
-  <!-- Non-scoped outputRendition fragments → one CSS string, trailing ; stripped. -->
-  <xsl:function name="local:cssprop" as="xs:string">
-    <xsl:param name="model" as="element(tei:model)"/>
-    <xsl:variable name="joined"
-      select="normalize-space(string-join($model/tei:outputRendition[not(@scope)], ' '))"/>
-    <xsl:sequence select="replace($joined, ';\s*$', '')"/>
   </xsl:function>
 
   <!-- A PM @predicate → a CETEIcean JS condition (mirrors predicateToCETEI):
@@ -183,6 +167,33 @@
     <xsl:variable name="behaviours">
       <xsl:text>/* tei-ceteicean-behaviours.js — generated from the TEI ODD Processing Model (odd-to-ceteicean.xsl) */&#10;</xsl:text>
       <xsl:text>window.__teiNoteCounter = 0;&#10;&#10;</xsl:text>
+      <xsl:text><![CDATA[// Shared stamping helpers. Styling comes from the generated edition.css (the
+// same .tei-<id>/.r-<id> rules the unified and XSLT renderers use), so a
+// behaviour only puts those classes on the right node and mirrors @attrs to
+// data-* for the attribute selectors (e.g. .tei-rs[data-type='person']).
+function teiRcls(el) {
+  var r = el.getAttribute('rendition');
+  return r ? r.split(/\s+/).filter(Boolean).map(function (t) { return ' r-' + t.replace(/^#/, ''); }).join('') : '';
+}
+function teiData(el) {
+  for (var i = el.attributes.length - 1; i >= 0; i--) {
+    var n = el.attributes[i].name;
+    if (n === 'class' || n === 'style' || n.slice(0, 5) === 'data-') continue;
+    el.setAttribute('data-' + n.replace(/[:.]/g, '-'), el.attributes[i].value);
+  }
+}
+function teiStamp(el, ident) { teiData(el); el.className = 'tei-' + ident + teiRcls(el); }
+function teiReshape(el, tag, ident) {
+  teiData(el);
+  var n = document.createElement(tag);
+  n.className = 'tei-' + ident + teiRcls(el);
+  n.innerHTML = el.innerHTML;
+  el.style.display = 'contents';
+  el.innerHTML = '';
+  el.appendChild(n);
+  return n;
+}
+]]>&#10;</xsl:text>
       <xsl:text>const defined = {&#10;  "tei": {&#10;</xsl:text>
       <xsl:apply-templates select="$specs" mode="ceteicean"/>
       <xsl:text>  }&#10;};&#10;&#10;</xsl:text>
@@ -289,23 +300,14 @@
           select="if ($link/tei:param[@name='uri']) then string($link/tei:param[@name='uri']/@value) else '@target'"/>
         <xsl:variable name="url"
           select="if ($graphic/tei:param[@name='url']) then string($graphic/tei:param[@name='url']/@value) else '@url'"/>
-        <xsl:text>      // compound (Boot nested model): link wraps graphic — one clickable thumbnail&#10;</xsl:text>
-        <xsl:text>      var href = </xsl:text><xsl:value-of select="local:param-js($uri)"/><xsl:text>;&#10;</xsl:text>
-        <xsl:text>      var src = </xsl:text><xsl:value-of select="local:param-js($url)"/><xsl:text>;&#10;</xsl:text>
-        <xsl:text>      var a = document.createElement('a');&#10;</xsl:text>
-        <xsl:text>      a.className = 'tei-</xsl:text><xsl:value-of select="$ident"/><xsl:text>';&#10;</xsl:text>
-        <xsl:text>      a.href = href;&#10;</xsl:text>
-        <xsl:text>      var fig = document.createElement('figure');&#10;</xsl:text>
-        <xsl:text>      fig.className = 'tei-</xsl:text><xsl:value-of select="$ident"/><xsl:text>';&#10;</xsl:text>
-        <xsl:text>      var img = document.createElement('img');&#10;</xsl:text>
-        <xsl:text>      img.src = src;&#10;</xsl:text>
-        <xsl:text>      img.loading = 'lazy';&#10;</xsl:text>
-        <xsl:text>      var desc = el.querySelector('tei-desc');&#10;</xsl:text>
-        <xsl:text>      if (desc) { img.alt = desc.textContent; }&#10;</xsl:text>
-        <xsl:text>      fig.appendChild(img);&#10;</xsl:text>
-        <xsl:text>      a.appendChild(fig);&#10;</xsl:text>
-        <xsl:text>      el.innerHTML = '';&#10;</xsl:text>
-        <xsl:text>      el.appendChild(a);</xsl:text>
+        <xsl:text>      // compound (Boot nested model): link wraps graphic — one clickable&#10;</xsl:text>
+        <xsl:text>      // thumbnail (&lt;a&gt;&lt;figure&gt;&lt;img&gt;&lt;/figure&gt;&lt;/a&gt;), identical to unified/XSLT.&#10;</xsl:text>
+        <xsl:text>      teiData(el); el.style.display = 'contents';&#10;</xsl:text>
+        <xsl:text>      var a = document.createElement('a'); a.className = 'tei-</xsl:text><xsl:value-of select="$ident"/><xsl:text>'; a.href = </xsl:text><xsl:value-of select="local:param-js($uri)"/><xsl:text>;&#10;</xsl:text>
+        <xsl:text>      var fig = document.createElement('figure'); fig.className = 'tei-</xsl:text><xsl:value-of select="$ident"/><xsl:text>';&#10;</xsl:text>
+        <xsl:text>      var img = document.createElement('img'); img.src = </xsl:text><xsl:value-of select="local:param-js($url)"/><xsl:text>; img.loading = 'lazy';&#10;</xsl:text>
+        <xsl:text>      var desc = el.querySelector('tei-desc'); img.alt = desc ? desc.textContent : '';&#10;</xsl:text>
+        <xsl:text>      fig.appendChild(img); a.appendChild(fig); el.innerHTML = ''; el.appendChild(a);</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:call-template name="emit-behaviour">
@@ -328,187 +330,115 @@
         </xsl:for-each>
       </xsl:map>
     </xsl:variable>
-    <xsl:variable name="css" select="local:cssprop($model)"/>
-    <!-- append (not assign) so a parent behaviour's earlier style survives -->
-    <xsl:variable name="styleSet"
-      select="if ($css ne '') then concat('&#10;      el.style.cssText += ', $q, local:js($css), $q, ';') else ''"/>
-
     <xsl:choose>
-      <xsl:when test="map:contains($ceteiDisplay, $b)">
-        <xsl:text>      el.style.display = </xsl:text>
-        <xsl:value-of select="$q"/><xsl:value-of select="$ceteiDisplay($b)"/><xsl:value-of select="$q"/>
-        <xsl:text>;</xsl:text><xsl:value-of select="$styleSet"/>
-      </xsl:when>
-
-      <xsl:when test="$b = 'inline'">
-        <xsl:text>      // inline behaviour</xsl:text>
-        <xsl:value-of select="$styleSet"/>
-        <xsl:text>&#10;      // Content stays as-is in the custom element</xsl:text>
+      <xsl:when test="$b = $ceteiDisplay">
+        <xsl:text>      teiStamp(el, </xsl:text><xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>);</xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'document'">
-        <xsl:text>      el.style.display = 'block';</xsl:text><xsl:value-of select="$styleSet"/>
+        <xsl:text>      teiStamp(el, </xsl:text><xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>); el.style.display = 'block';</xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = ('metadata', 'omit')">
-        <xsl:text>      el.style.display = 'none'; // metadata/omit</xsl:text>
+        <xsl:text>      el.style.display = 'none';</xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'heading'">
         <xsl:variable name="level" select="if (map:contains($p, 'level')) then $p('level') else '1'"/>
         <xsl:choose>
           <xsl:when test="$level = 'count(ancestor::div)'">
-            <xsl:text><![CDATA[      // heading: level = number of ancestor tei-div elements
-      var level = 0;
-      var p = el.parentElement;
+            <xsl:text><![CDATA[      var level = 0, p = el.parentElement;
       while (p) { if (p.localName === 'tei-div') level++; p = p.parentElement; }
-      level = Math.min(6, Math.max(1, level));
-      var h = document.createElement('h' + level);
-      h.innerHTML = el.innerHTML;
-      h.style.cssText = ']]></xsl:text>
-            <xsl:value-of select="local:js($css)"/>
-            <xsl:text><![CDATA[';
-      el.innerHTML = '';
-      el.appendChild(h);]]></xsl:text>
+      teiReshape(el, 'h' + Math.min(6, Math.max(1, level)), ']]></xsl:text>
+            <xsl:value-of select="$ident"/><xsl:text>');</xsl:text>
           </xsl:when>
           <xsl:otherwise>
             <xsl:variable name="lv"
               select="if ($level castable as xs:integer) then min((6, max((1, xs:integer($level))))) else 1"/>
-            <xsl:text><![CDATA[      var h = document.createElement('h]]></xsl:text>
-            <xsl:value-of select="$lv"/>
-            <xsl:text><![CDATA[');
-      h.innerHTML = el.innerHTML;
-      h.style.cssText = ']]></xsl:text>
-            <xsl:value-of select="local:js($css)"/>
-            <xsl:text><![CDATA[';
-      el.innerHTML = '';
-      el.appendChild(h);]]></xsl:text>
+            <xsl:text>      teiReshape(el, 'h</xsl:text><xsl:value-of select="$lv"/><xsl:text>', </xsl:text>
+            <xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>);</xsl:text>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
 
       <xsl:when test="$b = 'note'">
-        <xsl:text><![CDATA[      // note behaviour: inline superscript marker + collapsible body
+        <xsl:text><![CDATA[      teiData(el);
       var idx = ++window.__teiNoteCounter;
-      var noteId = 'note-' + idx;
       var content = el.innerHTML;
-      el.innerHTML = '<a class="tei-note-ref" href="#' + noteId + '" role="doc-noteref">' +
-        '<sup>' + idx + '</sup></a>' +
-        '<span class="tei-note-body" id="' + noteId + '" role="doc-footnote" style="display:none">' +
-        content + '</span>';
-      el.querySelector('.tei-note-ref').addEventListener('click', function(e) {
-        e.preventDefault();
-        var body = el.querySelector('.tei-note-body');
-        body.style.display = body.style.display === 'none' ? 'block' : 'none';
-      });]]></xsl:text>
+      el.className = 'tei-note-interactive';
+      el.innerHTML = '<a class="tei-note-ref" href="#" role="doc-noteref"><sup>' + idx + '</sup></a>' +
+        '<span class="tei-note-body" role="doc-footnote">' + content + '</span>';]]></xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'link'">
         <xsl:variable name="uri" select="if (map:contains($p, 'uri')) then $p('uri') else '@target'"/>
         <xsl:variable name="attr" select="if (starts-with($uri, '@')) then substring($uri, 2) else 'target'"/>
-        <xsl:text><![CDATA[      // link behaviour
-      var href = el.getAttribute(']]></xsl:text>
-        <xsl:value-of select="local:js($attr)"/>
-        <xsl:text><![CDATA[') || '';
-      var a = document.createElement('a');
-      a.href = href;
-      a.innerHTML = el.innerHTML;
-      a.className = 'tei-link';
-      if (href.startsWith('http')) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
-      el.innerHTML = '';
-      el.appendChild(a);]]></xsl:text>
-        <xsl:value-of select="$styleSet"/>
+        <xsl:text>      var a = teiReshape(el, 'a', </xsl:text><xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>);&#10;</xsl:text>
+        <xsl:text>      var href = el.getAttribute(</xsl:text><xsl:value-of select="$q"/><xsl:value-of select="local:js($attr)"/><xsl:value-of select="$q"/><xsl:text>) || '';&#10;</xsl:text>
+        <xsl:text><![CDATA[      a.setAttribute('href', href);
+      if (href.indexOf('http') === 0) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }]]></xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'alternate'">
-        <xsl:text><![CDATA[      // alternate behaviour: toggle between default and alt readings
-      var children = Array.from(el.children);
-      if (children.length >= 2) {
-        var def = children[0];
-        var alt = children[1];
-        alt.style.display = 'none';
-        el.style.cursor = 'pointer';
-        el.style.borderBottom = '1px dotted #999';
-        el.setAttribute('role', 'switch');
-        el.setAttribute('aria-checked', 'false');
-        el.setAttribute('tabindex', '0');
-        el.title = 'Click to toggle between readings';
-        var toggle = function() {
-          var showDef = def.style.display !== 'none';
-          def.style.display = showDef ? 'none' : '';
-          alt.style.display = showDef ? '' : 'none';
-          el.setAttribute('aria-checked', String(showDef));
-        };
-        el.addEventListener('click', toggle);
-        el.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-        });
-      }]]></xsl:text>
+        <xsl:text>      teiData(el);&#10;      el.className = 'tei-alternate tei-</xsl:text><xsl:value-of select="$ident"/><xsl:text>';&#10;</xsl:text>
+        <xsl:text><![CDATA[      var kids = [];
+      for (var i = 0; i < el.children.length; i++) kids.push(el.children[i]);
+      var def = document.createElement('span'); def.className = 'tei-alternate-default';
+      var alt = document.createElement('span'); alt.className = 'tei-alternate-alt'; alt.hidden = true;
+      if (kids[0]) def.appendChild(kids[0]);
+      if (kids[1]) alt.appendChild(kids[1]);
+      el.innerHTML = '';
+      el.appendChild(def); el.appendChild(alt);]]></xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'graphic'">
         <xsl:variable name="url" select="if (map:contains($p, 'url')) then $p('url') else '@url'"/>
         <xsl:variable name="attr" select="if (starts-with($url, '@')) then substring($url, 2) else 'url'"/>
-        <xsl:text><![CDATA[      // graphic behaviour
-      var src = el.getAttribute(']]></xsl:text>
-        <xsl:value-of select="local:js($attr)"/>
-        <xsl:text><![CDATA[') || '';
-      var img = document.createElement('img');
-      img.src = src;
-      img.loading = 'lazy';
-      img.style.maxWidth = '100%';
-      var desc = el.querySelector('tei-desc');
-      if (desc) { img.alt = desc.textContent; }
-      el.innerHTML = '';
-      el.appendChild(img);]]></xsl:text>
+        <xsl:text>      teiData(el); el.style.display = 'contents';&#10;</xsl:text>
+        <xsl:text>      var fig = document.createElement('figure'); fig.className = 'tei-</xsl:text><xsl:value-of select="$ident"/><xsl:text>';&#10;</xsl:text>
+        <xsl:text>      var img = document.createElement('img');&#10;</xsl:text>
+        <xsl:text>      img.src = el.getAttribute(</xsl:text><xsl:value-of select="$q"/><xsl:value-of select="local:js($attr)"/><xsl:value-of select="$q"/><xsl:text>) || '';&#10;</xsl:text>
+        <xsl:text><![CDATA[      img.loading = 'lazy';
+      var desc = el.querySelector('tei-desc'); img.alt = desc ? desc.textContent : '';
+      fig.appendChild(img); el.innerHTML = ''; el.appendChild(fig);]]></xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'list'">
-        <xsl:text><![CDATA[      // list -> ul
-      var ul = document.createElement('ul');
-      ul.innerHTML = el.innerHTML;
-      ul.style.cssText = ']]></xsl:text>
-        <xsl:value-of select="local:js($css)"/>
-        <xsl:text><![CDATA[';
-      el.innerHTML = '';
-      el.appendChild(ul);]]></xsl:text>
+        <xsl:text>      teiReshape(el, 'ul', </xsl:text><xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>);</xsl:text>
       </xsl:when>
-
       <xsl:when test="$b = 'listItem'">
-        <xsl:text><![CDATA[      // listItem -> li
-      var li = document.createElement('li');
-      li.innerHTML = el.innerHTML;
-      li.style.cssText = ']]></xsl:text>
-        <xsl:value-of select="local:js($css)"/>
-        <xsl:text><![CDATA[';
-      el.innerHTML = '';
-      el.appendChild(li);]]></xsl:text>
+        <xsl:text>      teiReshape(el, 'li', </xsl:text><xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>);</xsl:text>
+      </xsl:when>
+      <xsl:when test="$b = 'break'">
+        <xsl:text>      teiReshape(el, 'br', </xsl:text><xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>);</xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'anchor'">
-        <xsl:text>      el.id = el.getAttribute('xml:id') || '';</xsl:text>
+        <xsl:text>      teiData(el); el.className = 'tei-anchor'; el.id = el.getAttribute('xml:id') || '';</xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'glyph'">
-        <xsl:text><![CDATA[      el.classList.add('tei-glyph-unresolved');
-      el.title = 'Glyph: ' + (el.getAttribute('ref') || '');]]></xsl:text>
+        <xsl:text>      teiData(el); el.className = 'tei-glyph';</xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'index'">
-        <xsl:text>      el.classList.add('tei-index-entry');</xsl:text>
+        <xsl:text><![CDATA[      var heads = el.querySelectorAll('tei-head');
+      if (heads.length >= 2) {
+        el.style.display = 'contents';
+        var nav = document.createElement('nav'); nav.className = 'tei-toc'; nav.setAttribute('aria-label', 'Contents');
+        var lab = document.createElement('p'); lab.className = 'tei-toc-label'; lab.textContent = 'Contents'; nav.appendChild(lab);
+        var ul = document.createElement('ul');
+        heads.forEach(function (hd) { var li = document.createElement('li'); li.className = 'tei-toc-entry'; li.textContent = hd.textContent.trim(); ul.appendChild(li); });
+        nav.appendChild(ul); el.innerHTML = ''; el.appendChild(nav);
+      } else { el.style.display = 'none'; }]]></xsl:text>
       </xsl:when>
 
       <xsl:when test="$b = 'text'">
-        <xsl:text>      // pass through</xsl:text>
-      </xsl:when>
-
-      <xsl:when test="$b = 'title'">
-        <xsl:text>      </xsl:text><xsl:value-of select="$styleSet"/>
+        <xsl:text>      el.style.display = 'contents';</xsl:text>
       </xsl:when>
 
       <xsl:otherwise>
-        <xsl:text>      // unhandled behaviour: </xsl:text>
-        <xsl:value-of select="$b"/><xsl:value-of select="$styleSet"/>
+        <xsl:text>      teiStamp(el, </xsl:text><xsl:value-of select="$q"/><xsl:value-of select="$ident"/><xsl:value-of select="$q"/><xsl:text>); // </xsl:text><xsl:value-of select="$b"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -523,45 +453,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CETEIcean Rendering — TEI Edition (XSLT-generated behaviours)</title>
+  <!-- The ODD-generated stylesheet — the SAME one the unified/XSLT pages use.
+       CETEIcean's behaviours stamp the matching tei-*/r-* classes onto the
+       custom elements, so this drives the appearance and the output looks
+       identical across renderers. -->
+  <link rel="stylesheet" href="edition.css">
   <style>
-    body { font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; max-width: 42em; margin: 2em auto; padding: 0 1em; background: #fefefe; color: #222; line-height: 1.7; }
+    /* Shared page chrome — identical to the unified/XSLT pages so every renderer
+       looks the same; only the render-info banner colour differs (pink). */
+    body.tei-edition { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
+    /* CETEIcean makes a custom element per TEI element; the structural wrappers
+       with no Processing-Model behaviour still need to be block-level. */
+    tei-TEI, tei-text, tei-front, tei-body, tei-group { display: block; }
     .render-info { font-family: system-ui, sans-serif; background: #fce7f3; border: 1px solid #f9a8d4; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
     .render-info h3 { margin: 0 0 0.5em; color: #db2777; }
     .render-info code { background: #fdf2f8; padding: 0.1em 0.3em; border-radius: 3px; }
-    tei-teiheader { display: none; }
-    tei-text, tei-body { display: block; }
-    tei-div { display: block; margin-bottom: 1.5em; }
-    tei-p { display: block; text-indent: 1em; margin: 0.3em 0; }
-    tei-persname { color: #8e44ad; }
-    tei-placename { color: #27ae60; }
-    tei-lb { display: block; }
-    tei-pb { display: block; border-top: 1px dashed #ccc; margin: 1em 0; padding-top: 0.3em; }
-    tei-pb::before { content: "[p. " attr(n) "]"; color: #999; font-size: 0.8em; }
-    tei-note { display: inline; }
-    tei-note .tei-note-ref { color: #2563eb; text-decoration: none; cursor: pointer; }
-    tei-note .tei-note-ref sup { font-size: 0.75em; }
-    tei-note .tei-note-body { display: block; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.5em 0.75em; margin: 0.25em 0; font-size: 0.9em; border-radius: 4px; }
-    tei-choice { border-bottom: 1px dotted #999; cursor: pointer; }
-    tei-quote { display: block; margin: 1em 2em; font-style: italic; border-left: 3px solid #bdc3c7; padding-left: 1em; }
-    tei-list { display: block; margin-left: 1.5em; }
-    tei-item { display: list-item; margin-bottom: 0.2em; }
-    tei-ref { color: #2980b9; text-decoration: underline; cursor: pointer; }
-    tei-rs[type="person"] { color: #8e44ad; }
-    tei-rs[type="place"] { color: #27ae60; }
-    tei-rs[type="org"] { color: #2980b9; }
-    tei-rs[type="bibl"] { font-style: italic; }
-    tei-hi[rend="bold"] { font-weight: bold; }
-    tei-hi[rend="italic"] { font-style: italic; }
-    tei-hi[rend="sup"] { vertical-align: super; font-size: 0.8em; }
+    /* Facsimile thumbnails (pb compound), resetting the colliding .tei-pb floor rules. */
+    a.tei-pb { display: block; clear: both; height: auto; width: auto; max-width: 150px; margin: 1.2em auto; padding: 4px; border: 1px solid #ccc; background: #fafafa; line-height: 0; }
+    a.tei-pb figure.tei-pb { display: block; height: auto; max-width: none; margin: 0; border: 0; }
+    a.tei-pb img { display: block; width: 100%; height: auto; }
+    /* Interactive layer (notes, apparatus, facsimile toggle). */
+    .tei-note-interactive .tei-note-body { display: none; }
+    .tei-note-interactive.open .tei-note-body { display: inline; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.15em 0.4em; border-radius: 4px; }
+    .tei-note-ref { cursor: pointer; color: #2563eb; text-decoration: none; }
+    .tei-alternate { cursor: pointer; border-bottom: 1px dotted #999; }
+    .facs-toggle { display: none; margin: 0 0 1.2em; font-family: system-ui, sans-serif; }
+    html.js .facs-toggle { display: block; }
+    .facs-toggle button { font: inherit; font-size: 0.85em; cursor: pointer; padding: 0.3em 0.8em; border: 1px solid #c7c7c7; border-radius: 4px; background: #f3f3f3; }
+    body.facs-hidden a.tei-pb { display: none; }
   </style>
 </head>
-<body>
+<body class="tei-edition">
 
   <div class="render-info">
     <h3>CETEIcean Rendering Path (XSLT-generated behaviours)</h3>
     <p><strong>Pipeline:</strong> ODD &#8594; <code>odd-to-ceteicean.xsl</code> &#8594; behaviours.js &#8594; CETEIcean (browser) &#8594; HTML</p>
-    <p>Click notes to expand; click abbreviations/corrections to toggle readings.</p>
+    <p>CETEIcean registers TEI elements as <code>tei-</code> custom elements, then
+      applies ODD-derived behaviours that stamp the same <code>tei-*</code>/<code>r-*</code>
+      classes the other renderers use — so the shared <code>edition.css</code>
+      produces the same result. Click notes to expand; click corrections to toggle
+      readings.</p>
   </div>
+
+  <div class="facs-toggle"><button type="button" data-facs-toggle="">Hide facsimiles</button></div>
 
   <div id="TEI"></div>
 
@@ -587,6 +521,30 @@
     } else {
       document.getElementById('TEI').textContent = 'No inline TEI source found.';
     }
+  </script>
+
+  <!-- Shared interactive layer — the same framework-free handler the XSLT
+       interactive page uses. Event delegation, so it works no matter when
+       CETEIcean finishes building the DOM. -->
+  <script>
+    document.documentElement.classList.add('js');
+    document.addEventListener('click', function (e) {
+      var ref = e.target.closest('.tei-note-ref');
+      if (ref) { e.preventDefault(); ref.parentNode.classList.toggle('open'); return; }
+      var alt = e.target.closest('.tei-alternate');
+      if (alt) {
+        var d = alt.querySelector('.tei-alternate-default');
+        var v = alt.querySelector('.tei-alternate-alt');
+        if (d) { d.hidden = !d.hidden; }
+        if (v) { v.hidden = !v.hidden; }
+        return;
+      }
+      var ft = e.target.closest('[data-facs-toggle]');
+      if (ft) {
+        var hidden = document.body.classList.toggle('facs-hidden');
+        ft.textContent = hidden ? 'Show facsimiles' : 'Hide facsimiles';
+      }
+    });
   </script>
 
 </body>

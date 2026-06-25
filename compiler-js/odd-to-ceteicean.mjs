@@ -19,7 +19,6 @@ import { resolve, basename } from "path";
 import {
   createOddParser, findElementSpecs, extractModels,
 } from "./odd-parser.mjs";
-import { BEHAVIOURS } from "./behaviour-map.mjs";
 import { parseArgs, createLogger, writeOut, escapeJsString as escStr, escapeJsComment, generatedStamp, warnUnsupportedPredicate } from "./cli.mjs";
 
 // ---------------------------------------------------------------------------
@@ -110,186 +109,122 @@ function predicateToCETEI(pred) {
 // Map PM behaviours → CETEIcean behaviour function bodies
 // ---------------------------------------------------------------------------
 
-function cssPropStr(model) {
-  const main = model.css.filter(c => !c.scope).map(c => c.css.trim());
-  return main.join(" ").replace(/;?\s*$/, "");
-}
-
 /**
- * Behaviours whose CETEIcean handling is just "set this CSS display value".
- * The display value comes from the shared behaviour map. (`document` keeps its
- * own case below because the CSS path deliberately emits no display rule for
- * it, so it carries no `display` in the table.)
+ * Behaviours that are just "this element is the styled node": teiStamp puts the
+ * tei-<id>/r-<id> classes on the custom element and edition.css does the rest.
  */
 const CETEI_DISPLAY = new Set([
-  "block", "paragraph", "section", "body", "break", "cit", "table", "row", "cell",
+  "inline", "block", "paragraph", "section", "body", "cit", "table", "row", "cell", "title",
 ]);
 
 /**
- * Generate a CETEIcean behaviour function body for a PM model.
- * Returns a string of JavaScript code to execute inside function(el) { ... }.
- *
- * CETEIcean behaviours receive the custom element (e.g. <tei-head>) as `el`.
- * The original TEI content is in el.innerHTML.  Behaviours can reshape it.
+ * Generate a CETEIcean behaviour function body for a PM model — a string of JS
+ * run inside function(el) { ... }, where `el` is the custom element (e.g.
+ * <tei-head>). Behaviours build the same DOM the unified/XSLT renderers emit and
+ * stamp the same classes; all appearance comes from the shared edition.css.
  */
 function behaviourToCode(model, ident) {
   const b = model.behaviour;
   const params = Object.fromEntries(model.params.map(p => [p.name, p.value]));
-  const css = cssPropStr(model);
-  const beforeCss = model.css.filter(c => c.scope === "before").map(c => c.css.trim()).join(" ");
-  const afterCss  = model.css.filter(c => c.scope === "after").map(c => c.css.trim()).join(" ");
 
-  // Append (not assign) so styles set earlier survive: CETEIcean runs a parent's
-  // behaviour before its children, so e.g. the <choice> behaviour hides the
-  // alternate reading (display:none) before the child <corr>'s inline behaviour
-  // runs — assigning cssText here would wipe that hide and show both on load.
-  const styleSet = css ? `\n      el.style.cssText += '${escStr(css)}';` : "";
-
-  // Display-only behaviours: the CSS display value comes from the shared map.
   if (CETEI_DISPLAY.has(b)) {
-    return `      el.style.display = '${BEHAVIOURS[b].display}';${styleSet}`;
+    return `      teiStamp(el, '${escStr(ident)}');`;
   }
 
   switch (b) {
-    case "inline":
-      return `      // inline behaviour${styleSet}
-      // Content stays as-is in the custom element`;
-
     case "heading": {
       const level = params.level || "'1'";
       if (level === "count(ancestor::div)") {
-        return `      // heading: level = number of ancestor tei-div elements
-      var level = 0;
-      var p = el.parentElement;
+        return `      var level = 0, p = el.parentElement;
       while (p) { if (p.localName === 'tei-div') level++; p = p.parentElement; }
-      level = Math.min(6, Math.max(1, level));
-      var h = document.createElement('h' + level);
-      h.innerHTML = el.innerHTML;
-      h.style.cssText = '${escStr(css)}';
-      el.innerHTML = '';
-      el.appendChild(h);`;
+      teiReshape(el, 'h' + Math.min(6, Math.max(1, level)), '${escStr(ident)}');`;
       }
       const lv = Math.min(6, Math.max(1, parseInt(level.replace(/'/g, ""), 10) || 1));
-      return `      var h = document.createElement('h${lv}');
-      h.innerHTML = el.innerHTML;
-      h.style.cssText = '${escStr(css)}';
-      el.innerHTML = '';
-      el.appendChild(h);`;
+      return `      teiReshape(el, 'h${lv}', '${escStr(ident)}');`;
     }
 
     case "document":
-      return `      el.style.display = 'block';${styleSet}`;
+      return `      teiStamp(el, '${escStr(ident)}'); el.style.display = 'block';`;
 
     case "metadata":
     case "omit":
-      return `      el.style.display = 'none'; // metadata/omit`;
+      return `      el.style.display = 'none';`;
 
-    case "note": {
-      const place = params.place || "'foot'";
-      return `      // note behaviour: inline superscript marker + collapsible body
+    case "note":
+      // Inline ref + collapsible body, toggled by the shared page script
+      // (click .tei-note-ref → toggle .open on its .tei-note-interactive parent).
+      return `      teiData(el);
       var idx = ++window.__teiNoteCounter;
-      var noteId = 'note-' + idx;
       var content = el.innerHTML;
-      el.innerHTML = '<a class="tei-note-ref" href="#' + noteId + '" role="doc-noteref">' +
-        '<sup>' + idx + '</sup></a>' +
-        '<span class="tei-note-body" id="' + noteId + '" role="doc-footnote" style="display:none">' +
-        content + '</span>';
-      el.querySelector('.tei-note-ref').addEventListener('click', function(e) {
-        e.preventDefault();
-        var body = el.querySelector('.tei-note-body');
-        body.style.display = body.style.display === 'none' ? 'block' : 'none';
-      });`;
-    }
+      el.className = 'tei-note-interactive';
+      el.innerHTML = '<a class="tei-note-ref" href="#" role="doc-noteref"><sup>' + idx + '</sup></a>' +
+        '<span class="tei-note-body" role="doc-footnote">' + content + '</span>';`;
 
     case "link": {
       const uri = params.uri || "@target";
       const attrName = uri.startsWith("@") ? uri.slice(1) : "target";
-      return `      // link behaviour
+      return `      var a = teiReshape(el, 'a', '${escStr(ident)}');
       var href = el.getAttribute('${escStr(attrName)}') || '';
-      var a = document.createElement('a');
-      a.href = href;
-      a.innerHTML = el.innerHTML;
-      a.className = 'tei-link';
-      if (href.startsWith('http')) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
-      el.innerHTML = '';
-      el.appendChild(a);${styleSet}`;
+      a.setAttribute('href', href);
+      if (href.indexOf('http') === 0) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }`;
     }
 
-    case "alternate": {
-      return `      // alternate behaviour: toggle between default and alt readings
-      var children = Array.from(el.children);
-      if (children.length >= 2) {
-        var def = children[0];
-        var alt = children[1];
-        alt.style.display = 'none';
-        el.style.cursor = 'pointer';
-        el.style.borderBottom = '1px dotted #999';
-        el.setAttribute('role', 'switch');
-        el.setAttribute('aria-checked', 'false');
-        el.setAttribute('tabindex', '0');
-        el.title = 'Click to toggle between readings';
-        var toggle = function() {
-          var showDef = def.style.display !== 'none';
-          def.style.display = showDef ? 'none' : '';
-          alt.style.display = showDef ? '' : 'none';
-          el.setAttribute('aria-checked', String(showDef));
-        };
-        el.addEventListener('click', toggle);
-        el.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-        });
-      }`;
-    }
+    case "alternate":
+      // Default reading shown, alt hidden; toggled by the shared page script.
+      return `      teiData(el);
+      el.className = 'tei-alternate tei-${escStr(ident)}';
+      var kids = [];
+      for (var i = 0; i < el.children.length; i++) kids.push(el.children[i]);
+      var def = document.createElement('span'); def.className = 'tei-alternate-default';
+      var alt = document.createElement('span'); alt.className = 'tei-alternate-alt'; alt.hidden = true;
+      if (kids[0]) def.appendChild(kids[0]);
+      if (kids[1]) alt.appendChild(kids[1]);
+      el.innerHTML = '';
+      el.appendChild(def); el.appendChild(alt);`;
 
     case "graphic": {
       const url = params.url || "@url";
       const attrName = url.startsWith("@") ? url.slice(1) : "url";
-      return `      // graphic behaviour
-      var src = el.getAttribute('${escStr(attrName)}') || '';
+      return `      teiData(el); el.style.display = 'contents';
+      var fig = document.createElement('figure'); fig.className = 'tei-${escStr(ident)}';
       var img = document.createElement('img');
-      img.src = src;
+      img.src = el.getAttribute('${escStr(attrName)}') || '';
       img.loading = 'lazy';
-      img.style.maxWidth = '100%';
-      var desc = el.querySelector('tei-desc');
-      if (desc) { img.alt = desc.textContent; }
-      el.innerHTML = '';
-      el.appendChild(img);`;
+      var desc = el.querySelector('tei-desc'); img.alt = desc ? desc.textContent : '';
+      fig.appendChild(img); el.innerHTML = ''; el.appendChild(fig);`;
     }
 
     case "list":
-      return `      // list → ul
-      var ul = document.createElement('ul');
-      ul.innerHTML = el.innerHTML;
-      ul.style.cssText = '${escStr(css)}';
-      el.innerHTML = '';
-      el.appendChild(ul);`;
-
+      return `      teiReshape(el, 'ul', '${escStr(ident)}');`;
     case "listItem":
-      return `      // listItem → li
-      var li = document.createElement('li');
-      li.innerHTML = el.innerHTML;
-      li.style.cssText = '${escStr(css)}';
-      el.innerHTML = '';
-      el.appendChild(li);`;
+      return `      teiReshape(el, 'li', '${escStr(ident)}');`;
+    case "break":
+      return `      teiReshape(el, 'br', '${escStr(ident)}');`;
 
     case "anchor":
-      return `      el.id = el.getAttribute('xml:id') || '';`;
+      return `      teiData(el); el.className = 'tei-anchor'; el.id = el.getAttribute('xml:id') || '';`;
 
     case "glyph":
-      return `      el.classList.add('tei-glyph-unresolved');
-      el.title = 'Glyph: ' + (el.getAttribute('ref') || '');`;
+      return `      teiData(el); el.className = 'tei-glyph';`;
 
     case "index":
-      return `      el.classList.add('tei-index-entry');`;
+      // Table of contents (headings only), suppressed for short documents —
+      // mirrors the unified/XSLT toc.
+      return `      var heads = el.querySelectorAll('tei-head');
+      if (heads.length >= 2) {
+        el.style.display = 'contents';
+        var nav = document.createElement('nav'); nav.className = 'tei-toc'; nav.setAttribute('aria-label', 'Contents');
+        var lab = document.createElement('p'); lab.className = 'tei-toc-label'; lab.textContent = 'Contents'; nav.appendChild(lab);
+        var ul = document.createElement('ul');
+        heads.forEach(function (hd) { var li = document.createElement('li'); li.className = 'tei-toc-entry'; li.textContent = hd.textContent.trim(); ul.appendChild(li); });
+        nav.appendChild(ul); el.innerHTML = ''; el.appendChild(nav);
+      } else { el.style.display = 'none'; }`;
 
     case "text":
-      return `      // pass through`;
-
-    case "title":
-      return `      ${styleSet}`;
+      return `      el.style.display = 'contents';`;
 
     default:
-      return `      // unhandled behaviour: ${escStr(b)}${styleSet}`;
+      return `      teiStamp(el, '${escStr(ident)}'); // ${escStr(b)}`;
   }
 }
 
@@ -334,23 +269,14 @@ function compoundToCode(subModels, ident) {
     const gp = Object.fromEntries(graphic.params.map((p) => [p.name, p.value]));
     const hrefExpr = paramValueToCeteiJs(lp.uri || "@target");
     const srcExpr = paramValueToCeteiJs(gp.url || "@url");
-    return `      // compound (Boot nested model): link wraps graphic — one clickable thumbnail
-      var href = ${hrefExpr};
-      var src = ${srcExpr};
-      var a = document.createElement('a');
-      a.className = 'tei-${ident}';
-      a.href = href;
-      var fig = document.createElement('figure');
-      fig.className = 'tei-${ident}';
-      var img = document.createElement('img');
-      img.src = src;
-      img.loading = 'lazy';
-      var desc = el.querySelector('tei-desc');
-      if (desc) { img.alt = desc.textContent; }
-      fig.appendChild(img);
-      a.appendChild(fig);
-      el.innerHTML = '';
-      el.appendChild(a);`;
+    return `      // compound (Boot nested model): link wraps graphic — one clickable
+      // thumbnail (<a><figure><img></figure></a>), identical to unified/XSLT.
+      teiData(el); el.style.display = 'contents';
+      var a = document.createElement('a'); a.className = 'tei-${escStr(ident)}'; a.href = ${hrefExpr};
+      var fig = document.createElement('figure'); fig.className = 'tei-${escStr(ident)}';
+      var img = document.createElement('img'); img.src = ${srcExpr}; img.loading = 'lazy';
+      var desc = el.querySelector('tei-desc'); img.alt = desc ? desc.textContent : '';
+      fig.appendChild(img); a.appendChild(fig); el.innerHTML = ''; el.appendChild(a);`;
   }
   return behaviourToCode(subModels[0], ident);
 }
@@ -385,6 +311,38 @@ function generateBehaviours(elements) {
     ``,
     `// Global note counter (reset when behaviours are applied)`,
     `window.__teiNoteCounter = 0;`,
+    ``,
+    `// ── Shared stamping helpers ──`,
+    `// Styling comes from the generated edition.css (the same .tei-<id>/.r-<id>`,
+    `// rules the unified and XSLT renderers use), so behaviours only have to put`,
+    `// those classes on the right node and mirror @attrs to data-* for the`,
+    `// attribute selectors (e.g. .tei-rs[data-type='person']).`,
+    `function teiRcls(el) {`,
+    `  var r = el.getAttribute('rendition');`,
+    `  return r ? r.split(/\\s+/).filter(Boolean).map(function (t) { return ' r-' + t.replace(/^#/, ''); }).join('') : '';`,
+    `}`,
+    `function teiData(el) {`,
+    `  for (var i = el.attributes.length - 1; i >= 0; i--) {`,
+    `    var n = el.attributes[i].name;`,
+    `    if (n === 'class' || n === 'style' || n.slice(0, 5) === 'data-') continue;`,
+    `    el.setAttribute('data-' + n.replace(/[:.]/g, '-'), el.attributes[i].value);`,
+    `  }`,
+    `}`,
+    `// Display behaviours: the custom element itself is the styled node.`,
+    `function teiStamp(el, ident) { teiData(el); el.className = 'tei-' + ident + teiRcls(el); }`,
+    `// Reshaping behaviours: wrap the content in the real HTML element the other`,
+    `// renderers emit and make the custom element disappear from layout, so the`,
+    `// result matches exactly. Returns the inner element.`,
+    `function teiReshape(el, tag, ident) {`,
+    `  teiData(el);`,
+    `  var n = document.createElement(tag);`,
+    `  n.className = 'tei-' + ident + teiRcls(el);`,
+    `  n.innerHTML = el.innerHTML;`,
+    `  el.style.display = 'contents';`,
+    `  el.innerHTML = '';`,
+    `  el.appendChild(n);`,
+    `  return n;`,
+    `}`,
     ``,
     `const defined = {`,
     `  "tei": {`,
@@ -509,71 +467,50 @@ const pageHtml = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CETEIcean Rendering — TEI Edition</title>
+  <!-- The ODD-generated stylesheet — the SAME one the unified/XSLT pages use.
+       CETEIcean's behaviours stamp the matching tei-*/r-* classes onto the
+       custom elements, so this drives the appearance and the output looks
+       identical across renderers. -->
+  <link rel="stylesheet" href="edition.css">
   <style>
-    body {
-      font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
-      max-width: 42em; margin: 2em auto; padding: 0 1em;
-      background: #fefefe; color: #222; line-height: 1.7;
-    }
-    .render-info {
-      font-family: system-ui, sans-serif;
-      background: #fce7f3; border: 1px solid #f9a8d4;
-      padding: 1em; border-radius: 6px; margin-bottom: 2em;
-      font-size: 0.85em;
-    }
+    /* Shared page chrome — identical to the unified/XSLT pages so every renderer
+       looks the same; only the render-info banner colour differs (pink). */
+    body.tei-edition { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
+    /* CETEIcean makes a custom element per TEI element; the structural wrappers
+       with no Processing-Model behaviour still need to be block-level. */
+    tei-TEI, tei-text, tei-front, tei-body, tei-group { display: block; }
+    .render-info { font-family: system-ui, sans-serif; background: #fce7f3; border: 1px solid #f9a8d4; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
     .render-info h3 { margin: 0 0 0.5em; color: #db2777; }
     .render-info code { background: #fdf2f8; padding: 0.1em 0.3em; border-radius: 3px; }
-
-    /* Base styles for CETEIcean custom elements */
-    tei-teiheader { display: none; }
-    tei-text, tei-body { display: block; }
-    tei-div { display: block; margin-bottom: 1.5em; }
-    tei-p { display: block; text-indent: 1em; margin: 0.3em 0; }
-    tei-persname { color: #8e44ad; }
-    tei-placename { color: #27ae60; }
-    tei-lb { display: block; }
-    tei-pb { display: block; border-top: 1px dashed #ccc; margin: 1em 0; padding-top: 0.3em; }
-    tei-pb::before { content: "[p. " attr(n) "]"; color: #999; font-size: 0.8em; }
-    tei-note { display: inline; }
-    tei-note .tei-note-ref { color: #2563eb; text-decoration: none; cursor: pointer; }
-    tei-note .tei-note-ref sup { font-size: 0.75em; }
-    tei-note .tei-note-body {
-      display: block; background: #fffde7; border: 1px solid #e0e0e0;
-      padding: 0.5em 0.75em; margin: 0.25em 0; font-size: 0.9em; border-radius: 4px;
-    }
-    tei-choice { border-bottom: 1px dotted #999; cursor: pointer; }
-    tei-quote {
-      display: block; margin: 1em 2em; font-style: italic;
-      border-left: 3px solid #bdc3c7; padding-left: 1em;
-    }
-    tei-list { display: block; margin-left: 1.5em; }
-    tei-item { display: list-item; margin-bottom: 0.2em; }
-    tei-ref { color: #2980b9; text-decoration: underline; cursor: pointer; }
-    tei-abbr { color: #e67e22; }
-    tei-sic { color: #c0392b; text-decoration: wavy underline; }
-    tei-rs[type="person"] { color: #8e44ad; }
-    tei-rs[type="place"] { color: #27ae60; }
-    tei-rs[type="org"] { color: #2980b9; }
-    tei-rs[type="bibl"] { font-style: italic; }
-    tei-hi[rend="bold"] { font-weight: bold; }
-    tei-hi[rend="italic"] { font-style: italic; }
-    tei-hi[rend="sup"] { vertical-align: super; font-size: 0.8em; }
-    tei-q::before { content: "\\201C"; }
-    tei-q::after { content: "\\201D"; }
+    /* Facsimile thumbnails (pb compound), resetting the colliding .tei-pb floor rules. */
+    a.tei-pb { display: block; clear: both; height: auto; width: auto; max-width: 150px; margin: 1.2em auto; padding: 4px; border: 1px solid #ccc; background: #fafafa; line-height: 0; }
+    a.tei-pb figure.tei-pb { display: block; height: auto; max-width: none; margin: 0; border: 0; }
+    a.tei-pb img { display: block; width: 100%; height: auto; }
+    /* Interactive layer (notes, apparatus, facsimile toggle). */
+    .tei-note-interactive .tei-note-body { display: none; }
+    .tei-note-interactive.open .tei-note-body { display: inline; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.15em 0.4em; border-radius: 4px; }
+    .tei-note-ref { cursor: pointer; color: #2563eb; text-decoration: none; }
+    .tei-alternate { cursor: pointer; border-bottom: 1px dotted #999; }
+    .facs-toggle { display: none; margin: 0 0 1.2em; font-family: system-ui, sans-serif; }
+    html.js .facs-toggle { display: block; }
+    .facs-toggle button { font: inherit; font-size: 0.85em; cursor: pointer; padding: 0.3em 0.8em; border: 1px solid #c7c7c7; border-radius: 4px; background: #f3f3f3; }
+    body.facs-hidden a.tei-pb { display: none; }
   </style>
 </head>
-<body>
+<body class="tei-edition">
 
   <div class="render-info">
     <h3>CETEIcean Rendering Path</h3>
     <p><strong>Pipeline:</strong> ODD → <code>odd-to-ceteicean.mjs</code> →
       behaviours.js → CETEIcean (browser) → HTML</p>
-    <p>CETEIcean registers TEI elements as custom elements with <code>tei-</code>
-      prefix, then applies ODD-derived behaviours to reshape the DOM at runtime.
-      CSS attribute selectors handle PM predicates where possible; JavaScript
-      conditions handle tree-context predicates (parent::, ancestor::).</p>
-    <p>Click notes to expand; click abbreviations/corrections to toggle readings.</p>
+    <p>CETEIcean registers TEI elements as <code>tei-</code> custom elements, then
+      applies ODD-derived behaviours that stamp the same <code>tei-*</code>/<code>r-*</code>
+      classes the other renderers use — so the shared <code>edition.css</code>
+      produces the same result. Click notes to expand; click corrections to toggle
+      readings.</p>
   </div>
+
+  <div class="facs-toggle"><button type="button" data-facs-toggle="">Hide facsimiles</button></div>
 
   <div id="TEI"></div>
 
@@ -606,6 +543,30 @@ ${behavioursSource}
         document.getElementById('TEI').appendChild(data);
       });
     }
+  </script>
+
+  <!-- Shared interactive layer — the same framework-free handler the XSLT
+       interactive page uses. Event delegation, so it works no matter when
+       CETEIcean finishes building the DOM. -->
+  <script>
+    document.documentElement.classList.add('js');
+    document.addEventListener('click', function (e) {
+      var ref = e.target.closest('.tei-note-ref');
+      if (ref) { e.preventDefault(); ref.parentNode.classList.toggle('open'); return; }
+      var alt = e.target.closest('.tei-alternate');
+      if (alt) {
+        var d = alt.querySelector('.tei-alternate-default');
+        var v = alt.querySelector('.tei-alternate-alt');
+        if (d) { d.hidden = !d.hidden; }
+        if (v) { v.hidden = !v.hidden; }
+        return;
+      }
+      var ft = e.target.closest('[data-facs-toggle]');
+      if (ft) {
+        var hidden = document.body.classList.toggle('facs-hidden');
+        ft.textContent = hidden ? 'Show facsimiles' : 'Hide facsimiles';
+      }
+    });
   </script>
 
 </body>
