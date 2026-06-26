@@ -13,7 +13,9 @@ compiler-xslt/
 ├── generate/
 │   ├── odd-to-xsl.xsl        ODD → edition.xsl   (XSLT generating XSLT)
 │   ├── odd-to-css.xsl        ODD → edition.css   (XSLT generating CSS)
-│   └── odd-to-ceteicean.xsl  ODD → CETEIcean behaviours + demo page
+│   ├── odd-to-ceteicean.xsl  ODD → CETEIcean behaviours + demo page
+│   ├── render-saxonjs.xsl    edition.xsl + IXSL handlers → client-side SaxonJS driver
+│   └── generate-saxonjs-page.xsl  the SaxonJS host page
 ├── build.sh / build.ps1 drivers (run generate + render with Saxon)
 └── output/              generated artefacts + rendered pages (gitignored)
 ```
@@ -26,6 +28,9 @@ Requires **Java** and **Saxon HE 12**. Point `SAXON_HOME` at your unpacked Saxon
 HE 12 directory (the one with `saxon-he-12*.jar` and `lib/xmlresolver-*.jar`);
 download it from <https://www.saxonica.com/download/java.xml>. Without `SAXON_HOME`
 the scripts try `./vendor/SaxonHE12-9J`, otherwise failing with instructions.
+
+The optional **SaxonJS** step (below) also needs **Node.js** (for `npx xslt3`); if
+Node is absent the build prints a notice and skips it — everything else still runs.
 
 ```bash
 bash build.sh                                                                   # default: the Simler edition
@@ -41,7 +46,28 @@ Outputs: `edition.xsl`, `edition.css`, `rendered-xslt.html` (Tier 1, zero-JS),
 `rendered-ceteicean.html` that renders the TEI client-side with CETEIcean. The
 build also renders the whole `simler-*.xml` corpus into `edition-interactive/`
 (one self-contained interactive page per source plus a linking `index.html`,
-built by `generate-index.xsl`).
+built by `generate-index.xsl`). When Node is available it additionally emits the
+**SaxonJS** browser path: `edition-saxonjs.sef.json`, `rendered-saxonjs.html`, and
+a self-hosted `SaxonJS2.rt.js` (see below).
+
+## SaxonJS in the browser (SEF + IXSL)
+
+The build-time stylesheet runs *client-side* too. `render-saxonjs.xsl` imports the
+generated `edition.xsl` (reusing every TEI template) and adds IXSL event templates
+for the note, apparatus and facsimile toggles; `xslt3` compiles it to a Stylesheet
+Export File (`edition-saxonjs.sef.json`), and `rendered-saxonjs.html` runs that SEF
+in the browser with the SaxonJS runtime. So the **same** template-matching
+stylesheet has two entry points — **Saxon HE at build time, SaxonJS in the
+browser** — and the client-side interactivity is *interactive XSLT* (IXSL), the
+SaxonJS-native counterpart of the build path's ~12-line script, with no
+hand-written JavaScript.
+
+Two tool notes: the SEF compiler is **`xslt3`** (the Node SaxonJS compiler), not
+Saxon HE — Saxon HE cannot emit a SaxonJS-runnable SEF, and only `xslt3`
+understands the `ixsl:` instructions. The browser **runtime** (`SaxonJS2.rt.js`,
+matching `xslt3` 2.7) is downloaded next to the page so the demo is self-contained
+and works offline. Open it over **HTTP** (e.g. `npx http-server output`), not
+`file://`: the page fetches the SEF and the TEI at view time.
 
 ## How "generate" works in XSLT
 

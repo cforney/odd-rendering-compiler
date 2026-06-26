@@ -59,7 +59,10 @@ bash build.sh     # default: the Simler edition
 ./build.ps1
 ```
 
-Outputs land in `compiler-xslt/output/`. See
+Outputs land in `compiler-xslt/output/`. With Node present the build also emits a
+**client-side SaxonJS** demo (`rendered-saxonjs.html`): the same `edition.xsl`,
+compiled to a SEF and run in the browser with IXSL toggles — serve it over HTTP
+(e.g. `npx http-server compiler-xslt/output`). See
 [`compiler-xslt/README.md`](compiler-xslt/README.md) for details.
 
 ## Examples, licensing, and credits

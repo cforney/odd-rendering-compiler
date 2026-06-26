@@ -71,4 +71,26 @@ saxon -s:"$ODD" -xsl:generate/generate-index.xsl -o:output/edition-interactive/i
   title="TEI Edition — XSLT (progressively enhanced)" \
   subtitle="$COUNT documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
 
-echo "done — output/{edition.xsl, edition.css, rendered-xslt.html, rendered-xslt-interactive.html, tei-ceteicean-behaviours.js, rendered-ceteicean.html, edition-interactive/}"
+# ④ SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
+#    File (SEF) and run in the browser — completing the template-matching axis on
+#    the client. The SEF compiler is xslt3 (SaxonJS, Node): Saxon HE cannot emit a
+#    SaxonJS-runnable SEF, and only xslt3 understands the IXSL toggle templates.
+#    render-saxonjs.xsl imports edition.xsl and adds the IXSL handlers; the runtime
+#    is self-hosted next to the page so the demo works offline.
+if command -v npx >/dev/null 2>&1; then
+  echo "④ saxonjs   edition-saxonjs.sef.json (IXSL) + rendered-saxonjs.html  ← edition.xsl"
+  npx --yes xslt3 -xsl:generate/render-saxonjs.xsl -export:output/edition-saxonjs.sef.json -nogo
+  saxon -s:"$ODD" -xsl:generate/generate-saxonjs-page.xsl -o:output/rendered-saxonjs.html \
+    tei="$(basename "$TEI")"
+  cp "$TEI" "output/$(basename "$TEI")"   # the page fetches the TEI at view time
+  RT="output/SaxonJS2.rt.js"              # SaxonJS 2 runtime, matching xslt3 2.7
+  if [ ! -f "$RT" ]; then
+    curl -fsSL "https://www.saxonica.com/saxon-js/documentation2/SaxonJS/SaxonJS2.rt.js" -o "$RT" \
+      || echo "  ⚠ could not fetch SaxonJS2.rt.js — drop it next to rendered-saxonjs.html to view"
+  fi
+  [ -s output/edition-saxonjs.sef.json ] || { echo "SEF was not produced" >&2; exit 1; }
+else
+  echo "④ saxonjs   skipped (Node/npx not found — needed to compile the SEF with xslt3)"
+fi
+
+echo "done — output/{edition.xsl, edition.css, rendered-xslt.html, rendered-xslt-interactive.html, tei-ceteicean-behaviours.js, rendered-ceteicean.html, edition-interactive/, rendered-saxonjs.html + edition-saxonjs.sef.json}"

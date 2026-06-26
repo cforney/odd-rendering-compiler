@@ -53,4 +53,23 @@ $filesParam = $names -join '|'
 $subtitle = "$($names.Count) documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
 Invoke-Saxon @("-s:$Odd", "-xsl:generate/generate-index.xsl", "-o:output/edition-interactive/index.html",
   "files=$filesParam", "title=TEI Edition — XSLT (progressively enhanced)", "subtitle=$subtitle")
+
+# (4) SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
+#     File (SEF) and run in the browser. The SEF compiler is xslt3 (SaxonJS, Node):
+#     Saxon HE cannot emit a SaxonJS-runnable SEF, and only xslt3 understands the
+#     IXSL toggle templates. The runtime is self-hosted so the demo works offline.
+if (Get-Command npx -ErrorAction SilentlyContinue) {
+  Write-Host "(4) saxonjs edition-saxonjs.sef.json (IXSL) + rendered-saxonjs.html  <- edition.xsl"
+  & npx --yes xslt3 -xsl:generate/render-saxonjs.xsl -export:output/edition-saxonjs.sef.json -nogo
+  if ($LASTEXITCODE -ne 0) { throw "xslt3 failed to compile the SEF" }
+  Invoke-Saxon @("-s:$Odd", "-xsl:generate/generate-saxonjs-page.xsl", "-o:output/rendered-saxonjs.html",
+    "tei=$([System.IO.Path]::GetFileName($Tei))")
+  Copy-Item $Tei "output/$([System.IO.Path]::GetFileName($Tei))" -Force  # fetched at view time
+  if (-not (Test-Path output/SaxonJS2.rt.js)) {                          # SaxonJS 2 runtime
+    try { Invoke-WebRequest -UseBasicParsing -Uri "https://www.saxonica.com/saxon-js/documentation2/SaxonJS/SaxonJS2.rt.js" -OutFile output/SaxonJS2.rt.js }
+    catch { Write-Warning "could not fetch SaxonJS2.rt.js - drop it next to rendered-saxonjs.html to view" }
+  }
+} else {
+  Write-Host "(4) saxonjs skipped (Node/npx not found - needed to compile the SEF with xslt3)"
+}
 Write-Host "done."
