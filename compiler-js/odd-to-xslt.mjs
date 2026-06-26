@@ -250,6 +250,30 @@ function behaviourToXSLT(model, ident) {
 }
 
 /**
+ * Assemble a compound / sequence behaviour into XSLT. Sub-behaviours are emitted
+ * in order, except that a `link` sub-model *wraps* the rest — so a `<pb>` declared
+ * as link + graphic renders as one clickable thumbnail
+ * (`<a href="…full"><figure><img …></figure></a>`), matching odd-to-xsl.xsl and the
+ * unified path, instead of an empty link beside a detached image.
+ */
+function compoundToXSLT(subModels, ident) {
+  const link = subModels.find((sm) => sm.behaviour === "link");
+  if (link) {
+    const uri = Object.fromEntries(link.params.map((p) => [p.name, p.value])).uri || "@target";
+    const rest = subModels.filter((sm) => sm !== link);
+    return [
+      `    <a class="tei-${ident}">`,
+      `      <xsl:attribute name="href">`,
+      `        <xsl:value-of select="${escXml(uri)}"/>`,
+      `      </xsl:attribute>`,
+      ...rest.flatMap((sm) => behaviourToXSLT(sm, ident)),
+      `    </a>`,
+    ];
+  }
+  return subModels.flatMap((sm) => behaviourToXSLT(sm, ident));
+}
+
+/**
  * Generate a complete XSLT 1.0 stylesheet from the parsed element models.
  */
 function generateXSLT(elements) {
@@ -363,17 +387,13 @@ function generateXSLT(elements) {
     // If there's only one model without a predicate, emit a simple template
     if (flatModels.length === 1 && !flatModels[0].predicate) {
       const m = flatModels[0];
+      lines.push(`  <xsl:template match="tei:${el.ident}">`);
       if (m.behaviour === "__sequence__" || m.behaviour === "__compound__") {
-        lines.push(`  <xsl:template match="tei:${el.ident}">`);
-        for (const sm of m.subModels) {
-          lines.push(...behaviourToXSLT(sm, el.ident));
-        }
-        lines.push(`  </xsl:template>`);
+        lines.push(...compoundToXSLT(m.subModels, el.ident));
       } else {
-        lines.push(`  <xsl:template match="tei:${el.ident}">`);
         lines.push(...behaviourToXSLT(m, el.ident));
-        lines.push(`  </xsl:template>`);
       }
+      lines.push(`  </xsl:template>`);
       templateCount++;
       lines.push(``);
       continue;
@@ -391,9 +411,7 @@ function generateXSLT(elements) {
         const matchExpr = `tei:${el.ident}[${m.predicate}]`;
         lines.push(`  <xsl:template match="${escXml(matchExpr)}">`);
         if (m.behaviour === "__sequence__" || m.behaviour === "__compound__") {
-          for (const sm of m.subModels) {
-            lines.push(...behaviourToXSLT(sm, el.ident));
-          }
+          lines.push(...compoundToXSLT(m.subModels, el.ident));
         } else {
           lines.push(...behaviourToXSLT(m, el.ident));
         }
@@ -407,9 +425,7 @@ function generateXSLT(elements) {
       const m = withoutPredicate[0]; // Take the first unpredicated model as fallback
       lines.push(`  <xsl:template match="tei:${el.ident}">`);
       if (m.behaviour === "__sequence__" || m.behaviour === "__compound__") {
-        for (const sm of m.subModels) {
-          lines.push(...behaviourToXSLT(sm, el.ident));
-        }
+        lines.push(...compoundToXSLT(m.subModels, el.ident));
       } else {
         lines.push(...behaviourToXSLT(m, el.ident));
       }

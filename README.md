@@ -11,18 +11,17 @@ stylesheet, unified/xast handlers, CETEIcean behaviours — which then *render* 
 TEI document into static HTML. No server, no runtime ODD interpreter; just a
 clean clone that builds.
 
-> **define → generate → render.** The ODD is the single source of truth
+> **Define → generate → render.** The ODD is the single source of truth
 > (*define*); a build tool compiles its behaviours into rendering artefacts
 > (*generate*); those artefacts turn TEI into a static edition (*render*).
 
 The chain is implemented **twice — in JavaScript and in XSLT** — on purpose: the
 *generate* step is generic, not tied to one language, and the two implementations
-produce a byte-identical static body. That equivalence is itself part of the
-article's argument.
+produce an equivalent static body. That equivalence is itself part of the article's 
+argument.
 
-> **Note.** This is an illustrative reference implementation: it exists to make
-> the *define → generate → render* idea concrete and reproduce the article, not
-> as production code.
+> **Note.** This is an experimental implementation: it exists to illustrate
+> the idea and reproduce the article, not as production code.
 
 ## What's here
 

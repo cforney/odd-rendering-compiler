@@ -110,8 +110,10 @@ own `tei_simplePrint` uses. It is single-document resolution, not full `odd2odd`
   apparatus toggles, graceful degradation) is reached with `data`/`class` hooks plus
   ~12 lines of vanilla JS and a `<noscript>` reveal.
 - **Fidelity.** Built over a shared sample ODD, the static `rendered-xslt.html`
-  **body is byte-identical** to the JS output (same `tei-*` classes, baked styles,
-  footnotes); only two cosmetic `<head>` serialisation details differ.
+  body is **equivalent** to the JS output — same `tei-*` classes, baked styles and
+  footnotes — identical up to attribute order, engine-generated note IDs and
+  whitespace. The byte-identity gate (`compiler-js`'s `npm test`) normalises
+  exactly those and checks the two match.
 
 ## Example sources & credits
 
