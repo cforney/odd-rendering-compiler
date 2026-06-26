@@ -1,0 +1,36 @@
+{
+  "_comment": "Shared behaviour contract — the single source of truth mapping each TEI Processing-Model behaviour to its HTML element and base style. Consumed by compiler-js (behaviour-map.mjs) AND the compiler-xslt generators (odd-to-xsl.xsl, odd-to-css.xsl, via json-doc). Edit here, not in either compiler. Fields: tag = HTML element; display = CSS display; css = extra base declarations; wrapper = simple wrapper element (drives the XSLT $tag dispatch); requiresJS = needs a script at runtime; omit/passthrough/void/compound = special handling. Human-readable view: docs/behaviour-table.md.",
+
+  "document":  { "tag": "article" },
+  "body":      { "tag": "div",        "display": "block", "wrapper": true },
+  "section":   { "tag": "section",    "display": "block", "wrapper": true },
+  "block":     { "tag": "div",        "display": "block", "wrapper": true },
+  "paragraph": { "tag": "p",          "display": "block", "css": "margin-top: 0.5em; margin-bottom: 0.5em;", "wrapper": true },
+  "heading":   { "tag": "h",          "display": "block", "css": "font-weight: bold;" },
+
+  "inline":    { "tag": "span",       "display": "inline", "wrapper": true },
+  "title":     { "tag": "span",       "wrapper": true },
+  "text":      { "passthrough": true },
+
+  "list":      { "tag": "ul",         "display": "block", "css": "list-style-type: disc; padding-left: 1.5em;", "wrapper": true },
+  "listItem":  { "tag": "li",         "display": "list-item", "wrapper": true },
+  "table":     { "tag": "table",      "display": "table", "wrapper": true },
+  "row":       { "tag": "tr",         "display": "table-row", "wrapper": true },
+  "cell":      { "tag": "td",         "display": "table-cell", "wrapper": true },
+
+  "cit":       { "tag": "blockquote", "display": "block", "wrapper": true },
+  "break":     { "tag": "br",         "display": "block", "css": "/* break */", "void": true },
+
+  "metadata":  { "display": "none", "omit": true },
+  "omit":      { "display": "none", "omit": true },
+
+  "note":      { "requiresJS": true },
+  "link":      { "requiresJS": true },
+  "alternate": { "requiresJS": true },
+  "graphic":   { "requiresJS": true },
+  "glyph":     { "requiresJS": true },
+  "anchor":    { "requiresJS": true },
+  "index":     { "requiresJS": true },
+
+  "compound":  { "compound": true }
+}

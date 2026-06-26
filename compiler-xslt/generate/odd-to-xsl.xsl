@@ -66,23 +66,16 @@
             then local:schema-specs(//tei:schemaSpec/node(), ())[tei:model or tei:modelSequence]
             else //tei:elementSpec[tei:model or tei:modelSequence]"/>
 
-  <!-- behaviour → HTML element for simple wrapper behaviours (mirrors the JS
-       behaviour-map). -->
-  <xsl:variable name="tag" as="map(xs:string, xs:string)" select="map {
-    'inline'   : 'span',
-    'block'    : 'div',
-    'paragraph': 'p',
-    'section'  : 'section',
-    'body'     : 'div',
-    'list'     : 'ul',
-    'listItem' : 'li',
-    'cit'      : 'div',
-    'quote'    : 'blockquote',
-    'title'    : 'span',
-    'table'    : 'table',
-    'row'      : 'tr',
-    'cell'     : 'td'
-  }"/>
+  <!-- Shared behaviour contract: the SAME ../../behaviour-map.json the JS compiler
+       reads (single source of truth — the two cannot drift). $tag = behaviour →
+       HTML element for the simple wrapper behaviours (those flagged "wrapper"). -->
+  <xsl:variable name="behaviour-map" select="json-doc('../../behaviour-map.json')"/>
+  <xsl:variable name="tag" as="map(xs:string, xs:string)"
+    select="map:merge(
+      for $b in map:keys($behaviour-map)[$behaviour-map(.) instance of map(*)]
+      return if ($behaviour-map($b)?wrapper = true() and map:contains($behaviour-map($b), 'tag'))
+             then map:entry($b, xs:string($behaviour-map($b)?tag))
+             else ())"/>
 
   <!-- Root: emit the edition.xsl skeleton, then a template per elementSpec. -->
   <xsl:template match="/">

@@ -59,27 +59,21 @@
             then local:schema-specs(//tei:schemaSpec/node(), ())[tei:model]
             else //tei:elementSpec[tei:model]"/>
 
-  <!-- behaviour → CSS display (the visual subset of the Processing Model) -->
-  <xsl:variable name="display" as="map(xs:string, xs:string)" select="map {
-    'inline'   : 'inline',
-    'block'    : 'block',
-    'paragraph': 'block',
-    'section'  : 'block',
-    'heading'  : 'block',
-    'body'     : 'block',
-    'quote'    : 'block',
-    'list'     : 'block',
-    'listItem' : 'list-item',
-    'cit'      : 'block',
-    'table'    : 'table',
-    'row'      : 'table-row',
-    'cell'     : 'table-cell',
-    'metadata' : 'none',
-    'omit'     : 'none'
-  }"/>
+  <!-- Shared behaviour contract: the SAME ../../behaviour-map.json the JS compiler
+       reads (single source of truth — the two cannot drift). $display = behaviour
+       → CSS display; $jsBehaviours = behaviours with no static CSS form. -->
+  <xsl:variable name="behaviour-map" select="json-doc('../../behaviour-map.json')"/>
+  <xsl:variable name="display" as="map(xs:string, xs:string)"
+    select="map:merge(
+      for $b in map:keys($behaviour-map)[$behaviour-map(.) instance of map(*)]
+      return if (map:contains($behaviour-map($b), 'display'))
+             then map:entry($b, xs:string($behaviour-map($b)?display))
+             else ())"/>
 
   <!-- behaviours with no static CSS expression (need JS) -->
-  <xsl:variable name="jsBehaviours" select="('note','link','alternate','graphic','glyph','anchor','index')"/>
+  <xsl:variable name="jsBehaviours"
+    select="map:keys($behaviour-map)[$behaviour-map(.) instance of map(*)]
+            [$behaviour-map(.)?requiresJS = true()]"/>
 
   <xsl:template match="/">
     <xsl:text>/* edition.css — generated from the TEI ODD Processing Model (odd-to-css.xsl).&#10;</xsl:text>

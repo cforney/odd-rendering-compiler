@@ -24,6 +24,11 @@ nested-model extension.
 
 CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`).
 
+> **SaxonJS.** `render-xslt.mjs` already runs `edition.xsl` with **SaxonJS** (via the
+> `xslt3` CLI) when available, falling back to the pure-JS `xslt-processor`; the
+> *client-side* SaxonJS + IXSL demo — which needs the XSLT 3.0 stylesheet — lives in
+> [`../compiler-xslt/`](../compiler-xslt/).
+
 Every renderer accepts **one file or a whole corpus**: `--tei` may be a single
 file, a directory, a `* ? **` glob (quote it), a comma-separated list, or a
 repeated flag. One input keeps the fixed output name; several write one
@@ -55,7 +60,7 @@ header by default. Pass `--no-timestamp` to omit it, or set `SOURCE_DATE_EPOCH`
 ```
 compiler-js/
 ├── odd-parser.mjs        # shared ODD extraction library
-├── behaviour-map.mjs     # behaviour → HTML/CSS table (one source of truth)
+├── behaviour-map.mjs     # loads the shared ../behaviour-map.json (the source of truth)
 ├── cli.mjs               # shared CLI, file output, escaping, multi-file input
 ├── odd-to-css.mjs        # CSS from the Processing Model
 ├── odd-to-xslt.mjs       # XSLT 1.0 generator
@@ -80,17 +85,16 @@ to probe how far the CSS floor reaches on a large real-world ODD.
 
 ## Dependencies
 
-`@rgrove/parse-xml` — the only dependency, and the parser unified's
-`xast-util-from-xml` is built on, so build-time and rendering trees share one engine.
+[`@rgrove/parse-xml`](https://github.com/rgrove/parse-xml) — the only dependency, and the parser unified's
+[`xast-util-from-xml`](https://github.com/syntax-tree/xast-util-from-xml) is built on, so build-time and rendering trees share one engine.
 
 ## Architecture
 
-All generators build on three shared modules: **`odd-parser.mjs`** (ODD
-extraction — `createOddParser().parse()`, `findElementSpecs()`,
-`extractModels()`, …), **`behaviour-map.mjs`** (one table from each PM behaviour
-to its HTML element, CSS `display`, and JS-required flag, so retargeting a
-behaviour is a one-line edit), and **`cli.mjs`** (args, file output, escaping,
-the multi-file `--tei` resolver).
+All generators build on three shared modules:
+
+* **`odd-parser.mjs`** (ODD extraction — `createOddParser().parse()`, `findElementSpecs()`, `extractModels()`, …),
+* **`behaviour-map.mjs`** (loads the shared `../behaviour-map.json` — the behaviour → HTML element / CSS `display` / JS-required table both compilers read, so retargeting a behaviour is a one-line edit in one place), and
+* **`cli.mjs`** (args, file output, escaping, the multi-file `--tei` resolver).
 
 **`<specGrpRef>` resolution.** Real customisations keep reusable specs in
 `<specGrp xml:id="…">` blocks pulled in with `<specGrpRef target="#id"/>` (the TEI's
