@@ -7,7 +7,8 @@
  * tiny generic runtime (islands-runtime.js) hydrates each region on demand. No
  * framework, no per-element components — the principled generalisation of the
  * petite-vue and vanilla-JS interactive tiers (see islands-runtime.js for the
- * model, which mirrors Astro's <astro-island> + client:* directives).
+ * model, which mirrors Astro's <astro-island> + client:* directives). Notes open
+ * as tooltips, by the shared ../runtime/notes.js, as on every interactive page.
  *
  * --tei accepts the same inputs as the other renderers, with the same pages.
  *
@@ -41,6 +42,7 @@ catch { log(`⚠ edition.css not found at ${cssPath} — the edition will be uns
 
 // The generic runtime ships verbatim beside the page as tei-islands.js.
 const runtime = readFileSync(new URL("islands-runtime.js", import.meta.url), "utf-8");
+const notesJs = readFileSync(new URL("../runtime/notes.js", import.meta.url), "utf-8");
 
 // ---------------------------------------------------------------------------
 // Mark interactive regions as islands. The static markup inside stays intact, so
@@ -52,7 +54,6 @@ const island = (type, on, child) =>
 function markIslands(node) {
   if (node.type !== "element") return node;
   const cls = node.properties?.className || [];
-  if (cls.includes("tei-note-ref")) return island("note", "visible", node);
   if (cls.includes("tei-alternate")) return island("choice", "visible", node);
   node.children = node.children.map(markIslands);
   return node;
@@ -94,18 +95,7 @@ ${editionCss}
     /* Island wrappers are transparent to layout, like Astro's <astro-island>. */
     tei-island { display: contents; }
 
-    /* Note: a footnote anchor without JS; an inline toggle once hydrated. The
-       collected footnotes show by default and retire only when JS is present. */
-    .tei-note-body { display: block; }
-    html.islands .tei-footnotes { display: none; }
-    .tei-note-ref { color: #059669; text-decoration: none; cursor: pointer; }
-    .tei-note-ref:hover { text-decoration: underline; }
-    .tei-note-inline { display: none; }
-    tei-island.open .tei-note-inline { display: inline; background: #ecfdf5;
-      border: 1px solid #a7f3d0; padding: 0.15em 0.4em; border-radius: 4px;
-      margin-left: 0.25em; font-size: 0.9em; }
-
-    /* Choice/apparatus toggle (interactive only once hydrated). */
+    /* Choice/apparatus toggle (interactive only once hydrated). Notes: edition.css. */
     tei-island[type="choice"][data-hydrated] .tei-alternate {
       border-bottom: 1px dotted #999; cursor: pointer; }
     .tei-alternate-alt { color: #b91c1c; }
@@ -120,14 +110,18 @@ ${editionCss}
     <p>The static body is unchanged; interactive regions are wrapped in
       <code>&lt;tei-island&gt;</code> custom elements that one ~2 KB generic runtime
       hydrates on demand (<code>on="load|idle|visible|media()"</code>). Only marked
-      regions ship behaviour, and only when needed. Without JavaScript the content
-      stays fully readable.</p>
+      regions ship behaviour, and only when needed; notes open as tooltips.
+      Without JavaScript the content stays fully readable.</p>
   </div>
 
   ${htmlBody}
 
   <!-- The generic island runtime — self-hosted, framework-free. -->
   <script src="tei-islands.js" defer></script>
+  <!-- The notes, as on every interactive page. -->
+  <script>
+${notesJs}
+  </script>
 
 </body>
 </html>`;

@@ -3,10 +3,11 @@
 /**
  * The interactive variant of render-unified.mjs. It reuses the same
  * tei-handlers.mjs but post-processes the hast tree to inject petite-vue
- * (https://github.com/vuejs/petite-vue) directives: notes become inline
- * open/close toggles and choice/alternate elements toggle between readings on
- * click. The page is fully rendered at build time and stays readable without JS
- * (graceful degradation); petite-vue (~7 KB) adds the interactivity at load.
+ * (https://github.com/vuejs/petite-vue) directives: choice/alternate elements
+ * toggle between readings on click. Notes open as tooltips, by the shared
+ * ../runtime/notes.js. The page is fully rendered at build time and stays
+ * readable without JS (graceful degradation); petite-vue (~7 KB) adds the
+ * interactivity at load.
  *
  * As in render-unified.mjs, edition.css is inlined and this script owns only the
  * page chrome and interactive scaffolding. --tei accepts the same inputs, with
@@ -42,6 +43,7 @@ log(`TEI:      ${teiFiles.join(", ")}`);
 log(`CSS:      ${cssPath}`);
 
 const teiToHast = await loadHandlers(handlersPath);
+const notesJs = readFileSync(new URL("../runtime/notes.js", import.meta.url), "utf-8");
 
 // ---------------------------------------------------------------------------
 // Read the ODD-generated stylesheet (odd-to-css.mjs) once, to inline below.
@@ -61,107 +63,12 @@ function renderPage(teiFile) {
   const xastTree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
   const { hast, notes } = teiToHast(xastTree);
 
-  // -------------------------------------------------------------------------
-  // Post-process hast: inject petite-vue reactive directives.
-  // noteMap / noteIdx are per-document state, so they live in this scope.
-  // -------------------------------------------------------------------------
-  const noteMap = new Map();
-  for (const note of notes) {
-    const id = note.properties?.id;
-    if (id) noteMap.set(id, note);
-  }
-
-  let noteIdx = 0;
-
-  /**
-   * Walk the hast tree and transform interactive elements:
-   *   1. .tei-note-ref → inline note with v-scope toggle
-   *   2. .tei-alternate → v-scope toggle between readings
-   *   3. Remove the footnotes section (notes are now inline)
-   */
+  // Post-process hast: petite-vue directives on every choice/alternate element.
   function transformForPetiteVue(node) {
-    if (!node || node.type === "text") return node;
-    if (node.type === "root") {
-      node.children = (node.children || []).map(transformForPetiteVue).filter(Boolean);
-      return node;
-    }
     if (node.type !== "element") return node;
-
-    const cls = node.properties?.className || [];
-
-    // Skip the footnotes section — notes are now inline
-    if (cls.includes("tei-footnotes")) return null;
-
-    // Transform .tei-alternate → petite-vue toggle
-    if (cls.includes("tei-alternate")) {
-      return transformAlternate(node);
-    }
-
-    // Transform .tei-note-ref → inline note with toggle
-    if (cls.includes("tei-note-ref")) {
-      return transformNoteRef(node);
-    }
-
-    // Recurse into children
-    if (node.children) {
-      node.children = node.children.map(transformForPetiteVue).filter(Boolean);
-    }
+    if ((node.properties?.className || []).includes("tei-alternate")) return transformAlternate(node);
+    node.children = (node.children || []).map(transformForPetiteVue);
     return node;
-  }
-
-  function transformNoteRef(refNode) {
-    noteIdx++;
-    // Extract the note ID from href="#note-1"
-    const href = refNode.properties?.href || "";
-    const noteId = href.replace(/^#/, "");
-    const noteBody = noteMap.get(noteId);
-
-    // Create a petite-vue scoped wrapper
-    const wrapper = {
-      type: "element",
-      tagName: "span",
-      properties: {
-        className: ["tei-note-interactive"],
-        "v-scope": "{ open: false }",
-      },
-      children: [
-        // The clickable ref marker
-        {
-          type: "element",
-          tagName: "a",
-          properties: {
-            className: refNode.properties.className,
-            href: "#",
-            role: "doc-noteref",
-            "aria-label": `Note ${noteIdx}`,
-            "@click.prevent": "open = !open",
-            ":aria-expanded": "String(open)",
-          },
-          children: [
-            {
-              type: "element",
-              tagName: "sup",
-              properties: {},
-              children: [{ type: "text", value: `${noteIdx}` }],
-            },
-          ],
-        },
-        // Inline note body — hidden by default, shown on click
-        {
-          type: "element",
-          tagName: "span",
-          properties: {
-            className: ["tei-note-body"],
-            id: noteId,
-            role: "doc-footnote",
-            "v-show": "open",
-          },
-          children: noteBody ? (noteBody.children || []) : [],
-        },
-      ],
-    };
-
-    return wrapper;
   }
 
   function transformAlternate(node) {
@@ -198,7 +105,6 @@ function renderPage(teiFile) {
   }
 
   transformForPetiteVue(hast);
-  log(`✓ ${teiFile}: petite-vue directives injected (${noteMap.size} notes, inline)`);
 
   const htmlBody = toHtml(hast);
   const title = extractTeiTitle(xastTree);
@@ -237,24 +143,7 @@ ${editionCss}
     .render-info h3 { margin: 0 0 0.5em; color: #d97706; }
     .render-info code { background: #fef9c3; padding: 0.1em 0.3em; border-radius: 3px; }
 
-    /* Renderer scaffolding + interactive layer: classes this renderer
-       synthesises (note refs/bodies, choice toggles) and the petite-vue
-       directives. These are NOT TEI elements, so they are not in the ODD. */
-
-    /* Note: inline toggle */
-    .tei-note-interactive { display: inline; }
-    .tei-note-ref {
-      color: #2563eb; text-decoration: none; cursor: pointer;
-    }
-    .tei-note-ref:hover { text-decoration: underline; }
-    .tei-note-ref sup { font-size: 0.75em; }
-    .tei-note-body {
-      display: block; background: #fffde7; border: 1px solid #e0e0e0;
-      padding: 0.5em 0.75em; margin: 0.25em 0; font-size: 0.9em;
-      border-radius: 4px;
-    }
-
-    /* Alternate/choice toggle */
+    /* The reading toggle, by petite-vue. Notes: edition.css. */
     .tei-alternate {
       border-bottom: 1px dotted #999;
       cursor: pointer;
@@ -278,8 +167,8 @@ ${editionCss}
     <p>Build-time conversion embeds <code>v-scope</code>, <code>v-show</code> and
       <code>@click</code> directives that
       <a href="https://github.com/vuejs/petite-vue" target="_blank" rel="noopener">petite-vue</a>
-      (~7 KB) activates at load time: click notes to expand, click apparatus
-      readings to toggle. Without JavaScript the content stays fully visible.</p>
+      (~7 KB) activates at load time: click apparatus readings to toggle. Notes
+      open as tooltips. Without JavaScript the content stays fully visible.</p>
   </div>
 
   <!-- petite-vue mount scope -->
@@ -291,6 +180,11 @@ ${editionCss}
   <script type="module">
     import { createApp } from 'https://unpkg.com/petite-vue@0.4.1/dist/petite-vue.es.js';
     createApp().mount('#edition');
+  </script>
+
+  <!-- The notes, as on every interactive page -->
+  <script>
+${notesJs}
   </script>
 
   <!-- No-JS fallback: show everything if petite-vue doesn't load -->

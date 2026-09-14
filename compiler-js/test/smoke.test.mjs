@@ -51,6 +51,7 @@ test("odd-to-css adds the design tokens and reports custom properties nothing de
   assert.match(css, /^\.r-twocol \{[^}]*display: grid/m, "the two-column grid rendition");
   assert.match(css, /^\.pb-group \{[^}]*display: flex/m, "a model group's rendition on its class");
   assert.match(css, /^\.pb-rule::before \{/m, "a scoped rendition as a pseudo-element");
+  assert.match(css, /^\.tei-tooltip \{/m, "the renderers' notes last");
 });
 
 test("render-unified renders every example, with an index", () => {
@@ -124,14 +125,15 @@ test("the nested page-break extension renders a facsimile thumbnail", () => {
   assert.match(html, /<h5 class="tei-head head-first r-b r-c">/, "the rest of the Simler ODD, through the chain");
 });
 
-test("render-unified-islands wraps interactive regions and ships the runtime", () => {
+test("render-unified-islands wraps the readings as islands and opens notes as tooltips", () => {
   const out = join(outDir, "islands");
   run("render-unified-islands.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
 
   const html = readFileSync(join(out, "simler-hausswesen.html"), "utf8");
-  assert.match(html, /<tei-island type="note" on="visible">/, "note region wrapped as an island");
   assert.match(html, /<tei-island type="choice" on="visible">/, "apparatus region wrapped as an island");
-  assert.match(html, /class="tei-footnotes"/, "static footnote fallback preserved (works with no JS)");
+  assert.match(html, /<a class="tei-note note-anchored tei-note-ref" href="#note-1"/, "a note marker stays a link to its note");
+  assert.match(html, /class="tei-footnotes"/, "the notes at the end (works with no JS)");
+  assert.match(html, /a\.tei-note-ref\[href\^="#note-"\]/, "the shared notes script");
   assert.match(html, /<script src="tei-islands\.js" defer>/, "the generic runtime is shipped");
 
   const runtime = readFileSync(join(out, "tei-islands.js"), "utf8");

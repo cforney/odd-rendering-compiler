@@ -8,8 +8,7 @@ are implemented once per runtime: [`runtime/pm-runtime.mjs`](../runtime/pm-runti
 for the unified handlers and [`runtime/pm.xsl`](../runtime/pm.xsl) for the
 generated stylesheets, and the two render the same HTML. The CETEIcean tier
 chooses models by `pm-runtime.mjs` in the browser and renders the same HTML
-with [`runtime/ceteicean.js`](../runtime/ceteicean.js), except that its notes
-open in place.
+with [`runtime/ceteicean.js`](../runtime/ceteicean.js).
 
 | Behaviour | HTML | Flow | Params |
 |-----------|------|------|--------|

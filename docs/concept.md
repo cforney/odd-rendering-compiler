@@ -77,9 +77,11 @@ The same ODD feeds three levels, each building on the last:
 1. **CSS floor.** `edition.css` over the semantic HTML, with no JavaScript.
 2. **Static HTML.** Pages rendered at build time (unified/xast or XSLT), with
    notes and apparatus baked in; readable with JavaScript off.
-3. **Interactive.** The static page, progressively enhanced with note and
-   apparatus toggles: petite-vue or islands in the JS path, ~12 lines of vanilla
-   JS in the XSLT path.
+3. **Interactive.** The static page, progressively enhanced. A note marker opens
+   its note as a tooltip, by one script on every interactive page
+   (`runtime/notes.js`, styled by `runtime/notes.css` in `edition.css`).
+   Apparatus readings toggle by petite-vue or islands in the JS path, a few lines
+   of vanilla JS in the XSLT path, and IXSL in SaxonJS.
 
-The CETEIcean tier renders in the browser instead: the same body, with notes
-that open in place.
+The CETEIcean tier renders in the browser instead: the same body, and the same
+tooltips.

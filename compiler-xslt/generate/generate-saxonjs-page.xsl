@@ -4,8 +4,8 @@
 
   Emits a small static page that loads the SaxonJS runtime from a CDN, then runs
   the compiled stylesheet (edition-saxonjs.sef.json) in the browser to render the
-  TEI named in $tei. IXSL handles the note and apparatus toggles, so no
-  hand-written JavaScript is needed. Point -s: at the ODD (only its title is read).
+  TEI named in $tei. IXSL swaps the apparatus readings; notes.js opens the notes,
+  as on every interactive page. Point -s: at the ODD (only its title is read).
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/generate-saxonjs-page.xsl
               -o:output/saxonjs/simler-psalmen.html  tei=simler-psalmen.xml
@@ -18,10 +18,11 @@
 
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
-  <!-- TEI document to render, the compiled SEF, edition.css, and the page title; relative to the page. -->
+  <!-- TEI document to render, the compiled SEF, edition.css, notes.js, and the page title; relative to the page. -->
   <xsl:param name="tei" as="xs:string" select="'simler-psalmen.xml'"/>
   <xsl:param name="sef" as="xs:string" select="'edition-saxonjs.sef.json'"/>
   <xsl:param name="css" as="xs:string" select="'edition.css'"/>
+  <xsl:param name="notes" as="xs:string" select="'notes.js'"/>
   <xsl:param name="title" as="xs:string" select="'TEI Edition — SaxonJS (client-side)'"/>
   <!-- The SaxonJS 2 browser runtime. build.sh self-hosts it next to this page
        (output/SaxonJS2.rt.js, gitignored) so the demo works offline and matches
@@ -41,25 +42,22 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
 .render-info { font-family: system-ui, sans-serif; background: #e0f2fe; border: 1px solid #38bdf8; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
 .render-info h3 { margin: 0 0 0.5em; color: #0284c7; }
 .render-info code { background: #f0f9ff; padding: 0.1em 0.3em; border-radius: 3px; }
-/* interactive note + apparatus (mirrors the edition.xsl interactive tier) */
-.tei-note-interactive .tei-note-body { display: none; }
-.tei-note-interactive.open .tei-note-body { display: inline; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.15em 0.4em; border-radius: 4px; }
-.tei-note-ref { cursor: pointer; color: #2563eb; text-decoration: none; }
+/* Apparatus toggle; notes: edition.css. */
 .tei-alternate { cursor: pointer; border-bottom: 1px dotted #999; }
-.tei-notes { margin-top: 2em; border-top: 1px solid #ddd; padding-top: 1em; }
 </style>
       </head>
       <body>
         <div class="render-info">
           <h3>SaxonJS Rendering Path (client-side, in the browser)</h3>
           <p><strong>Pipeline:</strong> ODD → <code>odd-to-xsl.xsl</code> → <code>edition.xsl</code> → <code>xslt3&#160;-export</code> → <code>edition-saxonjs.sef.json</code> → SaxonJS + IXSL (in the browser)</p>
-          <p>The <em>same</em> XSLT 3.0 stylesheet Saxon runs at build time, here compiled to a Stylesheet Export File (SEF) and executed client-side by SaxonJS. Note and apparatus toggles are handled by IXSL (interactive XSLT) — no hand-written JavaScript. Needs JavaScript and an HTTP server, since it fetches the SEF and the TEI; the build-time pages need neither.</p>
+          <p>The <em>same</em> XSLT 3.0 stylesheet Saxon runs at build time, here compiled to a Stylesheet Export File (SEF) and executed client-side by SaxonJS. Apparatus readings swap by IXSL (interactive XSLT); notes open as tooltips, by the same small script as on every interactive page. Needs JavaScript and an HTTP server, since it fetches the SEF and the TEI; the build-time pages need neither.</p>
         </div>
         <div id="tei-content">
           <p>Rendering with SaxonJS…</p>
           <noscript>This client-side path needs JavaScript; the build-time pages (<code>xslt/</code>) need none.</noscript>
         </div>
         <script src="{$runtime}"></script>
+        <script src="{$notes}"></script>
         <script>
           window.addEventListener('DOMContentLoaded', function () {
             function fail(msg) {

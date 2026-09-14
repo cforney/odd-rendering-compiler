@@ -8,9 +8,8 @@
  * chosen as the unified handlers choose it, by the same resolver and XPath, and
  * marked on the element (`data-pm`); each text is set as it renders. The
  * behaviours then reshape every custom element into the HTML the other
- * renderers emit, with the same classes, so edition.css styles it alike. A note
- * at the end or foot is a marker that opens its body in place; notes elsewhere
- * are not shown.
+ * renderers emit, with the same classes, so edition.css styles it alike; the
+ * notes are collected after the text, as they collect them.
  */
 
 const TEI_PHRASING = ["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"];
@@ -85,6 +84,19 @@ function teiEdition(ct, source, models, done) {
     el.style.display = "contents";
   }
 
+  /** The section after the text that collects the notes of a place: the numbered ones at "end". */
+  const sections = new Map();
+  function section(place) {
+    if (!sections.has(place)) {
+      const s = document.createElement("section");
+      s.className = place === "end" ? "tei-footnotes" : "tei-notes";
+      if (place !== "end") s.dataset.place = place;
+      document.querySelector('[data-pm="0"]').append(s);
+      sections.set(place, s);
+    }
+    return sections.get(place);
+  }
+
   /** A param's value: the nodes it selects rendered by their own models (the element itself by its content), anything else as text. */
   function value(v, c, content) {
     return seq(v).flatMap((item) => {
@@ -130,16 +142,23 @@ function teiEdition(ct, source, models, done) {
         return [make("span", [reading("tei-alternate-default", params.default, false), reading("tei-alternate-alt", params.alternate, true)], ["tei-alternate"])];
       }
       case "note": {
+        const aside = document.createElement("aside");
+        aside.className = "tei-note-body";
+        if (e.n) {
+          aside.id = `note-${e.n}`;
+          const num = aside.appendChild(document.createElement("span"));
+          num.className = "tei-note-num";
+          num.textContent = `${e.n}.`;
+          aside.append(" ");
+        }
+        aside.append(...own());
+        section(e.n ? "end" : str(params.place)).append(aside);
         if (!e.n) return [];
         const ref = make("a", [String(e.n)], ["tei-note-ref"]);
         ref.removeAttribute("id");
         ref.href = `#note-${e.n}`;
         if ("range" in params) ref.dataset.range = str(params.range).replace(/^#/, "");
-        const body = document.createElement("span");
-        body.className = "tei-note-body";
-        body.append(...own());
-        el.classList.add("tei-note-interactive");
-        return [ref, body];
+        return [ref];
       }
       case "break": {
         const line = "type" in params && str(params.type) === "line";

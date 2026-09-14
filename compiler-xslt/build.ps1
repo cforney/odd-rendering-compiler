@@ -36,6 +36,7 @@ New-Item -ItemType Directory -Force output/xslt, output/xslt-interactive, output
 
 Write-Host "(1) generate edition.xsl  <- $Odd"
 Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-xsl.xsl", "-o:output/edition.xsl")
+Copy-Item ../runtime/notes.js output/ -Force   # the notes, which the interactive pages inline
 Write-Host "(1) generate edition.css  <- $Odd $Tokens"
 Invoke-Saxon (@("-s:$Odd", "-xsl:generate/odd-to-css.xsl", "-o:output/edition.css") + @($(if ($Tokens) { "tokens=$Tokens" })))
 foreach ($dir in "output/xslt", "output/ceteicean") { Copy-Item output/edition.css $dir -Force }
@@ -65,7 +66,7 @@ if (Get-Command npx -ErrorAction SilentlyContinue) {
   foreach ($f in $teis) {
     Copy-Item $f.FullName output/saxonjs/ -Force                      # fetched at view time
     Invoke-Saxon @("-s:$Odd", "-xsl:generate/generate-saxonjs-page.xsl", "-o:output/saxonjs/$($f.BaseName).html",
-      "tei=$($f.Name)", "sef=../edition-saxonjs.sef.json", "runtime=../SaxonJS2.rt.js", "css=../edition.css")
+      "tei=$($f.Name)", "sef=../edition-saxonjs.sef.json", "runtime=../SaxonJS2.rt.js", "css=../edition.css", "notes=../notes.js")
   }
   if (-not (Test-Path output/SaxonJS2.rt.js)) {                          # SaxonJS 2 runtime
     try { Invoke-WebRequest -UseBasicParsing -Uri "https://www.saxonica.com/saxon-js/documentation2/SaxonJS/SaxonJS2.rt.js" -OutFile output/SaxonJS2.rt.js }

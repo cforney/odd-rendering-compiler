@@ -15,7 +15,7 @@
 
 import {
   cpSync, copyFileSync, readFileSync, writeFileSync,
-  rmSync, mkdirSync, existsSync, statSync,
+  rmSync, mkdirSync, existsSync, statSync, readdirSync,
 } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -62,8 +62,8 @@ function measureClientJs(htmlFile) {
 // 1 · Reset the site and copy both compilers' outputs in verbatim, so every
 //     page keeps its sibling assets (edition.css, the SEF, the runtime, …).
 // ---------------------------------------------------------------------------
-rmSync(SITE, { recursive: true, force: true });
-mkdirSync(SITE, { recursive: true });
+mkdirSync(SITE, { recursive: true });                 // emptied, not removed: a server may hold it
+for (const entry of readdirSync(SITE)) rmSync(resolve(SITE, entry), { recursive: true, force: true });
 for (const [dir, src] of Object.entries(SOURCES)) {
   if (!existsSync(src)) {                  // degrade gracefully: skip absent outputs
     console.warn(`[build-demo] ${src} not found — paths from "${dir}/" will be skipped.`);

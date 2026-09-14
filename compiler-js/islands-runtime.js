@@ -2,7 +2,7 @@
  * Generic island hydration — framework-free, ~2 KB.
  *
  * The renderer wraps each interactive region in
- *   <tei-island type="note|choice" on="load|idle|visible|media(…)">
+ *   <tei-island type="choice" on="load|idle|visible|media(…)">
  * around HTML that already works without JavaScript. This custom element upgrades
  * that one region when its strategy fires, so only marked regions ship behaviour,
  * and only on demand — static-first interactivity. The `type` → behaviour table is
@@ -42,26 +42,6 @@
 
   // --- Standard TEI island behaviours --------------------------------------
 
-  // Note: reveal the referenced note inline on click. Without JS the marker stays
-  // a plain anchor to the same note in the footnotes section.
-  register("note", function (island) {
-    var ref = island.querySelector(".tei-note-ref");
-    var body = ref && document.getElementById((ref.getAttribute("href") || "").slice(1));
-    if (!body) return;
-    var inline = null;
-    ref.setAttribute("aria-expanded", "false");
-    ref.addEventListener("click", function (ev) {
-      ev.preventDefault();
-      if (!inline) {                               // build the inline copy once
-        inline = document.createElement("span");
-        inline.className = "tei-note-inline";
-        inline.innerHTML = body.innerHTML;
-        island.appendChild(inline);
-      }
-      ref.setAttribute("aria-expanded", String(island.classList.toggle("open")));
-    });
-  });
-
   // Choice/apparatus: click or keyboard toggles between the two readings.
   register("choice", function (island) {
     var alt = island.querySelector(".tei-alternate");
@@ -84,7 +64,6 @@
   });
 
   window.TeiIslands = { register: register };
-  document.documentElement.classList.add("islands");   // lets CSS retire static fallbacks
 
   // Defined last, so the registry is populated before any element upgrades.
   customElements.define("tei-island", class extends HTMLElement {

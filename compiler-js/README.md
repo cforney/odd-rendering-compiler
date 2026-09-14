@@ -11,7 +11,7 @@ handlers, and CETEIcean behaviours — with the renderers that turn TEI into HTM
 | `odd-to-css.mjs` | `edition.css`: the design tokens (`--tokens`), the `<tagsDecl>` renditions and each model's `<outputRendition>` | all |
 | `odd-to-unified.mjs` | `tei-handlers.mjs` (ESM), with `../runtime/pm-runtime.mjs` and `xpath.mjs` | all; XPath in a subset |
 | `odd-to-xslt.mjs` | `edition.xsl` (XSLT 3.0) | all; any XPath |
-| `odd-to-ceteicean.mjs` | CETEIcean behaviours + a page per source, rendering in the browser | all, as unified; notes open in place |
+| `odd-to-ceteicean.mjs` | CETEIcean behaviours + a page per source, rendering in the browser | all, as unified |
 
 The ODD's CSS may read design tokens, custom properties such as `--c-muted`.
 `odd-to-css.mjs` puts the tokens file given with `--tokens` first in
@@ -125,7 +125,10 @@ renders by it:
 - **Joined line ends:** at an `lb break="no"` the encoded hyphen and the spaces
   around the break are dropped from the text, so the `lb`'s model sets the one
   hyphen the print shows.
-- **Notes** are numbered in document order and collected by place.
+- **Notes** are numbered in document order and collected by place. On the
+  interactive pages a marker opens its note as a tooltip, by
+  `../runtime/notes.js` (styled by `../runtime/notes.css`, which the CSS
+  generators append to `edition.css`).
 
 The generated stylesheet does the same with `../runtime/pm.xsl`, so the unified
 and XSLT renders have an equivalent body. A CETEIcean page chooses models by the

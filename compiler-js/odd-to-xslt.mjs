@@ -10,11 +10,12 @@
  * compiler-xslt's odd-to-xsl.xsl does too.
  *
  * Usage:  node odd-to-xslt.mjs --odd <path> [--out <dir>]
- * Output: <dir>/edition.xsl (stylesheet params: output, interactive)
+ * Output: <dir>/edition.xsl (stylesheet params: output, interactive), with
+ *         notes.js, which the interactive page inlines
  */
 
-import { readFileSync } from "fs";
-import { resolve, basename } from "path";
+import { readFileSync, copyFileSync } from "fs";
+import { resolve, basename, join } from "path";
 import { readOdd } from "./odd-parser.mjs";
 import { parseArgs, createLogger, writeOut, escapeXml, generatedStamp } from "./cli.mjs";
 
@@ -111,4 +112,5 @@ ${indent(specs.flatMap(templates)).join("\n")}
 `;
 
 const xslPath = writeOut(outDir, "edition.xsl", xslt);
+copyFileSync(new URL("../runtime/notes.js", import.meta.url), join(outDir, "notes.js"));
 log(`✓ ${xslPath} (${specs.length} elements, ${specs.reduce((n, s) => n + s.models.length, 0)} models)`);

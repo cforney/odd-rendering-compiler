@@ -22,7 +22,7 @@
 
   <!-- The PM output to render: its models take precedence, models of another output are skipped. -->
   <xsl:param name="output" as="xs:string" select="'web'"/>
-  <!-- 'true' renders the progressively enhanced page: notes inline, a small script toggles them. -->
+  <!-- 'true' renders the progressively enhanced page: a small script swaps readings, notes.js (beside the stylesheet) opens notes. -->
   <xsl:param name="interactive" as="xs:string" select="'false'"/>
 
   <!-- HTML elements whose content must be phrasing: a block inside becomes a span. -->
@@ -50,11 +50,6 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
 .render-info { font-family: system-ui, sans-serif; background: #e0f2fe; border: 1px solid #38bdf8; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
 .render-info h3 { margin: 0 0 0.5em; color: #0284c7; }
 .render-info code { background: #f0f9ff; padding: 0.1em 0.3em; border-radius: 3px; }
-.tei-note-ref { color: #2563eb; text-decoration: none; }
-.tei-footnotes, .tei-notes { margin-top: 2em; border-top: 1px solid #ddd; padding-top: 1em; }
-.tei-note-body { display: block; margin: 0.3em 0; font-size: 0.9em; }
-.tei-note-interactive .tei-note-body { display: none; }
-.tei-note-interactive.open .tei-note-body { display: inline; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.15em 0.4em; border-radius: 4px; }
 .tei-alternate { border-bottom: 1px dotted #999; cursor: pointer; }
 </style>
       </head>
@@ -64,7 +59,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
             <xsl:when test="$interactive = 'true'">
               <h3>Interactive XSLT Rendering Path (progressive enhancement)</h3>
               <p><strong>Pipeline:</strong> ODD &#8594; generator &#8594; <code>edition.xsl</code> &#8594; (TEI) &#8594; HTML + ~12 lines of vanilla JS (Saxon, build time)</p>
-              <p>Every model is an XSLT branch with its predicate kept as XPath; <code>edition.css</code> is inlined. A framework-free script toggles notes and apparatus readings; with JavaScript off the page degrades to the static floor.</p>
+              <p>Every model is an XSLT branch with its predicate kept as XPath; <code>edition.css</code> is inlined. A small script swaps apparatus readings, and notes open as tooltips; with JavaScript off the page degrades to the static floor.</p>
             </xsl:when>
             <xsl:otherwise>
               <h3>XSLT Rendering Path (static, zero-JS)</h3>
@@ -78,8 +73,6 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
           <script>
 document.documentElement.classList.add('js');
 document.addEventListener('click', function (e) {
-  var ref = e.target.closest('.tei-note-ref');
-  if (ref) { e.preventDefault(); ref.parentNode.classList.toggle('open'); return; }
   var alt = e.target.closest('.tei-alternate');
   if (alt) {
     var d = alt.querySelector('.tei-alternate-default');
@@ -89,7 +82,7 @@ document.addEventListener('click', function (e) {
   }
 });
 </script>
-          <noscript><style>.tei-note-interactive .tei-note-body { display: inline !important; }</style></noscript>
+          <script><xsl:value-of select="unparsed-text('notes.js')"/></script>
         </xsl:if>
       </body>
     </html>
@@ -104,17 +97,15 @@ document.addEventListener('click', function (e) {
       <xsl:for-each-group select="$text//pm:note" group-by="@place">
         <xsl:choose>
           <xsl:when test="current-grouping-key() = 'end'">
-            <xsl:if test="$interactive != 'true'">
-              <section class="tei-footnotes">
-                <xsl:for-each select="current-group()">
-                  <aside class="tei-note-body" id="note-{pm:number(.)}">
-                    <span class="tei-note-num"><xsl:value-of select="pm:number(.)"/>.</span>
-                    <xsl:text> </xsl:text>
-                    <xsl:apply-templates select="pm:body/node()" mode="pm:page"/>
-                  </aside>
-                </xsl:for-each>
-              </section>
-            </xsl:if>
+            <section class="tei-footnotes">
+              <xsl:for-each select="current-group()">
+                <aside class="tei-note-body" id="note-{pm:number(.)}">
+                  <span class="tei-note-num"><xsl:value-of select="pm:number(.)"/>.</span>
+                  <xsl:text> </xsl:text>
+                  <xsl:apply-templates select="pm:body/node()" mode="pm:page"/>
+                </aside>
+              </xsl:for-each>
+            </section>
           </xsl:when>
           <xsl:otherwise>
             <section class="tei-notes" data-place="{current-grouping-key()}">
@@ -135,20 +126,10 @@ document.addEventListener('click', function (e) {
   </xsl:function>
 
   <xsl:template match="pm:note[@place = 'end']" mode="pm:page">
-    <xsl:choose>
-      <xsl:when test="$interactive = 'true'">
-        <span class="tei-note-interactive">
-          <a class="{*:a/@class}" href="#" role="doc-noteref"><sup><xsl:value-of select="pm:number(.)"/></sup></a>
-          <span class="tei-note-body" role="doc-footnote"><xsl:apply-templates select="pm:body/node()" mode="pm:page"/></span>
-        </span>
-      </xsl:when>
-      <xsl:otherwise>
-        <a href="#note-{pm:number(.)}">
-          <xsl:copy-of select="*:a/@*"/>
-          <xsl:value-of select="pm:number(.)"/>
-        </a>
-      </xsl:otherwise>
-    </xsl:choose>
+    <a href="#note-{pm:number(.)}">
+      <xsl:copy-of select="*:a/@*"/>
+      <xsl:value-of select="pm:number(.)"/>
+    </a>
   </xsl:template>
   <xsl:template match="pm:note" mode="pm:page"/>
   <xsl:template match="*" mode="pm:page">

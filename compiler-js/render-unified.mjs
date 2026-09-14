@@ -75,10 +75,7 @@ ${editionCss}
     .render-info h3 { margin: 0 0 0.5em; color: #d97706; }
     .render-info code { background: #fef9c3; padding: 0.1em 0.3em; border-radius: 3px; }
 
-    /* Note and apparatus scaffolding the renderer adds; not TEI elements. */
-    .tei-note-ref { color: #c0392b; font-size: 0.85em; text-decoration: none; }
-    .tei-footnotes, .tei-notes { margin-top: 2em; border-top: 1px solid #ddd; padding-top: 1em; }
-    .tei-note-body { display: block; margin: 0.3em 0; font-size: 0.9em; }
+    /* Apparatus scaffolding the renderer adds; not TEI elements. Notes: edition.css. */
     .tei-alternate { border-bottom: 1px dotted #999; cursor: pointer; }
     .tei-alternate-alt[hidden] { display: none; }
   </style>

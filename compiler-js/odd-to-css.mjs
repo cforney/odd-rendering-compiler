@@ -2,9 +2,10 @@
 
 /**
  * Compile a TEI ODD to edition.css: the design tokens given with --tokens, the
- * source renditions of <tagsDecl> as `.r-<id>` rules, then each model's
+ * source renditions of <tagsDecl> as `.r-<id>` rules, each model's
  * <outputRendition> as a rule on the class the renderers give the element for
- * that model (see odd-parser.mjs). The renderers evaluate the predicates, so
+ * that model (see odd-parser.mjs), then the renderers' notes
+ * (../runtime/notes.css). The renderers evaluate the predicates, so
  * the CSS needs none. A custom property the ODD's CSS reads but nothing defines
  * is reported.
  *
@@ -54,6 +55,7 @@ const css = [
   ...tokens,
   ".pm-block { display: block; }",
   ...oddCss,
+  readFileSync(new URL("../runtime/notes.css", import.meta.url), "utf8").trim(),
   "",
 ].join("\n");
 

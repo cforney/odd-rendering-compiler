@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- The page of the CETEIcean tier; the generators fill in the behaviours and the TEI. -->
+<!-- The page of the CETEIcean tier; the generators fill in the behaviours, the notes script and the TEI. -->
 <html lang="en" data-mode="light">
 <head>
   <meta charset="UTF-8">
@@ -13,9 +13,7 @@
     .render-info { font-family: system-ui, sans-serif; background: #fce7f3; border: 1px solid #f9a8d4; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
     .render-info h3 { margin: 0 0 0.5em; color: #db2777; }
     .render-info code { background: #fdf2f8; padding: 0.1em 0.3em; border-radius: 3px; }
-    .tei-note-interactive .tei-note-body { display: none; }
-    .tei-note-interactive.open .tei-note-body { display: inline; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.15em 0.4em; border-radius: 4px; }
-    .tei-note-ref { cursor: pointer; color: #2563eb; text-decoration: none; }
+    /* Apparatus toggle; notes: edition.css. */
     .tei-alternate { cursor: pointer; border-bottom: 1px dotted #999; }
   </style>
 </head>
@@ -28,7 +26,7 @@
       element's model is chosen in the browser, by the XPath and the runtime the
       unified handlers use; its behaviour reshapes the element into the HTML the
       other renderers emit, with the same classes, so the shared
-      <code>edition.css</code> applies. Click notes to expand; click corrections to
+      <code>edition.css</code> applies. Notes open as tooltips; click corrections to
       toggle readings.</p>
   </div>
 
@@ -43,13 +41,14 @@
     teiEdition(new CETEI({ omitDefaultBehaviors: true }), document.getElementById('tei-source').textContent, teiModels,
       function (dom) { document.getElementById('TEI').appendChild(dom); });
 
-    // Notes open inline, corrections toggle; event delegation works whenever CETEIcean is done.
+    // Corrections toggle; event delegation works whenever CETEIcean is done.
     document.addEventListener('click', function (e) {
-      var ref = e.target.closest('.tei-note-ref');
-      if (ref) { e.preventDefault(); ref.parentNode.classList.toggle('open'); return; }
       var alt = e.target.closest('.tei-alternate');
       if (alt) alt.querySelectorAll('.tei-alternate-default, .tei-alternate-alt').forEach(function (r) { r.hidden = !r.hidden; });
     });
+  </script>
+  <script>
+{{notes}}
   </script>
 
 </body>

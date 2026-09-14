@@ -7,10 +7,9 @@
      SaxonJS. This is what completes the template-matching axis on the client side:
      one stylesheet, two entry points (Saxon HE at build, SaxonJS in the browser).
 
-     Interactivity comes from IXSL event templates (mode="ixsl:onclick"), the
-     SaxonJS-native counterpart of the build path's ~12-line enhancement script —
-     no hand-written JavaScript: note markers open their notes, apparatus
-     readings swap. -->
+     Apparatus readings swap by an IXSL event template (mode="ixsl:onclick"),
+     the SaxonJS-native counterpart of the build path's small script. Notes open
+     as tooltips by the shared notes.js, as on every interactive page. -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
                 xmlns:tei="http://www.tei-c.org/ns/1.0"
@@ -22,9 +21,6 @@
   <!-- The build-time stylesheet: all the TEI element templates. -->
   <xsl:import href="../output/edition.xsl"/>
 
-  <!-- Render the interactive (inline-note) variant of every behaviour. Overrides
-       the imported default 'false' by import precedence. -->
-  <xsl:param name="interactive" select="'true'"/>
   <!-- TEI document to load, relative to the hosting page. -->
   <xsl:param name="tei-uri" select="'simler-psalmen.xml'"/>
 
@@ -35,16 +31,6 @@
         <xsl:with-param name="doc" select="doc($tei-uri)"/>
       </xsl:call-template>
     </xsl:result-document>
-  </xsl:template>
-
-  <!-- Click a note marker → toggle its body open/closed. -->
-  <xsl:template match="*[contains-token(@class, 'tei-note-ref')]" mode="ixsl:onclick">
-    <xsl:for-each select="ancestor::*[contains-token(@class, 'tei-note-interactive')][1]">
-      <ixsl:set-attribute name="class"
-        select="if (contains-token(@class, 'open'))
-                then string-join(tokenize(normalize-space(@class), ' ')[. ne 'open'], ' ')
-                else normalize-space(@class || ' open')"/>
-    </xsl:for-each>
   </xsl:template>
 
   <!-- Click an apparatus reading → swap default and alternate. -->
