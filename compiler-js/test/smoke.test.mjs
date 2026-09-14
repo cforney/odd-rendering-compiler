@@ -85,6 +85,28 @@ test("Boot's nested model: Simler's <pb> compiles to a clickable facsimile", () 
   );
 });
 
+test("render-unified-islands wraps interactive regions and ships the runtime", () => {
+  // Reuses the handlers + CSS the earlier tests generated into outDir. The static
+  // body is unchanged; interactive regions are wrapped in <tei-island> markers and
+  // one generic runtime hydrates them — the static fallbacks must remain.
+  run("render-unified-islands.mjs", [
+    "--handlers", join(outDir, "tei-handlers.mjs"),
+    "--tei", TEI,
+    "--css", join(outDir, "edition.css"),
+    "--out", outDir,
+  ]);
+
+  const html = readFileSync(join(outDir, "rendered-unified-islands.html"), "utf8");
+  assert.match(html, /<tei-island type="note" on="visible">/, "note region wrapped as an island");
+  assert.match(html, /<tei-island type="choice" on="visible">/, "apparatus region wrapped as an island");
+  assert.match(html, /<tei-island type="facsimile" on="load">/, "facsimile control marked as an island");
+  assert.match(html, /class="tei-footnotes"/, "static footnote fallback preserved (works with no JS)");
+  assert.match(html, /<script src="tei-islands\.js" defer>/, "the generic runtime is shipped");
+
+  const runtime = readFileSync(join(outDir, "tei-islands.js"), "utf8");
+  assert.match(runtime, /customElements\.define\("tei-island"/, "runtime defines the island custom element");
+});
+
 test("render-unified renders a corpus (glob) with an index", () => {
   // Both Simler poems → one page per source plus a linking index. Reuses the
   // handlers + CSS the previous tests generated into outDir.

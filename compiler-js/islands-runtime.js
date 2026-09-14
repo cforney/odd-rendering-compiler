@@ -1,0 +1,118 @@
+/*
+ * Generic island hydration — framework-free, ~2 KB.
+ *
+ * The renderer wraps each interactive region in
+ *   <tei-island type="note|choice|facsimile" on="load|idle|visible|media(…)">
+ * around HTML that already works without JavaScript. This custom element upgrades
+ * that one region when its strategy fires, so only marked regions ship behaviour,
+ * and only on demand — static-first interactivity. The `type` → behaviour table is
+ * a registry; add a type with TeiIslands.register(name, fn) and emit the marker.
+ *
+ * The model mirrors Astro's <astro-island> and its client:load / client:idle /
+ * client:visible / client:media directives (display:contents wrapper; "visible"
+ * observes the children, since the wrapper itself has no box).
+ */
+(function () {
+  "use strict";
+
+  var behaviours = Object.create(null);
+  function register(type, hydrate) { behaviours[type] = hydrate; }
+
+  // Run `cb` per the chosen strategy.
+  function schedule(on, el, cb) {
+    var m = /^media\((.+)\)$/.exec(on || "");
+    if (on === "idle") return (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(cb);
+    if (m) {
+      var mq = matchMedia(m[1]);
+      if (mq.matches) return cb();
+      return mq.addEventListener("change", function once(e) {
+        if (e.matches) { mq.removeEventListener("change", once); cb(); }
+      });
+    }
+    if (on === "visible" && "IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) if (entries[i].isIntersecting) { io.disconnect(); return cb(); }
+      });
+      // display:contents wrappers have no box, so observe the children.
+      for (var c = 0; c < el.children.length; c++) io.observe(el.children[c]);
+      return el.children.length ? undefined : cb();
+    }
+    return cb();                                   // "load", or no observer support
+  }
+
+  // --- Standard TEI island behaviours --------------------------------------
+
+  // Note: reveal the referenced note inline on click. Without JS the marker stays
+  // a plain anchor to the same note in the footnotes section.
+  register("note", function (island) {
+    var ref = island.querySelector(".tei-note-ref");
+    var body = ref && document.getElementById((ref.getAttribute("href") || "").slice(1));
+    if (!body) return;
+    var inline = null;
+    ref.setAttribute("aria-expanded", "false");
+    ref.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      if (!inline) {                               // build the inline copy once
+        inline = document.createElement("span");
+        inline.className = "tei-note-inline";
+        inline.innerHTML = body.innerHTML;
+        island.appendChild(inline);
+      }
+      ref.setAttribute("aria-expanded", String(island.classList.toggle("open")));
+    });
+  });
+
+  // Choice/apparatus: click or keyboard toggles between the two readings.
+  register("choice", function (island) {
+    var alt = island.querySelector(".tei-alternate");
+    var readings = alt && [].filter.call(alt.children, function (n) { return n.nodeType === 1; });
+    if (!readings || readings.length < 2) return;
+    var showAlt = false;
+    function toggle() {
+      showAlt = !showAlt;
+      readings[0].hidden = showAlt; readings[1].hidden = !showAlt;
+      alt.setAttribute("aria-checked", String(showAlt));
+    }
+    readings[1].hidden = true;
+    alt.setAttribute("role", "switch");
+    alt.setAttribute("aria-checked", "false");
+    alt.setAttribute("tabindex", "0");
+    alt.addEventListener("click", toggle);
+    alt.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+    });
+  });
+
+  // Facsimile: inject a show/hide control for the page's facsimile thumbnails.
+  // Absent without JS, so the static page simply shows the thumbnails.
+  register("facsimile", function (island) {
+    var root = island.closest("[data-edition]") || document.body;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "facs-toggle-btn";
+    btn.textContent = "Hide facsimiles";
+    btn.addEventListener("click", function () {
+      var hidden = root.classList.toggle("facs-hidden");
+      btn.textContent = hidden ? "Show facsimiles" : "Hide facsimiles";
+      btn.setAttribute("aria-pressed", String(hidden));
+    });
+    island.appendChild(btn);
+  });
+
+  window.TeiIslands = { register: register };
+  document.documentElement.classList.add("islands");   // lets CSS retire static fallbacks
+
+  // Defined last, so the registry is populated before any element upgrades.
+  customElements.define("tei-island", class extends HTMLElement {
+    connectedCallback() {
+      var hydrate = behaviours[this.getAttribute("type")];
+      if (!hydrate || this.dataset.hydrated != null) return;
+      var self = this;
+      schedule(this.getAttribute("on") || "visible", this, function () {
+        if (self.dataset.hydrated != null) return;
+        self.dataset.hydrated = "";
+        hydrate(self);
+      });
+    }
+  });
+})();

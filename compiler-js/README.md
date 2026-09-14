@@ -21,8 +21,16 @@ nested-model extension.
 | `render-xslt.mjs` | `edition.xsl` | `rendered-xslt.html` |
 | `render-unified.mjs` | `tei-handlers.mjs` | `rendered-unified.html` |
 | `render-unified-interactive.mjs` | `tei-handlers.mjs` + petite-vue | `rendered-unified-interactive.html` |
+| `render-unified-islands.mjs` | `tei-handlers.mjs` + `islands-runtime.js` | `rendered-unified-islands.html` |
 
 CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`).
+
+> **Islands.** `render-unified-islands.mjs` ships the *same* static body, but wraps
+> each interactive region in a `<tei-island>` custom element that one tiny generic
+> runtime (`islands-runtime.js`) hydrates on demand (`on="load|idle|visible|
+> media()"`, mirroring Astro's `client:*`). It is the framework-agnostic
+> generalisation of the petite-vue and vanilla-JS tiers — only the enhancement
+> differs, and the page still reads with no JavaScript.
 
 > **SaxonJS.** `render-xslt.mjs` already runs `edition.xsl` with **SaxonJS** (via the
 > `xslt3` CLI) when available, falling back to the pure-JS `xslt-processor`; the
@@ -48,8 +56,8 @@ npm run build:simpleprint  # CSS coverage over the full tei_simplePrint customis
 
 Individual generators (`build`, `build:xslt`, `build:unified`, `build:ceteicean`)
 default to `../examples/tei_simler.odd`; individual renderers (`render:unified`,
-`render:interactive`, `render:xslt`, `render:ceteicean`, `render:multi`) default to
-`../examples/simler-poem.xml`.
+`render:interactive`, `render:islands`, `render:xslt`, `render:ceteicean`,
+`render:multi`) default to `../examples/simler-poem.xml`.
 
 **Reproducible output.** Each generator writes a `Generated:` timestamp into its
 header by default. Pass `--no-timestamp` to omit it, or set `SOURCE_DATE_EPOCH`
@@ -66,7 +74,8 @@ compiler-js/
 ├── odd-to-xslt.mjs       # XSLT 1.0 generator
 ├── odd-to-unified.mjs    # unified/xast handler generator
 ├── odd-to-ceteicean.mjs  # CETEIcean behaviour generator
-├── render-*.mjs          # the three renderers (xslt, unified, unified-interactive)
+├── render-*.mjs          # the renderers (xslt, unified, unified-interactive, unified-islands)
+├── islands-runtime.js    # generic <tei-island> hydration runtime (shipped by the islands renderer)
 ├── test/smoke.test.mjs   # `npm test`
 └── output/               # generated artefacts (gitignored)
 ```
