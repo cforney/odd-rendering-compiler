@@ -6,44 +6,45 @@
 export const concept =
   "ODD → generate → render · one source, many rendering paths, one edition.";
 
-// Rendering paths, in reading order.
+// Rendering paths, in reading order, grouped by family.
+//   family    the implementation the path belongs to; label names the path within it
 //   dir       compiler output the page came from (copied to site/<dir>/)
 //   file      the rendered page, relative to that output; {doc} is the document
 //   artefact  the generated file behind the path (its snippet + a full-file link)
-//   hue       tab accent, grouped by family (unified green, XSLT blue, CETEI pink)
+//   hue       tab accent, one per family (unified green, XSLT blue, CETEIcean pink)
 export const paths = [
   {
-    id: "unified", label: "unified (static)", hue: "#16a34a",
+    id: "unified", family: "unified/xast", label: "static", hue: "#16a34a",
     dir: "js", file: "unified/{doc}.html",
     artefact: { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" },
   },
   {
-    id: "unified-vue", label: "unified + petite-vue", hue: "#16a34a",
+    id: "unified-vue", family: "unified/xast", label: "+ petite-vue", hue: "#16a34a",
     dir: "js", file: "unified-interactive/{doc}.html",
     artefact: { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" },
   },
   {
-    id: "islands", label: "islands (Web Components)", hue: "#059669",
+    id: "islands", family: "unified/xast", label: "islands", hue: "#16a34a",
     dir: "js", file: "unified-islands/{doc}.html",
     artefact: { label: "tei-islands.js", file: "js/unified-islands/tei-islands.js" },
   },
   {
-    id: "xslt", label: "XSLT (static)", hue: "#0284c7",
+    id: "xslt", family: "XSLT", label: "static", hue: "#0284c7",
     dir: "xslt", file: "xslt/{doc}.html",
     artefact: { label: "edition.xsl", file: "xslt/edition.xsl" },
   },
   {
-    id: "xslt-js", label: "XSLT + JS", hue: "#0284c7",
+    id: "xslt-js", family: "XSLT", label: "+ JS", hue: "#0284c7",
     dir: "xslt", file: "xslt-interactive/{doc}.html",
     artefact: { label: "edition.xsl", file: "xslt/edition.xsl" },
   },
   {
-    id: "saxonjs", label: "XSLT in-browser (SaxonJS)", hue: "#0284c7",
+    id: "saxonjs", family: "XSLT", label: "SaxonJS, in the browser", hue: "#0284c7",
     dir: "xslt", file: "saxonjs/{doc}.html",
     artefact: { label: "edition.xsl", file: "xslt/edition.xsl" },
   },
   {
-    id: "ceteicean", label: "CETEIcean", hue: "#db2777",
+    id: "ceteicean", family: "CETEIcean", label: "in the browser", hue: "#db2777",
     dir: "js", file: "ceteicean/{doc}.html",
     artefact: { label: "tei-ceteicean-behaviours.js", file: "js/ceteicean/tei-ceteicean-behaviours.js" },
   },

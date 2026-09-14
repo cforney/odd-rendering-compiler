@@ -30,7 +30,7 @@ and on conformance fixtures.
 |-----------|------------|
 | [`compiler-js/`](compiler-js/) | JavaScript reference implementation (generators, renderers, shared ODD parser, smoke tests) |
 | [`compiler-xslt/`](compiler-xslt/) | XSLT reference implementation (the same chain, built entirely in XSLT + Saxon) |
-| [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `ceteicean.js` (+ page) for the CETEIcean tier |
+| [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `pm-runtime.mjs` + `xpath.mjs` for the unified handlers, and `ceteicean.js` (+ page) over those two for the CETEIcean tier |
 | [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a pinned snapshot) with four verbatim excerpts, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an extension that is not TEI |
 
 ## Quick start — JavaScript
@@ -69,8 +69,8 @@ with IXSL toggles — serve it over HTTP (e.g. `npx http-server compiler-xslt/ou
 ## Demo — compare the rendering paths
 
 A single static page frames the outputs both compilers build, so you can pick an
-example, switch rendering paths, compare two side by side, toggle JavaScript, and
-see the generated artefact and its cost beside each result. Build both compilers,
+example, switch rendering paths, toggle JavaScript, and see the generated
+artefact and its cost beside each result. Build both compilers,
 then assemble it:
 
 ```bash

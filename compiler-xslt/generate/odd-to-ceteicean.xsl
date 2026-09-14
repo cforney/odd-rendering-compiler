@@ -2,12 +2,13 @@
 <!--
   odd-to-ceteicean.xsl — the "generate" step for the CETEIcean tier, in XSLT.
 
-  Emits tei-ceteicean-behaviours.js (the runtime ../../runtime/ceteicean.js and
-  the ODD's models as JSON) and, via xsl:result-document, a page per TEI file
-  beside it, <basename>.html, that renders the TEI in the browser. The tier is a subset of the
-  Processing Model, the same as in odd-to-ceteicean.mjs: models without @output
-  and sequences; predicates @a, @a='v', parent::X, ancestor::X as CSS
-  selectors; params that are literals, @a, or count(ancestor::X) plus a number.
+  Emits tei-ceteicean-behaviours.js and, via xsl:result-document, a page per TEI
+  file beside it, <basename>.html, that renders the TEI in the browser. The
+  behaviours are the runtime ../../runtime/ceteicean.js, which chooses each
+  element's model with the unified handlers' own runtime and XPath
+  (pm-runtime.mjs, xpath.mjs); all three are inlined as classic scripts, and the
+  ODD's models follow as JSON, with predicates and params as XPath. The same file
+  odd-to-ceteicean.mjs writes.
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/odd-to-ceteicean.xsl \
               -o:output/ceteicean/tei-ceteicean-behaviours.js "tei=simler-psalmen.xml simler-hausswesen.xml"
@@ -26,73 +27,39 @@
 
   <xsl:param name="tei" select="'simler-psalmen.xml'"/>
 
-  <!-- A predicate as a CSS selector on the custom element, or () outside the subset. -->
-  <xsl:function name="pm:selector" as="xs:string?">
-    <xsl:param name="pred" as="xs:string"/>
-    <xsl:choose>
-      <xsl:when test="matches($pred, '^@[\w\-]+$')"><xsl:sequence select="'[' || substring($pred, 2) || ']'"/></xsl:when>
-      <xsl:when test="matches($pred, '^@[\w\-]+\s*=\s*''[^'']*''$')">
-        <xsl:sequence select="replace($pred, '^@([\w\-]+)\s*=\s*''([^'']*)''$', '[$1=&quot;$2&quot;]')"/>
-      </xsl:when>
-      <xsl:when test="matches($pred, '^(parent|ancestor)::[\w\-]+$')">
-        <xsl:variable name="name" select="substring-after($pred, '::')"/>
-        <xsl:sequence select="':is(tei-' || lower-case($name) || ', .tei-' || $name || ')' || (if (starts-with($pred, 'parent')) then ' > ' else ' ') || '*'"/>
-      </xsl:when>
-    </xsl:choose>
+  <!-- An ES module of the runtime as a classic script, var $name = { its exports }; its import reads $from. -->
+  <xsl:function name="pm:script" as="xs:string">
+    <xsl:param name="file" as="xs:string"/>
+    <xsl:param name="name" as="xs:string"/>
+    <xsl:param name="from" as="xs:string"/>
+    <xsl:variable name="src" select="unparsed-text('../../runtime/' || $file)"/>
+    <xsl:variable name="exports" select="analyze-string($src, '^export (const|function) (\w+)', 'm')//*:group[@nr = 2]"/>
+    <xsl:variable name="body" select="replace(replace($src, '^import (\{[^}]*\}) from .*$', 'const $1 = ' || $from || ';', 'm'), '^export ', '', 'm')"/>
+    <xsl:sequence select="'var ' || $name || ' = (function () {&#10;' || $body || '&#10;return { ' || string-join($exports, ', ') || ' };&#10;})();'"/>
   </xsl:function>
 
-  <!-- A param as a literal, map { attr } or map { count, plus }, or () outside the subset. -->
-  <xsl:function name="pm:param" as="item()?">
-    <xsl:param name="value" as="xs:string"/>
-    <xsl:choose>
-      <xsl:when test="matches($value, '^''[^'']*''$')"><xsl:sequence select="substring($value, 2, string-length($value) - 2)"/></xsl:when>
-      <xsl:when test="matches($value, '^\d+$')"><xsl:sequence select="number($value)"/></xsl:when>
-      <xsl:when test="matches($value, '^@[\w\-]+$')"><xsl:sequence select="map { 'attr': substring($value, 2) }"/></xsl:when>
-      <xsl:when test="matches($value, '^count\(ancestor::[\w\-]+\)(\s*\+\s*\d+)?$')">
-        <xsl:analyze-string select="$value" regex="^count\(ancestor::([\w\-]+)\)(\s*\+\s*(\d+))?$">
-          <xsl:matching-substring>
-            <xsl:sequence select="map { 'count': lower-case(regex-group(1)), 'plus': number((regex-group(3)[.], '0')[1]) }"/>
-          </xsl:matching-substring>
-        </xsl:analyze-string>
-      </xsl:when>
-    </xsl:choose>
+  <!-- A model as JSON: its behaviour, classes and flow, with predicate and params as XPath. -->
+  <xsl:function name="pm:json" as="map(*)">
+    <xsl:param name="m" as="element(pm:model)"/>
+    <xsl:sequence select="map:merge((
+      map {
+        'behaviour': string($m/@behaviour), 'flow': string($m/@flow),
+        'params': map:merge($m/pm:param ! map { string(@name): string(@value) }),
+        'classes': array { tokenize($m/@classes) }, 'source': $m/@source = 'true'
+      },
+      $m/@tag[. != ''] ! map { 'tag': string(.) },
+      $m/@predicate ! map { 'predicate': string(.) },
+      $m/@output ! map { 'output': string(.) },
+      $m/pm:model[1] ! map { 'parts': array { $m/pm:model ! pm:json(.) } }))"/>
   </xsl:function>
 
   <xsl:template match="/">
-    <xsl:variable name="models" as="map(*)*">
-      <xsl:for-each select="pm:odd(/)/pm:spec">
-        <xsl:variable name="ident" select="string(@ident)"/>
-        <xsl:variable name="kept" as="map(*)*">
-          <xsl:for-each select="pm:model[not(@output)]">
-            <xsl:variable name="when" select="@predicate ! pm:selector(.)"/>
-            <xsl:choose>
-              <xsl:when test="pm:model or (@predicate and empty($when))">
-                <xsl:message select="'[odd-to-ceteicean] ⚠ &lt;' || $ident || '&gt;: ' || (if (pm:model) then @behaviour else 'predicate ' || @predicate) || ' is outside the CETEIcean tier, model left out'"/>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:variable name="params" as="map(*)*">
-                  <xsl:for-each select="pm:param">
-                    <xsl:variable name="v" select="pm:param(@value)"/>
-                    <xsl:if test="empty($v)">
-                      <xsl:message select="'[odd-to-ceteicean] ⚠ &lt;' || $ident || '&gt;: param ' || @name || '=&quot;' || @value || '&quot; is outside the CETEIcean tier, left out'"/>
-                    </xsl:if>
-                    <xsl:sequence select="$v ! map { string(current()/@name): . }"/>
-                  </xsl:for-each>
-                </xsl:variable>
-                <xsl:sequence select="map:merge((
-                  map { 'behaviour': string(@behaviour), 'classes': array { tokenize(@classes) }, 'source': @source = 'true', 'params': map:merge($params) },
-                  (@tag[. != ''] ! map { 'tag': string(.) }), ($when ! map { 'when': . })))"/>
-              </xsl:otherwise>
-            </xsl:choose>
-          </xsl:for-each>
-        </xsl:variable>
-        <xsl:sequence select="if (exists($kept)) then map { $ident: array { $kept } } else ()"/>
-      </xsl:for-each>
-    </xsl:variable>
-
+    <xsl:variable name="models" select="map:merge(pm:odd(/)/pm:spec[pm:model] ! map { string(@ident): array { pm:model ! pm:json(.) } })"/>
     <xsl:variable name="behaviours" select="'/* tei-ceteicean-behaviours.js — generated by odd-to-ceteicean.xsl */&#10;'
-      || unparsed-text('../../runtime/ceteicean.js')
-      || 'const teiModels = ' || serialize(map:merge($models), map { 'method': 'json', 'indent': true() }) || ';&#10;'"/>
+      || pm:script('xpath.mjs', 'teiXpath', '') || '&#10;'
+      || pm:script('pm-runtime.mjs', 'teiPm', 'teiXpath') || '&#10;'
+      || unparsed-text('../../runtime/ceteicean.js') || '&#10;'
+      || 'const teiModels = ' || serialize($models, map { 'method': 'json', 'indent': true() }) || ';&#10;'"/>
     <xsl:value-of select="$behaviours"/>
 
     <xsl:variable name="odd" select="base-uri(/)"/>

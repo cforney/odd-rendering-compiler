@@ -1,7 +1,8 @@
 /**
  * The runtime of the generated tei-handlers.mjs: renders a TEI xast tree to hast
  * by the models the generator took from the ODD. It ships beside the handlers,
- * with xpath.mjs, which evaluates their predicates and params.
+ * with xpath.mjs, which evaluates their predicates and params. The CETEIcean
+ * pages inline both, and choose models by createResolver in the browser.
  *
  * Each element takes the first model of the output being rendered whose
  * predicate holds, else the first such model without @output; with none, its
@@ -52,76 +53,96 @@ function paramProps(params) {
   return { ...Object.fromEntries(named("data-").map((k) => [k, str(params[k])])), ...(style && { style }) };
 }
 
+/**
+ * Model choice and the printed line, for one render of one output: the model an
+ * element takes, whether it starts a line, and its text as rendered. teiToHast
+ * renders by it; the CETEIcean tier chooses models by it in the browser.
+ */
+export function createResolver(models, output) {
+  const select = (ms, pos, out) => ms.find((m) => (m.output ?? null) === out && (!m.predicate || bool(m.predicate(pos))));
+  const modelOf = (pos) => {
+    const ms = models[localName(pos.node.name)] ?? [];
+    return select(ms, pos, output) ?? select(ms, pos, null);
+  };
+  const flow = (pos) => (isElement(pos.node) && modelOf(pos)?.flow) || "";
+
+  /** Whitespace-only text at the edge of a block, or next to one, is indentation. */
+  function indentation(pos) {
+    if (!pos.up.length) return true;
+    const parent = parentOf(pos);
+    if (flow(parent) === "inline") return false;
+    const siblings = children(parent);
+    const i = indexOf(pos);
+    const [before, after] = [siblings[i - 1], siblings[i + 1]];
+    return !before || !after || flow(before) === "block" || flow(after) === "block";
+  }
+
+  /** Nothing but whitespace, or a block, before this node in its parent. */
+  function atLineStart(pos) {
+    if (!pos.up.length) return true;
+    const siblings = children(parentOf(pos));
+    for (let i = indexOf(pos) - 1; i >= 0; i--) {
+      const s = siblings[i];
+      if (isElement(s.node)) return flow(s) === "block";
+      if (!blank(s.node.value)) return false;
+    }
+    return true;
+  }
+
+  /**
+   * What a walk along the printed line meets from list[i] on (step 1 forward, -1
+   * back): "join" at a joined line end (lb break="no"), "stop" at text, another
+   * line end or a block, "" where it passes whitespace and inline elements.
+   */
+  function along(list, i, step) {
+    for (; i >= 0 && i < list.length; i += step) {
+      const { node } = list[i];
+      const met = isText(node) ? (blank(node.value) ? "" : "stop")
+        : localName(node.name) === "lb" ? (node.attributes.break === "no" ? "join" : "stop")
+        : flow(list[i]) === "block" ? "stop"
+        : along(children(list[i]), step > 0 ? 0 : children(list[i]).length - 1, step);
+      if (met) return met;
+    }
+    return "";
+  }
+
+  /** Whether a text node's line joins the next (step 1) or the previous one (-1); the walk leaves inline elements. */
+  function joined(pos, step) {
+    if (!pos.up.length) return false;
+    const parent = parentOf(pos);
+    const siblings = children(parent);
+    const met = along(siblings, indexOf(pos) + step, step);
+    return met ? met === "join" : flow(parent) !== "block" && joined(parent, step);
+  }
+
+  /**
+   * A text node as it renders ("" drops it): whitespace collapsed; at a joined
+   * line end the lb's model sets the hyphen, so the encoded one goes, and so do
+   * the spaces around the break.
+   */
+  function renderedText(pos) {
+    const { node, up } = pos;
+    if (up.some((a) => a.attributes["xml:space"] === "preserve")) return node.value;
+    const [before, after] = [joined(pos, -1), joined(pos, 1)];
+    if (blank(node.value)) return before || after || indentation(pos) ? "" : " ";
+    let value = collapse(node.value);
+    if (before) value = value.replace(/^ /, "");
+    if (after) value = value.replace(/ ?[-\u00AD¬\u2010\u2011\u2E17]? ?$/, "");
+    return value;
+  }
+
+  return { modelOf, atLineStart, renderedText };
+}
+
 export function createRenderer(models) {
   return function teiToHast(tree, { output = "web" } = {}) {
     const notes = [];
-
-    const select = (ms, pos, out) => ms.find((m) => (m.output ?? null) === out && (!m.predicate || bool(m.predicate(pos))));
-    const modelOf = (pos) => {
-      const ms = models[localName(pos.node.name)] ?? [];
-      return select(ms, pos, output) ?? select(ms, pos, null);
-    };
-    const flow = (pos) => (isElement(pos.node) && modelOf(pos)?.flow) || "";
-
-    /** Whitespace-only text at the edge of a block, or next to one, is indentation. */
-    function indentation(pos) {
-      if (!pos.up.length) return true;
-      const parent = parentOf(pos);
-      if (flow(parent) === "inline") return false;
-      const siblings = children(parent);
-      const i = indexOf(pos);
-      const [before, after] = [siblings[i - 1], siblings[i + 1]];
-      return !before || !after || flow(before) === "block" || flow(after) === "block";
-    }
-
-    /** Nothing but whitespace, or a block, before this node in its parent. */
-    function atLineStart(pos) {
-      if (!pos.up.length) return true;
-      const siblings = children(parentOf(pos));
-      for (let i = indexOf(pos) - 1; i >= 0; i--) {
-        const s = siblings[i];
-        if (isElement(s.node)) return flow(s) === "block";
-        if (!blank(s.node.value)) return false;
-      }
-      return true;
-    }
-
-    /**
-     * What a walk along the printed line meets from list[i] on (step 1 forward, -1
-     * back): "join" at a joined line end (lb break="no"), "stop" at text, another
-     * line end or a block, "" where it passes whitespace and inline elements.
-     */
-    function along(list, i, step) {
-      for (; i >= 0 && i < list.length; i += step) {
-        const { node } = list[i];
-        const met = isText(node) ? (blank(node.value) ? "" : "stop")
-          : localName(node.name) === "lb" ? (node.attributes.break === "no" ? "join" : "stop")
-          : flow(list[i]) === "block" ? "stop"
-          : along(children(list[i]), step > 0 ? 0 : children(list[i]).length - 1, step);
-        if (met) return met;
-      }
-      return "";
-    }
-
-    /** Whether a text node's line joins the next (step 1) or the previous one (-1); the walk leaves inline elements. */
-    function joined(pos, step) {
-      if (!pos.up.length) return false;
-      const parent = parentOf(pos);
-      const siblings = children(parent);
-      const met = along(siblings, indexOf(pos) + step, step);
-      return met ? met === "join" : flow(parent) !== "block" && joined(parent, step);
-    }
+    const { modelOf, atLineStart, renderedText } = createResolver(models, output);
 
     function render(pos, phrasing) {
-      const { node, up } = pos;
+      const { node } = pos;
       if (isText(node)) {
-        if (up.some((a) => a.attributes["xml:space"] === "preserve")) return [text(node.value)];
-        // At a joined line end the lb's model sets the hyphen: the encoded one goes, and so do the spaces.
-        const [before, after] = [joined(pos, -1), joined(pos, 1)];
-        if (blank(node.value)) return before || after || indentation(pos) ? [] : [text(" ")];
-        let value = collapse(node.value);
-        if (before) value = value.replace(/^ /, "");
-        if (after) value = value.replace(/ ?[-\u00AD¬\u2010\u2011\u2E17]? ?$/, "");
+        const value = renderedText(pos);
         return value ? [text(value)] : [];
       }
       const model = modelOf(pos);

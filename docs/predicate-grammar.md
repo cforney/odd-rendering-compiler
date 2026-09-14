@@ -11,11 +11,12 @@ generated XSLT 3.0 stylesheet, where the XSLT processor evaluates them. The
 stylesheet sets `xpath-default-namespace` to TEI's, so the ODD's unprefixed
 names are TEI elements.
 
-## unified / xast — `odd-to-unified.mjs`
+## unified / xast and CETEIcean — `odd-to-unified.mjs`, `odd-to-ceteicean.mjs`, `odd-to-ceteicean.xsl`
 
-A subset of XPath, implemented in [`compiler-js/xpath.mjs`](../compiler-js/xpath.mjs)
-and shipped beside the generated handlers, which evaluate predicates and params
-with it:
+A subset of XPath, implemented in [`runtime/xpath.mjs`](../runtime/xpath.mjs).
+It ships beside the generated handlers, which evaluate predicates and params
+with it, and is inlined in the CETEIcean pages, which evaluate them in the
+browser:
 
 - **Paths:** `.`, `..`, `@name`, `name`, `*`, `node()`, `text()`, `/`, `//`,
   absolute paths, and `[predicate]` (a number is a position).
@@ -30,22 +31,9 @@ with it:
   `matches`, `replace`, `translate`, `normalize-space`, `string-length`,
   `local-name`, `true`, `false`.
 
-The generator compiles every expression once. XPath outside the subset fails
-the build and names the element and the model, e.g. `<p>, model 2: XPath
-"@a | @b": unexpected "|"`.
-
-## CETEIcean — `odd-to-ceteicean.mjs`, `odd-to-ceteicean.xsl`
-
-The CETEIcean tier is a subset of the Processing Model, checked in the browser
-on custom elements. It supports:
-
-- **Predicates**, as CSS selectors on the custom element (`el.matches()`):
-  `@a` → `[a]`, `@a='v'` → `[a="v"]`, `parent::X` → `:is(tei-x, .tei-X) > *`,
-  `ancestor::X` → `:is(tei-x, .tei-X) *`.
-- **Params:** a literal, `@a`, or `count(ancestor::X)` plus a number.
-
-A model outside this subset is left out, with a build-time warning; so are
-models with `@output` and sequences.
+`odd-to-unified.mjs` compiles every expression once. XPath outside the subset
+fails the build and names the element and the model, e.g. `<p>, model 2: XPath
+"@a | @b": unexpected "|"`. A CETEIcean page compiles them when it loads.
 
 ## CSS
 

@@ -1,7 +1,7 @@
 # Comparison demo
 
 One static page that frames the outputs both compilers already build, so a visitor
-can pick an example, switch rendering paths, compare two side by side, and see the
+can pick an example, switch rendering paths, turn JavaScript off, and see the
 generated artefact and its cost next to each result. Nothing is re-rendered here — the page only frames
 existing files.
 

@@ -4,9 +4,12 @@ A Processing-Model `@behaviour` says how an element is presented. One shared fil
 [`behaviour-map.json`](../behaviour-map.json), gives each behaviour its HTML
 element (`tag`, for behaviours that only wrap their content) and its flow (block
 or inline). Both compilers read it when they generate. The behaviours themselves
-are implemented once per runtime: [`compiler-js/pm-runtime.mjs`](../compiler-js/pm-runtime.mjs)
+are implemented once per runtime: [`runtime/pm-runtime.mjs`](../runtime/pm-runtime.mjs)
 for the unified handlers and [`runtime/pm.xsl`](../runtime/pm.xsl) for the
-generated stylesheets, and the two render the same HTML.
+generated stylesheets, and the two render the same HTML. The CETEIcean tier
+chooses models by `pm-runtime.mjs` in the browser and renders the same HTML
+with [`runtime/ceteicean.js`](../runtime/ceteicean.js), except that its notes
+open in place.
 
 | Behaviour | HTML | Flow | Params |
 |-----------|------|------|--------|

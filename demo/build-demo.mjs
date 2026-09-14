@@ -92,7 +92,7 @@ const resolved = paths.flatMap((p) => {
   }
   const artefactFile = resolve(SITE, p.artefact.file);
   return [{
-    id: p.id, label: p.label, hue: p.hue, pages,
+    id: p.id, family: p.family, label: p.label, hue: p.hue, pages,
     artefact: {
       label: p.artefact.label,
       url: p.artefact.file,
@@ -115,7 +115,7 @@ const data = {
 
 // ---------------------------------------------------------------------------
 // 3 · Write the shell. It carries the manifest as embedded JSON; shell.js builds
-//     the tabs, the side-by-side view, the JS on/off toggle and the artefact panel.
+//     the path tabs, the document picker, the JS on/off toggle and the side panel.
 // ---------------------------------------------------------------------------
 writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
 <html lang="en">
@@ -126,46 +126,39 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
   <link rel="stylesheet" href="shell.css">
 </head>
 <body>
-  <header class="demo-head">
-    <h1>The TEI ODD as static-build configuration</h1>
-    <p class="concept">${data.concept}</p>
+  <header class="bar">
+    <div>
+      <h1>The TEI ODD as static-build configuration</h1>
+      <p>${data.concept}</p>
+    </div>
+    <div class="controls">
+      <label>Document <select id="doc"></select></label>
+      <label><input type="checkbox" id="js-on" checked> JavaScript</label>
+    </div>
   </header>
 
-  <nav class="tabs" id="tabs" aria-label="Rendering path"></nav>
+  <nav class="paths" id="paths" aria-label="Rendering path"></nav>
 
-  <div class="controls">
-    <label class="doc">Document <select id="doc"></select></label>
-    <label class="js-toggle"><input type="checkbox" id="js-on" checked> JavaScript</label>
-    <label class="compare"><input type="checkbox" id="side-by-side"> Side by side</label>
-  </div>
-
-  <main class="stage" id="stage">
-    <section class="pane" data-pane="a">
-      <div class="pane-bar"><span class="pane-label" data-pane="a"></span></div>
-      <iframe data-pane="a" title="Rendered edition"></iframe>
-    </section>
-    <section class="pane secondary" data-pane="b" hidden>
-      <div class="pane-bar">
-        <select class="pane-pick" data-pane="b"></select>
-        <button type="button" id="swap" title="Swap the two panes">⤢ swap</button>
-      </div>
-      <iframe data-pane="b" title="Rendered edition (compare)"></iframe>
-    </section>
-
-    <aside class="artefact" id="artefact">
-      <h2>Generated artefact</h2>
-      <p class="floor-note">Every path renders against the same visual floor,
-        <a id="floor-link" href="#"></a> (<span id="floor-size"></span>).</p>
-      <pre class="code" id="floor-code"></pre>
-      <h3 id="artefact-title"></h3>
-      <pre class="code" id="artefact-code"></pre>
-      <p class="metrics" id="metrics"></p>
+  <main class="stage">
+    <iframe id="page" title="Rendered edition"></iframe>
+    <aside class="side">
+      <section>
+        <h2 id="path-label"></h2>
+        <p class="muted" id="metrics"></p>
+      </section>
+      <section>
+        <h3>Generated artefact</h3>
+        <a id="artefact-link"></a>
+        <pre class="code" id="artefact-code"></pre>
+      </section>
+      <section>
+        <h3>Shared stylesheet</h3>
+        <p class="muted">Every path renders against <a id="floor-link"></a> (<span id="floor-size"></span>).</p>
+        <details><summary>Show</summary><pre class="code" id="floor-code"></pre></details>
+      </section>
+      <p class="muted small">Static HTML framing the files both compilers build — nothing is re-rendered here.</p>
     </aside>
   </main>
-
-  <footer class="demo-foot">
-    Static HTML framing the files both compilers build — nothing is re-rendered here.
-  </footer>
 
   <script id="demo-data" type="application/json">${JSON.stringify(data)}</script>
   <script src="shell.js" defer></script>

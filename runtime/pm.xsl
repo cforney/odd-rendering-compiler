@@ -5,7 +5,7 @@
   declarations into the stylesheet they generate; theirs is one template per
   TEI element that chooses the element's model and calls pm:model with it.
 
-  It renders as compiler-js/pm-runtime.mjs does for the unified/xast handlers,
+  It renders as pm-runtime.mjs does for the unified/xast handlers,
   so the two produce the same body. The generated stylesheet declares
   xpath-default-namespace="http://www.tei-c.org/ns/1.0", so unprefixed names
   here, as in the ODD's predicates, are TEI elements; *:a is an HTML <a>.

@@ -33,14 +33,16 @@ fixtures (`compiler-js/test/fixtures/`).
   particular to the ODD: for each element its models, predicates and params.
   The behaviours are a runtime shared by every ODD, as in TEI Publisher's
   generated code:
-  - `compiler-js/pm-runtime.mjs` + `xpath.mjs` beside `tei-handlers.mjs`;
+  - `runtime/pm-runtime.mjs` + `xpath.mjs` beside `tei-handlers.mjs`;
   - `runtime/pm.xsl` copied into `edition.xsl`;
-  - `runtime/ceteicean.js` in the CETEIcean behaviours.
+  - `runtime/ceteicean.js` in the CETEIcean behaviours, with `pm-runtime.mjs`
+    and `xpath.mjs` inlined, so the browser chooses models as the unified
+    handlers do.
 - **Behaviour table.** Each behaviour's HTML element and flow come from one shared
   file. See [behaviour-table.md](behaviour-table.md).
-- **Predicates and params** are XPath: evaluated natively in XSLT, by a shared
-  XPath subset in the unified handlers, and as CSS selectors in the CETEIcean
-  tier. See [predicate-grammar.md](predicate-grammar.md).
+- **Predicates and params** are XPath: evaluated natively in XSLT, and by a
+  shared XPath subset in the unified handlers and the CETEIcean tier. See
+  [predicate-grammar.md](predicate-grammar.md).
 - **Flow.** Whether an element renders as a block or inline follows from the
   model it takes where it stands. It decides where TEI indentation is dropped and
   where a line break is already implied, so a `break` there renders nothing.
@@ -79,5 +81,5 @@ The same ODD feeds three levels, each building on the last:
    apparatus toggles: petite-vue or islands in the JS path, ~12 lines of vanilla
    JS in the XSLT path.
 
-The CETEIcean tier renders in the browser instead, from a subset of the
-Processing Model (see [predicate-grammar.md](predicate-grammar.md)).
+The CETEIcean tier renders in the browser instead: the same body, with notes
+that open in place.

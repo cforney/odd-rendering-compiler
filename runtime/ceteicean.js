@@ -1,116 +1,216 @@
 /*
  * ceteicean.js — the runtime of a generated tei-ceteicean-behaviours.js, the
- * CETEIcean tier. Both CETEIcean generators copy it in, followed by the ODD's
- * models as `teiModels`.
+ * CETEIcean tier. Both CETEIcean generators copy it in after xpath.mjs (as
+ * `teiXpath`) and pm-runtime.mjs (as `teiPm`), followed by the ODD's models as
+ * `teiModels`, with predicates and params as XPath.
  *
- * This tier is a subset of the Processing Model, run in the browser: each TEI
- * custom element takes the first of its models whose `when` selector matches
- * (none: always) and is reshaped into the HTML the other renderers emit, with
- * the same classes, so edition.css styles it alike. The generators pass only
- * what it can do: models without @output, predicates that are CSS selectors,
- * and params that are literals, { attr } or { count, plus }.
+ * Before CETEIcean turns the TEI into custom elements, each element's model is
+ * chosen as the unified handlers choose it, by the same resolver and XPath, and
+ * marked on the element (`data-pm`); each text is set as it renders. The
+ * behaviours then reshape every custom element into the HTML the other
+ * renderers emit, with the same classes, so edition.css styles it alike. A note
+ * at the end or foot is a marker that opens its body in place; notes elsewhere
+ * are not shown.
  */
-var teiNotes = 0;
 
-/** A param's value: a literal, an attribute, or a count of ancestors plus a number. */
-function teiParam(el, v) {
-  if (v && v.attr) return el.getAttribute(v.attr) || "";
-  if (v && v.count) {
-    var n = v.plus;
-    for (var p = el.parentElement; p; p = p.parentElement) if (p.localName === "tei-" + v.count) n++;
-    return n;
+const TEI_PHRASING = ["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"];
+const TEI_NUMBERED = ["end", "foot"];
+
+/** The models with their XPath compiled. */
+function teiCompile(models) {
+  const compile = (m) => ({
+    ...m,
+    predicate: m.predicate ? teiXpath.xpath(m.predicate) : undefined,
+    params: Object.fromEntries(Object.entries(m.params).map(([k, v]) => [k, teiXpath.xpath(v)])),
+    parts: m.parts && m.parts.map(compile),
+  });
+  return Object.fromEntries(Object.entries(models).map(([ident, ms]) => [ident, ms.map(compile)]));
+}
+
+/** An XML DOM node as xast, which the XPath reads; each xast node keeps its DOM node. */
+function teiXast(n) {
+  if (n.nodeType === Node.TEXT_NODE || n.nodeType === Node.CDATA_SECTION_NODE) return { type: "text", value: n.nodeValue, dom: n };
+  if (n.nodeType !== Node.ELEMENT_NODE) return null;
+  const attributes = Object.fromEntries(Array.from(n.attributes, (a) => [a.name, a.value]));
+  return { type: "element", name: n.nodeName, attributes, children: Array.from(n.childNodes, teiXast).filter(Boolean), dom: n };
+}
+
+/** Render the TEI source with CETEIcean and the models; done(dom) receives the result. */
+function teiEdition(ct, source, models, done) {
+  const { xpath, seq, str, bool, isPos } = teiXpath;
+  const resolver = teiPm.createResolver(teiCompile(models), "web");
+  const doc = new DOMParser().parseFromString(source, "application/xml");
+  const choices = [];      // per element, by its data-pm: its ident, position and evaluated models
+  const marks = new Map(); // xast element → its data-pm
+  const [FIRST, SECOND] = [xpath("*[1]"), xpath("*[2]")];
+  let notes = 0;
+
+  /** A model at an element: its params evaluated, and what its behaviour needs to know there. */
+  function evaluate(m, pos) {
+    const e = { m, params: Object.fromEntries(Object.entries(m.params).map(([k, f]) => [k, f(pos)])) };
+    if (m.behaviour === "alternate") {
+      if (!("default" in e.params)) e.params.default = FIRST(pos);
+      if (!("alternate" in e.params)) e.params.alternate = SECOND(pos);
+    }
+    if (m.behaviour === "note" && TEI_NUMBERED.includes("place" in e.params ? str(e.params.place) : "end")) e.n = ++notes;
+    if (m.behaviour === "break") e.lineStart = resolver.atLineStart(pos);
+    if (m.parts) e.parts = m.parts.map((p) => evaluate(p, pos));
+    return e;
   }
-  return v == null ? "" : v;
+
+  // Choose, in document order, so notes are numbered as the other renderers number them.
+  (function walk(pos) {
+    const { node } = pos;
+    if (node.type === "text") {
+      node.dom.nodeValue = resolver.renderedText(pos);
+      return;
+    }
+    const m = resolver.modelOf(pos);
+    const live = !m ? [] : m.behaviour === "sequence" ? m.parts.filter((p) => !p.predicate || bool(p.predicate(pos))) : [m];
+    marks.set(node, choices.length);
+    node.dom.setAttribute("data-pm", choices.length);
+    choices.push(m && { ident: node.name.replace(/^.*:/, ""), pos, models: live.map((p) => evaluate(p, pos)) });
+    if (m && ["omit", "metadata"].includes(m.behaviour)) return;
+    node.children.forEach((c, i) => walk({ node: c, up: [...pos.up, node], i }));
+  })({ node: teiXast(doc.documentElement), up: [] });
+
+  /** Reshape a custom element by its choice: the rendered nodes replace its content, and it keeps no box of its own. */
+  function apply(el, c) {
+    const kids = Array.from(el.childNodes);
+    let used = false;
+    const content = () => (used ? kids.map((n) => n.cloneNode(true)) : ((used = true), kids));
+    const nodes = c.models.flatMap((e, k) => render(el, c, e, k === 0, content));
+    el.removeAttribute("id"); // CETEIcean's copy of xml:id; the rendered element carries it
+    el.replaceChildren(...nodes);
+    el.style.display = "contents";
+  }
+
+  /** A param's value: the nodes it selects rendered by their own models (the element itself by its content), anything else as text. */
+  function value(v, c, content) {
+    return seq(v).flatMap((item) => {
+      if (!isPos(item)) return String(item) ? [document.createTextNode(String(item))] : [];
+      if (item.node === c.pos.node) return content();
+      if (item.node.type === "text") return [document.createTextNode(item.node.dom.nodeValue)];
+      const target = document.querySelector(`[data-pm="${marks.get(item.node)}"]`);
+      return target ? [target] : [];
+    });
+  }
+
+  function render(el, c, e, first, content, inner) {
+    const { m, params } = e;
+    const make = (tag, children, extra = []) => {
+      const n = document.createElement(tag);
+      n.className = [`tei-${c.ident}`, ...m.classes, ...(m.source ? teiRenditions(el) : []), ...extra].join(" ");
+      const id = first && el.getAttribute("xml:id");
+      if (id) n.id = id;
+      if (el.getAttribute("xml:lang")) n.lang = el.getAttribute("xml:lang");
+      teiParamProps(n, params);
+      n.append(...children);
+      return n;
+    };
+    const own = () => ("content" in params ? value(params.content, c, content) : content());
+    const wrap = (tag) => (m.flow === "block" && teiPhrasing(el) ? [make("span", own(), ["pm-block"])] : [make(tag, own())]);
+
+    switch (m.behaviour) {
+      case "omit":
+      case "metadata":
+        return [];
+      case "text":
+        return own();
+      case "heading":
+        return wrap(`h${Math.min(6, Math.max(1, Math.trunc(Number(str(params.level ?? ""))) || 1))}`);
+      case "alternate": {
+        const reading = (cls, v, hidden) => {
+          const s = document.createElement("span");
+          s.className = cls;
+          s.hidden = hidden;
+          s.append(...value(v, c, content));
+          return s;
+        };
+        return [make("span", [reading("tei-alternate-default", params.default, false), reading("tei-alternate-alt", params.alternate, true)], ["tei-alternate"])];
+      }
+      case "note": {
+        if (!e.n) return [];
+        const ref = make("a", [String(e.n)], ["tei-note-ref"]);
+        ref.removeAttribute("id");
+        ref.href = `#note-${e.n}`;
+        if ("range" in params) ref.dataset.range = str(params.range).replace(/^#/, "");
+        const body = document.createElement("span");
+        body.className = "tei-note-body";
+        body.append(...own());
+        el.classList.add("tei-note-interactive");
+        return [ref, body];
+      }
+      case "break": {
+        const line = "type" in params && str(params.type) === "line";
+        if (line && e.lineStart) return [];
+        if (!("label" in params)) return [make("br", [])];
+        const span = make("span", str(params.label) ? [str(params.label)] : []);
+        if (!line) return [span];
+        const br = make("br", []);
+        br.removeAttribute("id");
+        return [span, br];
+      }
+      case "anchor":
+        return first && el.getAttribute("xml:id") ? [make("span", [])] : [];
+      case "link": {
+        const a = make("a", inner ?? own());
+        a.href = str(params.uri ?? "");
+        return [a];
+      }
+      case "graphic": {
+        const img = make("img", []);
+        img.src = str(params.url ?? "");
+        img.alt = "";
+        return [img];
+      }
+      case "compound": { // a <model> holding a <modelSequence> (Boot 2024): an extension, not TEI
+        const link = e.parts.find((p) => p.m.behaviour === "link");
+        const rest = e.parts.filter((p) => p !== link).flatMap((p) => render(el, c, p, p === e.parts[0], content));
+        return link ? render(el, c, link, link === e.parts[0], content, rest) : rest;
+      }
+      case "index": {
+        const heads = [];
+        (function walk(n) {
+          for (const k of n.children) k.localName === "tei-head" ? heads.push(k.textContent.replace(/\s+/g, " ").trim()) : walk(k);
+        })(el);
+        if (heads.length < 2) return [];
+        const nav = document.createElement("nav");
+        nav.className = "tei-toc";
+        const ul = nav.appendChild(document.createElement("ul"));
+        for (const t of heads) ul.appendChild(document.createElement("li")).textContent = t;
+        return [nav];
+      }
+      default:
+        return wrap(m.tag || "span");
+    }
+  }
+
+  ct.addBehaviors({
+    namespaces: { tei: "http://www.tei-c.org/ns/1.0" },
+    tei: Object.fromEntries(Object.keys(models).map((ident) => [ident, (el) => {
+      const c = choices[el.getAttribute("data-pm")];
+      if (c) apply(el, c);
+    }])),
+  });
+  ct.domToHTML5(doc, done);
 }
 
 /** `@rendition="#a #b"` → r-a r-b */
 function teiRenditions(el) {
-  return (el.getAttribute("rendition") || "").split(/\s+/).filter(Boolean).map(function (t) { return "r-" + t.replace(/^#/, ""); });
+  return (el.getAttribute("rendition") || "").split(/\s+/).filter(Boolean).map((t) => "r-" + t.replace(/^#/, ""));
 }
 
-/** Move the element's content into a new HTML element; the custom element stays, without a box. */
-function teiReshape(el, tag, cls) {
-  var n = document.createElement(tag);
-  n.className = cls;
-  while (el.firstChild) n.appendChild(el.firstChild);
-  el.style.display = "contents";
-  el.appendChild(n);
-  return n;
+/** Params named `--…` become CSS custom properties, `data-…` attributes. */
+function teiParamProps(n, params) {
+  const named = (prefix) => Object.keys(params).filter((k) => k.startsWith(prefix)).sort();
+  for (const k of named("data-")) n.setAttribute(k, teiXpath.str(params[k]));
+  const style = named("--").map((k) => `${k}: ${teiXpath.str(params[k])}`).join("; ");
+  if (style) n.setAttribute("style", style);
 }
 
-function teiRender(el, ident, m) {
-  var p = m.params;
-  var cls = ["tei-" + ident].concat(m.classes, m.source ? teiRenditions(el) : []).join(" ");
-  switch (m.behaviour) {
-    case "omit":
-    case "metadata":
-      el.style.display = "none";
-      return;
-    case "text":
-      el.style.display = "contents";
-      return;
-    case "heading":
-      teiReshape(el, "h" + Math.min(6, Math.max(1, Math.trunc(Number(teiParam(el, p.level))) || 1)), cls);
-      return;
-    // A note at the end or foot: a marker that opens its body inline; elsewhere, not shown.
-    case "note":
-      var place = p.place == null ? "end" : String(teiParam(el, p.place));
-      if (place !== "end" && place !== "foot") { el.style.display = "none"; return; }
-      var body = teiReshape(el, "span", "tei-note-body");
-      var ref = document.createElement("a");
-      ref.className = cls + " tei-note-ref";
-      ref.href = "#";
-      ref.textContent = ++teiNotes;
-      el.insertBefore(ref, body);
-      el.classList.add("tei-note-interactive");
-      return;
-    // The first two child elements are the readings; the page script toggles them.
-    case "alternate":
-      var readings = Array.prototype.slice.call(el.children, 0, 2);
-      var alt = teiReshape(el, "span", cls + " tei-alternate");
-      alt.replaceChildren();
-      ["tei-alternate-default", "tei-alternate-alt"].forEach(function (c, i) {
-        var s = document.createElement("span");
-        s.className = c;
-        s.hidden = i === 1;
-        if (readings[i]) s.appendChild(readings[i]);
-        alt.appendChild(s);
-      });
-      return;
-    case "link":
-      teiReshape(el, "a", cls).href = teiParam(el, p.uri);
-      return;
-    case "graphic":
-      var img = document.createElement("img");
-      img.className = cls;
-      img.src = teiParam(el, p.url);
-      img.alt = "";
-      el.style.display = "contents";
-      el.replaceChildren(img);
-      return;
-    case "anchor":
-      el.className = cls;
-      el.id = el.getAttribute("xml:id") || "";
-      return;
-    case "break":
-      if (p.label == null) teiReshape(el, "br", cls);
-      else teiReshape(el, "span", cls).textContent = teiParam(el, p.label);
-      return;
-    default:
-      teiReshape(el, m.tag || "span", cls);
-  }
-}
-
-/** CETEIcean behaviours from the models: one function per TEI element. */
-function teiBehaviours(models) {
-  var tei = {};
-  Object.keys(models).forEach(function (ident) {
-    tei[ident] = function (el) {
-      for (var i = 0; i < models[ident].length; i++) {
-        var m = models[ident][i];
-        if (!m.when || el.matches(m.when)) return teiRender(el, ident, m);
-      }
-    };
-  });
-  return { tei: tei };
+/** Whether the element sits in phrasing content: its nearest rendered ancestor is a paragraph, a span, a link or a heading. */
+function teiPhrasing(el) {
+  const host = el.parentElement && el.parentElement.closest(":not([data-pm])");
+  return !!host && TEI_PHRASING.includes(host.localName);
 }

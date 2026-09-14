@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- The page of the CETEIcean tier; the generators fill in {{behaviours}} and {{tei}}. -->
+<!-- The page of the CETEIcean tier; the generators fill in the behaviours and the TEI. -->
 <html lang="en" data-mode="light">
 <head>
   <meta charset="UTF-8">
@@ -22,13 +22,14 @@
 <body>
 
   <div class="render-info">
-    <h3>CETEIcean Rendering Path (a subset, in the browser)</h3>
+    <h3>CETEIcean Rendering Path (in the browser)</h3>
     <p><strong>Pipeline:</strong> ODD → generator → tei-ceteicean-behaviours.js → CETEIcean (browser) → HTML</p>
-    <p>CETEIcean registers TEI elements as <code>tei-</code> custom elements; the
-      ODD-derived behaviours reshape them into the HTML the other renderers emit,
-      with the same classes, so the shared <code>edition.css</code> applies. This
-      tier takes a subset of the Processing Model: predicates CSS can express,
-      simple params. Click notes to expand; click corrections to toggle readings.</p>
+    <p>CETEIcean registers TEI elements as <code>tei-</code> custom elements. Each
+      element's model is chosen in the browser, by the XPath and the runtime the
+      unified handlers use; its behaviour reshapes the element into the HTML the
+      other renderers emit, with the same classes, so the shared
+      <code>edition.css</code> applies. Click notes to expand; click corrections to
+      toggle readings.</p>
   </div>
 
   <div id="TEI"></div>
@@ -39,10 +40,8 @@
 {{behaviours}}
   </script>
   <script>
-    var ct = new CETEI();
-    ct.addBehaviors(teiBehaviours(teiModels));
-    var doc = new DOMParser().parseFromString(document.getElementById('tei-source').textContent, 'application/xml');
-    ct.domToHTML5(doc, function (data) { document.getElementById('TEI').appendChild(data); });
+    teiEdition(new CETEI({ omitDefaultBehaviors: true }), document.getElementById('tei-source').textContent, teiModels,
+      function (dom) { document.getElementById('TEI').appendChild(dom); });
 
     // Notes open inline, corrections toggle; event delegation works whenever CETEIcean is done.
     document.addEventListener('click', function (e) {

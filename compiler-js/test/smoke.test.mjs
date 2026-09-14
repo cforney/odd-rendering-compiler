@@ -15,6 +15,7 @@ import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 import { readOdd } from "../odd-parser.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -84,6 +85,21 @@ test("render-unified renders every example, with an index", () => {
 test("render-unified renders another output: the entities", () => {
   run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--out", join(outDir, "entities"), "--output", "entities"]);
   assert.match(page("entities", "simler-buchstabwechsel"), /<span class="tei-rs entity-person">/, "the output's model takes precedence");
+});
+
+test("odd-to-ceteicean writes a page per example, over the unified runtime", () => {
+  const out = join(outDir, "ceteicean");
+  run("odd-to-ceteicean.mjs", ["--odd", ODD, "--tei", EXAMPLES, "--css", join(outDir, "edition.css"), "--out", out]);
+
+  const context = vm.createContext({});
+  vm.runInContext(`${readFileSync(join(out, "tei-ceteicean-behaviours.js"), "utf8")}
+    this.twocol = teiModels.l[0].predicate; this.compiled = Object.keys(teiCompile(teiModels)).length;`, context);
+  assert.equal(context.twocol, "parent::lg[contains-token(@rendition, '#twocol')]", "the models keep their XPath");
+  assert.ok(context.compiled > 40, "the inlined XPath module compiles every model");
+
+  const html = readFileSync(join(out, "simler-buchstabwechsel.html"), "utf8");
+  assert.match(html, /<script type="application\/xml" id="tei-source"><!--\n  Simler Digital/, "the TEI, in its script");
+  assert.equal(html.split("<TEI ").length, 2, "and only there");
 });
 
 test("odd-to-unified fails on XPath outside the subset, naming the model", () => {

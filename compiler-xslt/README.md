@@ -104,8 +104,8 @@ stylesheet from the same runtime.
 `generate/odd-to-css.xsl` writes the rules to `edition.css`.
 `generate/odd-to-ceteicean.xsl` emits a third target: a CETEIcean behaviour map
 (the runtime `../runtime/ceteicean.js` and the models as JSON) and a page
-rendering in the browser. It takes the same subset of the Processing Model as the
-JS `odd-to-ceteicean.mjs`.
+rendering in the browser, over `pm-runtime.mjs` and `xpath.mjs`: the same file
+as the JS `odd-to-ceteicean.mjs`.
 
 ## Notes
 

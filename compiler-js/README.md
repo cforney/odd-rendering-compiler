@@ -9,9 +9,9 @@ handlers, and CETEIcean behaviours — with the renderers that turn TEI into HTM
 | Module | Output | PM coverage |
 |--------|--------|-------------|
 | `odd-to-css.mjs` | `edition.css`: the design tokens (`--tokens`), the `<tagsDecl>` renditions and each model's `<outputRendition>` | all |
-| `odd-to-unified.mjs` | `tei-handlers.mjs` (ESM), with `pm-runtime.mjs` and `xpath.mjs` | all; XPath in a subset |
+| `odd-to-unified.mjs` | `tei-handlers.mjs` (ESM), with `../runtime/pm-runtime.mjs` and `xpath.mjs` | all; XPath in a subset |
 | `odd-to-xslt.mjs` | `edition.xsl` (XSLT 3.0) | all; any XPath |
-| `odd-to-ceteicean.mjs` | CETEIcean behaviours + a page per source, rendering in the browser | a subset |
+| `odd-to-ceteicean.mjs` | CETEIcean behaviours + a page per source, rendering in the browser | all, as unified; notes open in place |
 
 The ODD's CSS may read design tokens, custom properties such as `--c-muted`.
 `odd-to-css.mjs` puts the tokens file given with `--tokens` first in
@@ -79,13 +79,11 @@ are not on disk.
 ```
 compiler-js/
 ├── odd-parser.mjs        # reads the ODD into models and CSS rules; parses TEI
-├── xpath.mjs             # the XPath subset of predicates and params
-├── pm-runtime.mjs        # the behaviours; ships beside tei-handlers.mjs
 ├── cli.mjs               # CLI, file output, escaping, the hast serialiser, multi-file input
 ├── odd-to-css.mjs        # edition.css
 ├── odd-to-unified.mjs    # tei-handlers.mjs
 ├── odd-to-xslt.mjs       # edition.xsl, with ../runtime/pm.xsl copied in
-├── odd-to-ceteicean.mjs  # CETEIcean behaviours, with ../runtime/ceteicean.js
+├── odd-to-ceteicean.mjs  # CETEIcean behaviours: ../runtime/ceteicean.js over pm-runtime.mjs, xpath.mjs
 ├── render-*.mjs          # the renderers
 ├── islands-runtime.js    # generic <tei-island> hydration runtime
 ├── byte-identity.mjs     # the equivalence check between renders
@@ -115,7 +113,8 @@ Inputs are in [`../examples/`](../examples/).
   `mode="delete"` removes a spec, and a new ident is added.
 
 **Generated code, shared behaviours.** `tei-handlers.mjs` is the ODD's models as
-a table, with predicates and params as XPath. `pm-runtime.mjs` renders by it:
+a table, with predicates and params as XPath. `../runtime/pm-runtime.mjs`
+renders by it:
 
 - **Models:** each element takes the first model of the output being rendered
   whose predicate holds, else the first such model without `@output`.
@@ -129,7 +128,9 @@ a table, with predicates and params as XPath. `pm-runtime.mjs` renders by it:
 - **Notes** are numbered in document order and collected by place.
 
 The generated stylesheet does the same with `../runtime/pm.xsl`, so the unified
-and XSLT renders have an equivalent body. See
+and XSLT renders have an equivalent body. A CETEIcean page chooses models by the
+same runtime in the browser, and `../runtime/ceteicean.js` reshapes CETEIcean's
+custom elements into the same HTML. See
 [`../docs/concept.md`](../docs/concept.md).
 
 **The nested model (Boot 2024).** A `<model>` that holds a `<modelSequence>` is

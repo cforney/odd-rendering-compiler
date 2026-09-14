@@ -4,7 +4,7 @@
  * Compile a TEI ODD Processing Model to a unified/xast handler module: for each
  * element its models, in document order, with predicates and params kept as
  * XPath. The module runs on a small runtime that ships beside it
- * (pm-runtime.mjs for the behaviours, xpath.mjs for the XPath subset), and its
+ * (../runtime/pm-runtime.mjs for the behaviours, xpath.mjs for the XPath subset), and its
  * hast output plugs into the unified ecosystem (rehype, Astro, Eleventy).
  *
  * Every predicate and param is compiled here once, so XPath outside the subset
@@ -17,7 +17,7 @@
 import { copyFileSync } from "fs";
 import { resolve, basename, join } from "path";
 import { readOdd } from "./odd-parser.mjs";
-import { xpath } from "./xpath.mjs";
+import { xpath } from "../runtime/xpath.mjs";
 import { parseArgs, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -90,6 +90,6 @@ export const teiToHast = createRenderer(models);
 
 const handlersPath = writeOut(outDir, "tei-handlers.mjs", source);
 for (const runtime of ["pm-runtime.mjs", "xpath.mjs"]) {
-  copyFileSync(new URL(runtime, import.meta.url), join(outDir, runtime));
+  copyFileSync(new URL(`../runtime/${runtime}`, import.meta.url), join(outDir, runtime));
 }
 log(`✓ ${handlersPath} (${specs.length} elements, ${specs.reduce((n, s) => n + s.models.length, 0)} models) + pm-runtime.mjs, xpath.mjs`);

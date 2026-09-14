@@ -2,15 +2,14 @@
 
 /**
  * Compile a TEI ODD Processing Model to CETEIcean behaviours plus a
- * self-contained page that renders the TEI in the browser.
+ * self-contained page per TEI source that renders it in the browser.
  *
  * CETEIcean (https://github.com/TEIC/CETEIcean) registers TEI elements as
- * `tei-` custom elements and applies behaviours to them. This tier takes a
- * subset of the Processing Model, what a browser can check on custom elements:
- * models without @output and sequences; predicates `@a`, `@a='v'`, `parent::X`,
- * `ancestor::X`, as CSS selectors; params that are literals, `@a`, or
- * `count(ancestor::X)` plus a number. A model outside it is left out with a
- * warning. The behaviours are the runtime ../runtime/ceteicean.js.
+ * `tei-` custom elements and applies behaviours to them. The behaviours are the
+ * runtime ../runtime/ceteicean.js, which chooses each element's model with the
+ * unified handlers' own runtime and XPath (pm-runtime.mjs, xpath.mjs). All
+ * three are inlined as classic scripts, so a page also works from file://; the
+ * ODD's models follow as JSON, with predicates and params as XPath.
  *
  * --tei takes the renderers' inputs: each source gives a page <basename>.html,
  * several also an index.html. The pages link edition.css, which --css copies
@@ -45,46 +44,27 @@ log(`Parsing ODD: ${oddPath}`);
 const specs = readOdd(resolve(oddPath)).specs;
 const runtime = (name) => readFileSync(new URL(`../runtime/${name}`, import.meta.url), "utf8");
 
-/** A predicate as a CSS selector on the custom element, or undefined outside the subset. */
-function selector(pred) {
-  let m;
-  if ((m = pred.match(/^@([\w-]+)$/))) return `[${m[1]}]`;
-  if ((m = pred.match(/^@([\w-]+)\s*=\s*'([^']*)'$/))) return `[${m[1]}="${m[2]}"]`;
-  if ((m = pred.match(/^(parent|ancestor)::([\w-]+)$/))) {
-    return `:is(tei-${m[2].toLowerCase()}, .tei-${m[2]})${m[1] === "parent" ? " > " : " "}*`;
-  }
+/** An ES module of the runtime as a classic script, `var <name> = { its exports }`; its import reads `from`. */
+function script(file, name, from) {
+  const src = runtime(file);
+  const exports = [...src.matchAll(/^export (?:const|function) (\w+)/gm)].map((m) => m[1]);
+  const body = src.replace(/^import (\{[^}]*\}) from .*$/m, `const $1 = ${from};`).replace(/^export /gm, "");
+  return `var ${name} = (function () {\n${body}\nreturn { ${exports.join(", ")} };\n})();`;
 }
 
-/** A param as a literal, { attr } or { count, plus }, or undefined outside the subset. */
-function param(value) {
-  let m;
-  if ((m = value.match(/^'([^']*)'$/))) return m[1];
-  if (/^\d+$/.test(value)) return Number(value);
-  if ((m = value.match(/^@([\w-]+)$/))) return { attr: m[1] };
-  if ((m = value.match(/^count\(ancestor::([\w-]+)\)(?:\s*\+\s*(\d+))?$/))) return { count: m[1].toLowerCase(), plus: Number(m[2] ?? 0) };
-}
-
-const models = {};
-for (const { ident, models: all } of specs) {
-  const kept = [];
-  for (const m of all.filter((m) => !m.output)) {
-    const when = m.predicate ? selector(m.predicate) : undefined;
-    if (m.parts || (m.predicate && !when)) {
-      log(`⚠ <${ident}>: ${m.parts ? m.behaviour : `predicate ${m.predicate}`} is outside the CETEIcean tier, model left out`);
-      continue;
-    }
-    const params = {};
-    for (const p of m.params) {
-      const v = param(p.value);
-      if (v === undefined) log(`⚠ <${ident}>: param ${p.name}="${p.value}" is outside the CETEIcean tier, left out`);
-      else params[p.name] = v;
-    }
-    kept.push({ behaviour: m.behaviour, tag: m.tag, when, classes: m.classes, source: m.source, params });
-  }
-  if (kept.length) models[ident] = kept;
-}
+/** A model as JSON: its behaviour, classes and flow, with predicate and params as XPath. */
+const json = (m) => ({
+  behaviour: m.behaviour, tag: m.tag, flow: m.flow,
+  predicate: m.predicate ?? undefined, output: m.output ?? undefined,
+  params: Object.fromEntries(m.params.map((p) => [p.name, p.value])),
+  classes: m.classes, source: m.source,
+  parts: m.parts?.map(json),
+});
+const models = Object.fromEntries(specs.filter((s) => s.models.length).map((s) => [s.ident, s.models.map(json)]));
 
 const behaviours = `/* tei-ceteicean-behaviours.js — generated from ${basename(oddPath)} by odd-to-ceteicean.mjs${stamp ? `, ${stamp}` : ""} */
+${script("xpath.mjs", "teiXpath")}
+${script("pm-runtime.mjs", "teiPm", "teiXpath")}
 ${runtime("ceteicean.js")}
 const teiModels = ${JSON.stringify(models, null, 1)};
 `;
