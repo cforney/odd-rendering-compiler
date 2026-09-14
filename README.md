@@ -17,8 +17,10 @@ clean clone that builds.
 
 The chain is implemented **twice — in JavaScript and in XSLT** — on purpose: the
 *generate* step is generic, not tied to one language, and the two implementations
-produce an equivalent static body. That equivalence is itself part of the article's 
-argument.
+produce an equivalent static body** — identical up to attribute order, generated
+IDs and whitespace, checked in CI by a byte-identity gate. That equivalence is
+itself part of the article's argument. Setup a compiler in Go or Rust or whichever
+language you prefer!
 
 > **Note.** This is an experimental implementation: it exists to illustrate
 > the idea and reproduce the article, not as production code.
@@ -63,6 +65,20 @@ Outputs land in `compiler-xslt/output/`. With Node present the build also emits 
 compiled to a SEF and run in the browser with IXSL toggles — serve it over HTTP
 (e.g. `npx http-server compiler-xslt/output`). See
 [`compiler-xslt/README.md`](compiler-xslt/README.md) for details.
+
+## Demo — compare the rendering paths
+
+A single static page frames the outputs both compilers build, so you can switch
+rendering paths, compare two side by side, toggle JavaScript, and see the generated
+artefact and its cost beside each result. Build both compilers, then assemble it:
+
+```bash
+cd compiler-js && npm run build:demo   # assembles demo/site/ from existing outputs
+npx http-server ../demo/site           # then open the printed URL
+```
+
+CI publishes it to GitHub Pages on every push to `main`. See
+[`demo/README.md`](demo/README.md) for the build steps and how to extend it.
 
 ## Examples, licensing, and credits
 
