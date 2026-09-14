@@ -1,7 +1,10 @@
-# Node dependencies — installed with `npm install`, never committed.
+# Node dependencies
 node_modules/
 
 _deprecated/
+
+# Assembled demo site
+demo/site/
 
 # Logs
 npm-debug.log*
