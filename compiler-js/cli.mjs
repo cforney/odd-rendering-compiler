@@ -1,9 +1,9 @@
 /**
  * cli.mjs
  *
- * Shared command-line, file-output, and string-escaping helpers used by every
- * generator and renderer: argument parsing, `[name] …` console logging, file
- * writing, the escaping functions, and the multi-file `--tei` input resolver.
+ * Shared command-line and output helpers used by every generator and renderer:
+ * argument parsing, `[name] …` console logging, file writing, escaping, the
+ * hast serialiser, and the multi-file `--tei` input resolver.
  */
 
 import {
@@ -12,6 +12,7 @@ import {
 import {
   resolve, join, basename, extname,
 } from "path";
+import { pathToFileURL } from "url";
 
 // ---------------------------------------------------------------------------
 // CLI arguments
@@ -201,15 +202,6 @@ export function createLogger(scope) {
 }
 
 /**
- * Warn that a `@predicate` could not be translated for this target and was left
- * as a fallback. Keeps the message uniform across generators; the supported
- * shapes are in docs/predicate-grammar.md.
- */
-export function warnUnsupportedPredicate(log, predicate) {
-  log(`⚠ unsupported predicate, left as fallback: ${predicate}`);
-}
-
-/**
  * Timestamp for a generated file's header, or null when the date should be
  * omitted for reproducible output. Pass `--no-timestamp`, or set
  * SOURCE_DATE_EPOCH (Unix seconds) to pin it.
@@ -238,22 +230,6 @@ export function writeOut(outDir, filename, content) {
 }
 
 // ---------------------------------------------------------------------------
-// HTML naming convention
-// ---------------------------------------------------------------------------
-
-/**
- * Class prefix for a rendered TEI element: `<persName>` → `<span
- * class="tei-persName">`, `<head>` → `<h1 class="tei-head">`. TEI attributes
- * are mirrored as `data-*` (`@type` → `data-type`). Centralised so the CSS
- * generator and the renderers share one convention; the unified/xast and XSLT
- * generators emit the same `tei-<ident>` literal directly.
- */
-export const TEI_CLASS_PREFIX = "tei-";
-
-/** Class name for a rendered TEI element, e.g. teiClass("persName") → "tei-persName". */
-export const teiClass = (ident) => TEI_CLASS_PREFIX + ident;
-
-// ---------------------------------------------------------------------------
 // Escaping
 // ---------------------------------------------------------------------------
 
@@ -266,28 +242,33 @@ export function escapeXml(value) {
     .replace(/"/g, "&quot;");
 }
 
-/** HTML content escaping is identical to XML escaping here; provided as an alias. */
-export const escapeHtml = escapeXml;
+// ---------------------------------------------------------------------------
+// hast → HTML
+// ---------------------------------------------------------------------------
 
-/**
- * Escape a string for embedding inside a single-quoted JavaScript string
- * literal in generated code.
- */
-export function escapeJsString(value) {
-  return String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'")
-    .replace(/`/g, "\\`")
-    .replace(/\$\{/g, "\\${")
-    .replace(/\r/g, "\\r")
-    .replace(/\n/g, "\\n");
+const VOID_ELEMENTS = new Set([
+  "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr",
+]);
+
+/** Serialise hast as Saxon's HTML output method does, so the renders compare byte for byte. */
+export function toHtml(node) {
+  if (node.type === "text") return node.value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\u00a0/g, "&nbsp;");
+  if (node.type === "root") return node.children.map(toHtml).join("");
+  const attrs = Object.entries(node.properties ?? {})
+    .filter(([, v]) => v != null && v !== false)
+    .map(([k, v]) => {
+      if (v === true) return ` ${k}`;
+      const value = Array.isArray(v) ? v.join(" ") : String(v);
+      return ` ${k === "className" ? "class" : k}="${value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/\u00a0/g, "&nbsp;")}"`;
+    })
+    .join("");
+  if (VOID_ELEMENTS.has(node.tagName)) return `<${node.tagName}${attrs}>`;
+  return `<${node.tagName}${attrs}>${(node.children ?? []).map(toHtml).join("")}</${node.tagName}>`;
 }
 
-/**
- * Make text safe inside a JS block comment. An ODD predicate can contain the
- * comment terminator `* /` (e.g. an XPath wildcard child step), which would
- * close the comment early; a space between the two chars neutralises it.
- */
-export function escapeJsComment(value) {
-  return String(value).replace(/\*\//g, "* /");
+/** Import a generated handler module (tei-handlers.mjs) and return its teiToHast. */
+export async function loadHandlers(path) {
+  const { teiToHast } = await import(pathToFileURL(resolve(path)).href);
+  if (!teiToHast) throw new Error(`${path} exports no teiToHast`);
+  return teiToHast;
 }

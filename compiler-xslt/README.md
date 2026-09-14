@@ -3,7 +3,8 @@
 A reference implementation of the **define → generate → render** chain built
 entirely in **XSLT**: a TEI ODD's Processing Model is compiled into the rendering
 artefacts (an `edition.xsl` stylesheet and an `edition.css`) by XSLT itself, which
-then run over a TEI document to produce static HTML.
+then run over a TEI document to produce static HTML — the same HTML the
+JavaScript implementation renders.
 
 Run with no arguments, it builds the **Simler** edition — Fraktur renditions,
 entities coloured by `@type`, and CSS-grid acrostic layouts.
@@ -11,6 +12,7 @@ entities coloured by `@type`, and CSS-grid acrostic layouts.
 ```
 compiler-xslt/
 ├── generate/
+│   ├── odd-model.xsl         reads the ODD into models and CSS rules (included by the three below)
 │   ├── odd-to-xsl.xsl        ODD → edition.xsl   (XSLT generating XSLT)
 │   ├── odd-to-css.xsl        ODD → edition.css   (XSLT generating CSS)
 │   ├── odd-to-ceteicean.xsl  ODD → CETEIcean behaviours + demo page
@@ -54,7 +56,7 @@ a self-hosted `SaxonJS2.rt.js` (see below).
 
 The build-time stylesheet runs *client-side* too. `render-saxonjs.xsl` imports the
 generated `edition.xsl` (reusing every TEI template) and adds IXSL event templates
-for the note, apparatus and facsimile toggles; `xslt3` compiles it to a Stylesheet
+for the note and apparatus toggles; `xslt3` compiles it to a Stylesheet
 Export File (`edition-saxonjs.sef.json`), and `rendered-saxonjs.html` runs that SEF
 in the browser with the SaxonJS runtime. So the **same** template-matching
 stylesheet has two entry points — **Saxon HE at build time, SaxonJS in the
@@ -79,41 +81,46 @@ straight through. The design turns on two evaluation times:
 
 | prefix | runs… | over… |
 |--------|-------|-------|
-| `xsl:`  | now (generate) | the **ODD** — pick the HTML element, bake `class`/`style`, dispatch on `@behaviour`, expand `@predicate` into a `match` pattern |
-| `axsl:` | later (render) | the **TEI** — `apply-templates`, `value-of`, `xsl:number`, the dynamic heading `xsl:element` |
+| `xsl:`  | now (generate) | the **ODD** — for each element, its models in document order, their classes and params |
+| `axsl:` | later (render) | the **TEI** — an `xsl:choose` taking the first model whose output and predicate fit, and the call of `pm:model` |
 
-So a `<model behaviour="inline">` becomes an `<xsl:template>` emitting
-`<span class="tei-…">…</span>`, and a `@predicate` becomes an XPath `match`
-predicate — XSLT speaks XPath natively, so there is no translation gap.
-`generate/odd-to-css.xsl` does the same for the CSS floor (one rule per `<model>`;
-CSS-inexpressible predicates become comments). `generate/odd-to-ceteicean.xsl`
-emits a third target — a CETEIcean behaviour map (JavaScript) and a self-contained
-demo page — the XSLT counterpart of the JS `odd-to-ceteicean.mjs`, showing the same
-generate step can produce a client-side rendering back-end. (Its emitted behaviour
-bodies are the same JavaScript the `.mjs` produces; multi-predicate elements like
-`<rs>` use CETEIcean's function form rather than the `.mjs`'s array form — both
-equivalent.)
+So each TEI element gets one `<xsl:template>`. Its predicates and params stay
+XPath, which XSLT evaluates natively, so there is no translation gap. The
+behaviours are not generated: they are the runtime [`../runtime/pm.xsl`](../runtime/pm.xsl),
+copied into `edition.xsl`. JavaScript's `odd-to-xslt.mjs` generates the same
+stylesheet from the same runtime.
 
-Both generators resolve `<specGrp>`/`<specGrpRef>` composition within one document
-(reference order, cycle guard, unreferenced groups skipped) — the pattern the TEI's
-own `tei_simplePrint` uses. It is single-document resolution, not full `odd2odd`.
+`generate/odd-model.xsl` reads the ODD for all three generators, as
+`compiler-js/odd-parser.mjs` does for the JavaScript ones:
+
+- **Model groups** are flattened, keeping document order.
+- **Classes and CSS:** styled models get their classes and CSS rules.
+- **`<specGrp>`/`<specGrpRef>`** composition is resolved within one document
+  (reference order, cycle guard, unreferenced groups skipped); this is not full
+  `odd2odd`.
+- **Chaining:** `<schemaSpec source="…">` is followed as an ODD chain.
+
+`generate/odd-to-css.xsl` writes the rules to `edition.css`.
+`generate/odd-to-ceteicean.xsl` emits a third target: a CETEIcean behaviour map
+(the runtime `../runtime/ceteicean.js` and the models as JSON) and a page
+rendering in the browser. It takes the same subset of the Processing Model as the
+JS `odd-to-ceteicean.mjs`.
 
 ## Notes
 
-- **Source appearance & layout** ride on `@rendition`: the generated stylesheet
-  turns each element's pointer list into `r-<id>` classes that `edition.css` (from
-  `<tagsDecl>`) styles. That is how the *Buchstabwechsel* poem reconstructs its
+- **Source appearance & layout** ride on `@rendition`: where a model sets
+  `@useSourceRendition`, the element's pointer list becomes `r-<id>` classes that
+  `edition.css` (from `<tagsDecl>`) styles. That is how the *Buchstabwechsel* poem reconstructs its
   interleaved columns and marginal acrostic — pure CSS-grid renditions from the ODD.
 - **The target language shapes the output.** The interactive page does *not* use
   petite-vue: its directives (`@click`, `:aria-checked`) are not valid XML attribute
   names, so a standards XSLT generator cannot emit them. The same result (note and
   apparatus toggles, graceful degradation) is reached with `data`/`class` hooks plus
   ~12 lines of vanilla JS and a `<noscript>` reveal.
-- **Fidelity.** Built over a shared sample ODD, the static `rendered-xslt.html`
-  body is **equivalent** to the JS output — same `tei-*` classes, baked styles and
-  footnotes — identical up to attribute order, engine-generated note IDs and
-  whitespace. The byte-identity gate (`compiler-js`'s `npm test`) normalises
-  exactly those and checks the two match.
+- **Fidelity.** The static `rendered-xslt.html` body is **equivalent** to the
+  unified render and to that of the stylesheet from `odd-to-xslt.mjs`: identical
+  up to attribute order and whitespace. `compiler-js`'s `npm test` checks this on
+  the examples and on the conformance fixtures.
 
 ## Example sources & credits
 

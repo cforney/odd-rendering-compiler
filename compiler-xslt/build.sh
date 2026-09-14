@@ -60,6 +60,7 @@ echo "③ corpus    output/edition-interactive/  ← $TEI_DIR/simler-*.xml"
 mkdir -p output/edition-interactive
 NAMES=""
 COUNT=0
+shopt -s nullglob
 for f in "$TEI_DIR"/simler-*.xml; do
   base="$(basename "$f" .xml)"
   saxon -s:"$f" -xsl:output/edition.xsl -o:"output/edition-interactive/$base.html" interactive=true

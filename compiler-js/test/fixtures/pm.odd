@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The ODD of the conformance fixtures: one or two elements per Processing-Model feature. -->
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>Processing-Model fixtures</title></titleStmt>
+      <publicationStmt><p>Test data of the ODD Rendering Compiler.</p></publicationStmt>
+      <sourceDesc><p>Written for the tests.</p></sourceDesc>
+    </fileDesc>
+    <encodingDesc>
+      <tagsDecl>
+        <rendition xml:id="b" scheme="css">font-weight: bold;</rendition>
+        <rendition xml:id="c" scheme="css">text-align: center;</rendition>
+      </tagsDecl>
+    </encodingDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <schemaSpec ident="fixtures" start="TEI">
+        <elementSpec ident="teiHeader" mode="change">
+          <model behaviour="metadata"/>
+        </elementSpec>
+
+        <!-- structure: a spec's only model; a group with inherited source rendition; classes -->
+        <elementSpec ident="div" mode="change">
+          <model behaviour="section">
+            <outputRendition>margin: 1em 0;</outputRendition>
+          </model>
+        </elementSpec>
+        <elementSpec ident="head" mode="change">
+          <modelGrp useSourceRendition="true">
+            <outputRendition>font-weight: 600;</outputRendition>
+            <model predicate="parent::div" behaviour="heading" cssClass="head-div">
+              <param name="level" value="count(ancestor::div) + 1"/>
+            </model>
+            <model behaviour="paragraph">
+              <outputRendition>font-size: 0.8em;</outputRendition>
+            </model>
+          </modelGrp>
+        </elementSpec>
+        <elementSpec ident="p" mode="change">
+          <model behaviour="paragraph" useSourceRendition="true"/>
+        </elementSpec>
+        <!-- a block inside a paragraph becomes a span; the source rendition only where the model says -->
+        <elementSpec ident="hi" mode="change">
+          <model predicate="@rend = 'block'" behaviour="block" cssClass="hi-block"/>
+          <model behaviour="inline" useSourceRendition="true"/>
+        </elementSpec>
+        <!-- document order: the first model applies, the predicate of the second is never asked -->
+        <elementSpec ident="seg" mode="change">
+          <model behaviour="inline" cssClass="seg-first"/>
+          <model predicate="@type" behaviour="block"/>
+        </elementSpec>
+        <!-- a sequence: each part in turn, the element's id on the first -->
+        <elementSpec ident="supplied" mode="change">
+          <modelSequence>
+            <model behaviour="inline" cssClass="bracket"><param name="content" value="'['"/></model>
+            <model behaviour="inline"/>
+            <model behaviour="inline" cssClass="bracket"><param name="content" value="']'"/></model>
+          </modelSequence>
+        </elementSpec>
+        <elementSpec ident="lg" mode="change">
+          <model behaviour="block"/>
+        </elementSpec>
+        <!-- params: CSS custom properties; predicates with positions, value comparisons, conditionals -->
+        <elementSpec ident="l" mode="change">
+          <model predicate="not(preceding-sibling::l)" behaviour="block" cssClass="l-first"/>
+          <model predicate="count(preceding-sibling::l) gt 1 and (following-sibling::l)[last()][@rend = 'last']" behaviour="block" cssClass="l-before-last"/>
+          <model behaviour="block">
+            <param name="--indent" value="if (@rend = 'indent') then 1 else 0"/>
+            <param name="data-n" value="count(preceding-sibling::l) + 1"/>
+          </model>
+        </elementSpec>
+        <!-- breaks: a line break where a line starts is dropped; a label comes before the break -->
+        <elementSpec ident="lb" mode="change">
+          <model predicate="@break = 'no'" behaviour="break" cssClass="lb-hyphen">
+            <param name="type" value="'line'"/>
+            <param name="label" value="'-'"/>
+          </model>
+          <model behaviour="break">
+            <param name="type" value="'line'"/>
+          </model>
+        </elementSpec>
+        <elementSpec ident="pb" mode="change">
+          <model behaviour="break">
+            <param name="type" value="'page'"/>
+            <param name="data-page" value="@facs"/>
+            <param name="label" value="concat('[', translate((@n, '·')[1], '[]', ''), ']')"/>
+          </model>
+        </elementSpec>
+        <!-- node-valued params: the readings in param order; the element itself by its content -->
+        <elementSpec ident="choice" mode="change">
+          <model output="plain" predicate="sic and corr" behaviour="inline">
+            <param name="content" value="corr"/>
+          </model>
+          <model predicate="sic and corr" behaviour="alternate">
+            <param name="default" value="corr"/>
+            <param name="alternate" value="sic"/>
+          </model>
+          <model behaviour="inline"/>
+        </elementSpec>
+        <elementSpec ident="num" mode="change">
+          <model behaviour="inline">
+            <param name="content" value="('No. ', .)"/>
+          </model>
+        </elementSpec>
+        <elementSpec ident="ref" mode="change">
+          <model behaviour="link">
+            <param name="uri" value="@target"/>
+          </model>
+        </elementSpec>
+        <elementSpec ident="graphic" mode="change">
+          <model behaviour="graphic">
+            <param name="url" value="@url"/>
+          </model>
+        </elementSpec>
+        <elementSpec ident="anchor" mode="change">
+          <model behaviour="anchor"/>
+        </elementSpec>
+        <!-- notes: numbered in document order, the outer before the inner; other places without a marker -->
+        <elementSpec ident="note" mode="change">
+          <model predicate="@place = 'margin'" behaviour="note">
+            <param name="place" value="'margin'"/>
+          </model>
+          <model predicate="@targetEnd" behaviour="note" cssClass="note-range">
+            <param name="range" value="@targetEnd"/>
+          </model>
+          <model behaviour="note"/>
+        </elementSpec>
+        <!-- outputs: an output's models take precedence there; models of another output are skipped -->
+        <elementSpec ident="fw" mode="change">
+          <model output="plain" behaviour="omit"/>
+          <model behaviour="block"/>
+        </elementSpec>
+        <elementSpec ident="date" mode="change">
+          <model output="web" predicate="@when" behaviour="inline">
+            <param name="content" value="@when"/>
+          </model>
+          <model output="print" behaviour="omit"/>
+          <model behaviour="inline"/>
+        </elementSpec>
+      </schemaSpec>
+    </body>
+  </text>
+</TEI>

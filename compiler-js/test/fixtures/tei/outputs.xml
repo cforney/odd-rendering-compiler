@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc><titleStmt><title>Outputs</title></titleStmt></fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <fw>A running head</fw>
+      <p>On <date when="1663-01-01">New Year 1663</date>, a
+        <choice><sic>sick</sic><corr>correct</corr></choice> reading.</p>
+    </body>
+  </text>
+</TEI>

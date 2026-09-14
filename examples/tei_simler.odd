@@ -108,7 +108,8 @@
              edition straight from this ODD. Source typography (italic, bold,
              centring, indentation, initials) is deliberately NOT repeated here:
              it stays in <tagsDecl> and is applied through the @rendition
-             pointers, which odd-to-static compiles into .r-* CSS rules.
+             pointers wherever a model sets @useSourceRendition, compiled into
+             .r-* CSS rules.
              NB: for readability the <model> is written first inside each
              <elementSpec>; a strict ODD sequence places it after <attList>.
              =================================================================== -->
@@ -411,7 +412,7 @@
         </elementSpec>
 
         <elementSpec ident="div" module="textstructure" mode="change">
-          <model behaviour="block">
+          <model behaviour="block" useSourceRendition="true">
             <outputRendition>margin: 1.5em 0;</outputRendition>
           </model>
           <desc>A structural division — a book, a group of poems, or an individual poem. <att>type</att>
@@ -450,7 +451,7 @@
 
         <!-- ===== title page ===== -->
         <elementSpec ident="titlePage" module="textstructure" mode="change">
-          <model behaviour="block">
+          <model behaviour="block" useSourceRendition="true">
             <outputRendition>text-align: center; margin: 2em auto; padding-bottom: 1em; border-bottom: 1px solid #ddd;</outputRendition>
           </model>
           <desc>A title page transcribed within <gi>front</gi>.</desc>
@@ -512,7 +513,7 @@
              VERSE
              =================================================================== -->
         <elementSpec ident="lg" module="core" mode="change">
-          <model behaviour="block">
+          <model behaviour="block" useSourceRendition="true">
             <outputRendition>margin: 1em 0;</outputRendition>
           </model>
           <desc>A group of verse lines — in the Simler edition typically a poem
@@ -547,7 +548,7 @@
         </elementSpec>
 
         <elementSpec ident="l" module="core" mode="change">
-          <model behaviour="block">
+          <model behaviour="block" useSourceRendition="true">
             <outputRendition>margin: 0; line-height: 1.5;</outputRendition>
           </model>
           <desc>A single verse line. <att>rendition</att> records the indentation of the printed
@@ -576,7 +577,7 @@
         <elementSpec ident="hi" module="core" mode="change">
           <!-- inline; the actual look (italic/bold/centring/…) comes from the
                @rendition pointer, resolved to .r-* CSS from <tagsDecl>. -->
-          <model behaviour="inline"/>
+          <model behaviour="inline" useSourceRendition="true"/>
           <desc>A typographically distinct span of the source. <att>rendition</att> is required on
             <gi>hi</gi> (it is optional elsewhere) and points to one or more <gi>rendition</gi>
             declarations in <gi>tagsDecl</gi>; tokens combine (e.g. <val>#aq #c</val>). <gi>hi</gi>
@@ -593,7 +594,7 @@
         </elementSpec>
 
         <elementSpec ident="head" module="core" mode="change">
-          <model behaviour="heading">
+          <model behaviour="heading" useSourceRendition="true">
             <param name="level" value="count(ancestor::div)"/>
             <outputRendition>font-size: 1.2em; text-align: center; margin: 0.8em 0 0.4em;</outputRendition>
           </model>
@@ -621,7 +622,7 @@
         </elementSpec>
 
         <elementSpec ident="label" module="core" mode="change">
-          <model behaviour="inline">
+          <model behaviour="inline" useSourceRendition="true">
             <outputRendition>font-variant: small-caps; color: #555;</outputRendition>
           </model>
           <desc>A label, typically the (often editorially supplied, bracketed) number of a heading or
@@ -633,13 +634,13 @@
         </elementSpec>
 
         <elementSpec ident="num" module="core" mode="change">
-          <model behaviour="inline"/>
+          <model behaviour="inline" useSourceRendition="true"/>
           <desc>A number (Roman or Arabic) marked as such in the source.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
         </elementSpec>
 
         <elementSpec ident="p" module="core" mode="change">
-          <model behaviour="paragraph"/>
+          <model behaviour="paragraph" useSourceRendition="true"/>
           <desc>A prose paragraph (e.g. closing formulae of a book, captions, header notes).</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
@@ -662,25 +663,25 @@
           <!-- Entity reference, colour-coded by @type. The per-type predicates
                compile to a JS if-chain in the spine and to data-type selectors
                in the CSS floor. -->
-          <model predicate="@type='person'" behaviour="inline">
+          <model predicate="@type='person'" behaviour="inline" useSourceRendition="true">
             <outputRendition>color: #8e44ad;</outputRendition>
           </model>
-          <model predicate="@type='place'" behaviour="inline">
+          <model predicate="@type='place'" behaviour="inline" useSourceRendition="true">
             <outputRendition>color: #2980b9;</outputRendition>
           </model>
-          <model predicate="@type='org'" behaviour="inline">
+          <model predicate="@type='org'" behaviour="inline" useSourceRendition="true">
             <outputRendition>color: #16a085;</outputRendition>
           </model>
-          <model predicate="@type='institution'" behaviour="inline">
+          <model predicate="@type='institution'" behaviour="inline" useSourceRendition="true">
             <outputRendition>color: #16a085;</outputRendition>
           </model>
-          <model predicate="@type='work'" behaviour="inline">
+          <model predicate="@type='work'" behaviour="inline" useSourceRendition="true">
             <outputRendition>font-style: italic; color: #b9770e;</outputRendition>
           </model>
-          <model predicate="@type='bibl'" behaviour="inline">
+          <model predicate="@type='bibl'" behaviour="inline" useSourceRendition="true">
             <outputRendition>font-style: italic; color: #7f8c8d;</outputRendition>
           </model>
-          <model behaviour="inline">
+          <model behaviour="inline" useSourceRendition="true">
             <outputRendition>border-bottom: 1px dotted #aaa;</outputRendition>
           </model>
           <desc>A referencing string identifying a named entity. <att>type</att> classifies the
@@ -719,7 +720,7 @@
 
         <!-- ===== editorial interventions ===== -->
         <elementSpec ident="choice" module="core" mode="change">
-          <model behaviour="alternate"/>
+          <model behaviour="alternate" useSourceRendition="true"/>
           <desc>Groups the source reading (<gi>sic</gi>) and its editorial correction
             (<gi>corr</gi>), in either order.</desc>
           <content>
@@ -734,14 +735,14 @@
           </exemplum>
         </elementSpec>
         <elementSpec ident="sic" module="core" mode="change">
-          <model behaviour="inline">
+          <model behaviour="inline" useSourceRendition="true">
             <outputRendition>color: #c0392b;</outputRendition>
           </model>
           <desc>The reading actually present in the source, retained unchanged.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
         </elementSpec>
         <elementSpec ident="corr" module="core" mode="change">
-          <model behaviour="inline">
+          <model behaviour="inline" useSourceRendition="true">
             <outputRendition>color: #1e8449;</outputRendition>
           </model>
           <desc>The editorial correction of an obvious printing error.</desc>
@@ -749,7 +750,7 @@
         </elementSpec>
 
         <elementSpec ident="supplied" module="transcr" mode="change">
-          <model behaviour="inline">
+          <model behaviour="inline" useSourceRendition="true">
             <outputRendition>color: #2980b9;</outputRendition>
           </model>
           <desc>Text supplied by the editors where the source is missing or illegible.
@@ -765,7 +766,7 @@
         </elementSpec>
 
         <elementSpec ident="unclear" module="core" mode="change">
-          <model behaviour="inline">
+          <model behaviour="inline" useSourceRendition="true">
             <outputRendition>opacity: 0.65; font-style: italic;</outputRendition>
           </model>
           <desc>A passage that cannot be read with certainty; <att>reason</att> records why.</desc>
@@ -794,7 +795,7 @@
              NOTES, LISTS, FIGURES, REFERENCES
              =================================================================== -->
         <elementSpec ident="note" module="core" mode="change">
-          <model behaviour="note">
+          <model behaviour="note" useSourceRendition="true">
             <outputRendition>font-size: 0.9em;</outputRendition>
           </model>
           <desc>An editorial note or comment. <att>type</att> classifies it; <att>targetEnd</att>
@@ -822,7 +823,7 @@
         </elementSpec>
 
         <elementSpec ident="list" module="core" mode="change">
-          <model behaviour="list"/>
+          <model behaviour="list" useSourceRendition="true"/>
           <desc>A list.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
@@ -832,12 +833,12 @@
           </content>
         </elementSpec>
         <elementSpec ident="item" module="core" mode="change">
-          <model behaviour="listItem"/>
+          <model behaviour="listItem" useSourceRendition="true"/>
           <content><macroRef key="macro.simlerInline"/></content>
         </elementSpec>
 
         <elementSpec ident="figure" module="figures" mode="change">
-          <model behaviour="block">
+          <model behaviour="block" useSourceRendition="true">
             <outputRendition>margin: 1em auto; text-align: center; padding: 0.5em; border: 1px dashed #ccc;</outputRendition>
           </model>
           <desc>A figure (woodcut, frontispiece engraving, decorative element), optionally with a
@@ -884,7 +885,7 @@
              =================================================================== -->
         <elementSpec ident="milestone" module="core" mode="change">
           <!-- empty; the source rule appearance comes from @rendition (#hr). -->
-          <model behaviour="block"/>
+          <model behaviour="block" useSourceRendition="true"/>
           <desc>An empty milestone marking a structural section boundary in the source.
             <att>unit</att> is required.</desc>
           <content><empty/></content>
@@ -916,7 +917,7 @@
         </elementSpec>
 
         <elementSpec ident="anchor" module="linking" mode="change">
-          <model behaviour="anchor"/>
+          <model behaviour="anchor" useSourceRendition="true"/>
           <desc>An anchor point delimiting a commented range (paired with a <gi>note</gi> via
             <att>targetEnd</att>). The range is keyed either by <att>xml:id</att> or by <att>n</att>
             on a start/end pair.</desc>
@@ -936,7 +937,7 @@
         </elementSpec>
 
         <elementSpec ident="fw" module="transcr" mode="change">
-          <model behaviour="block">
+          <model behaviour="block" useSourceRendition="true">
             <outputRendition>font-size: 0.8em; color: #999; text-align: center; margin: 0.3em 0;</outputRendition>
           </model>
           <desc>Forme work — running material outside the text block (page numbers, signatures,
@@ -973,40 +974,40 @@
 
         <!-- ===== pb: page beginning ===== -->
         <elementSpec ident="pb" module="core" mode="change">
-          <!-- Boot's (2024) nested-model extension: a compound behaviour. With a
-               @facs the page break renders as a thumbnail of the e-rara facsimile
-               that links to the full-resolution scan — both IIIF image URLs are
-               derived here from @facs, so the rendering logic stays in the ODD and
-               the source keeps only the stable image identifier. Without @facs the
-               same element falls back to a plain page-break rule. -->
-          <model predicate="@facs" behaviour="compound">
-            <modelSequence>
-              <model behaviour="link">
-                <param name="uri" value="concat(@facs, '/full/full/0/default.jpg')"/>
-                <outputRendition>display: inline-block; margin: 0.6em 0;</outputRendition>
-              </model>
-              <model behaviour="graphic">
-                <param name="url" value="concat(@facs, '/full/pct:25/0/default.jpg')"/>
-                <outputRendition>max-width: 120px; border: 1px solid #ccc;</outputRendition>
-              </model>
-            </modelSequence>
-          </model>
-          <model behaviour="block">
-            <outputRendition>display: block; border-top: 1px solid #ddd; margin: 1.4em 0; height: 0;</outputRendition>
-          </model>
           <desc>Marks the beginning of a new printed page. <att>n</att> gives the printed page number
-            (bracketed when editorially supplied); <att>facs</att> links to the facsimile.</desc>
+            (bracketed when editorially supplied); <att>facs</att> names the page image.</desc>
           <content><empty/></content>
           <attList>
             <attDef ident="n" mode="change" usage="opt"/>
             <attDef ident="facs" mode="change" usage="opt">
               <desc>The IIIF image identifier URL of the page on e-rara (e.g.
-                <val>https://www.e-rara.ch/i3f/v20/4049203</val>); the <gi>pb</gi> model builds the
-                thumbnail and full-image links from it. Optional: absent for pages identified only by
-                a printer's signature (e.g. <val>[A ii r]</val>) that have no separate facsimile.</desc>
+                <val>https://www.e-rara.ch/i3f/v20/4049203</val>); the page break carries it as
+                <val>data-page</val>, for a facsimile viewer. Optional: absent for pages identified
+                only by a printer's signature (e.g. <val>[A ii r]</val>) that have no separate
+                facsimile.</desc>
               <datatype><dataRef key="teidata.pointer"/></datatype>
             </attDef>
           </attList>
+          <!-- A ruled marker across the column, `—— [5] ——`; inside a paragraph, a verse line or a
+               heading it stays in the line. The nested thumbnail model this ODD used before is
+               now an extension example (extensions/nested-pb/). -->
+          <modelGrp>
+            <outputRendition>display: flex; align-items: center; gap: 0.7em; margin: 1.4em 0; font-family: system-ui, sans-serif; font-size: 0.68em; letter-spacing: 0.04em; color: #888; user-select: none;</outputRendition>
+            <model cssClass="pb-inline" predicate="ancestor::p or ancestor::l or ancestor::head" behaviour="break">
+              <param name="type" value="'page'"/>
+              <param name="data-page" value="@facs"/>
+              <param name="label" value="concat('[', translate((@n, '·')[1], '[]', ''), ']')"/>
+              <outputRendition>display: inline; margin: 0 0.3em;</outputRendition>
+            </model>
+            <model cssClass="pb-rule" behaviour="break">
+              <param name="type" value="'page'"/>
+              <param name="data-page" value="@facs"/>
+              <param name="label" value="concat('[', translate((@n, '·')[1], '[]', ''), ']')"/>
+              <outputRendition scope="before">content: ''; flex: 1; border-top: 1px solid #ddd;</outputRendition>
+              <outputRendition scope="after">content: ''; flex: 1; border-top: 1px solid #ddd;</outputRendition>
+            </model>
+          </modelGrp>
+          <model output="plain" behaviour="omit"/>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <pb n="194" facs="https://www.e-rara.ch/i3f/v20/4049203"/>

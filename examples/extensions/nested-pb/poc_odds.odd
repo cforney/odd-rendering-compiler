@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://www.tei-c.org/Vault/P5/4.12.0/xml/tei/custom/schema/relaxng/tei_odds.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>poc_odds: TEI for authoring ODD, with nested models</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Part of the ODD Rendering Compiler proof of concept. Its schema specification follows
+          the TEI's <ident>tei_odds.odd</ident> (TEI P5 4.12.0, by Sebastian Rahtz, © TEI
+          Consortium, CC BY 3.0 / BSD-2-Clause).</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Written for the nested page-break extension.</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>The ODD language of TEI P5 4.12.0 (<ident>tei_odds</ident>), with one change: a
+        <gi>model</gi> may hold a <gi>modelSequence</gi>, after its params and renditions. That is
+        the nested model Boot (2024) proposes, where one model has several behaviours at once. In
+        TEI a <gi>modelSequence</gi> stands only beside models, as an alternative to them.</p>
+      <p>Compile it with the TEI Stylesheets (<ident>odd2odd</ident>, then <ident>odd2relax</ident>)
+        and validate an ODD that uses nested models against the result; see
+        <ident>validate.sh</ident>.</p>
+      <schemaSpec ident="poc_odds" start="TEI schemaSpec elementSpec classSpec macroSpec div"
+        source="https://www.tei-c.org/Vault/P5/4.12.0/xml/tei/odd/p5subset.xml">
+        <moduleRef url="https://www.tei-c.org/Vault/P5/4.12.0/xml/tei/Exemplars/relaxng.rng"/>
+        <moduleRef key="header"/>
+        <moduleRef key="core"/>
+        <moduleRef key="tei"/>
+        <moduleRef key="gaiji"/>
+        <moduleRef key="textstructure"/>
+        <moduleRef key="tagdocs"/>
+        <moduleRef key="dictionaries"/>
+        <moduleRef key="linking"/>
+        <moduleRef key="figures"/>
+        <elementSpec ident="teiCorpus" mode="delete" module="core"/>
+        <elementSpec ident="model" mode="change" module="tagdocs">
+          <content>
+            <sequence>
+              <alternate minOccurs="0" maxOccurs="unbounded">
+                <classRef key="model.identEquiv"/>
+                <classRef key="model.descLike"/>
+              </alternate>
+              <elementRef key="param" minOccurs="0" maxOccurs="unbounded"/>
+              <elementRef key="outputRendition" minOccurs="0" maxOccurs="unbounded"/>
+              <elementRef key="modelSequence" minOccurs="0"/>
+            </sequence>
+          </content>
+        </elementSpec>
+      </schemaSpec>
+    </body>
+  </text>
+</TEI>

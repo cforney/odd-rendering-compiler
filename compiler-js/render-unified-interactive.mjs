@@ -15,14 +15,11 @@
  * Usage:  node render-unified-interactive.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
  */
 
-import {
-  readFileSync, mkdirSync, copyFileSync, rmSync,
-} from "fs";
-import { resolve, join } from "path";
-import { tmpdir } from "os";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
 import {
-  parseArgs, createLogger, writeOut, escapeHtml as esc,
+  parseArgs, createLogger, writeOut, toHtml, loadHandlers,
   resolveInputFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
@@ -44,24 +41,7 @@ log(`Handlers: ${handlersPath}`);
 log(`TEI:      ${teiFiles.join(", ")}`);
 log(`CSS:      ${cssPath}`);
 
-// ---------------------------------------------------------------------------
-// Import handler module (copy to temp to avoid # in path)
-// ---------------------------------------------------------------------------
-const tempDir = join(tmpdir(), `odd-interactive-${Date.now()}`);
-mkdirSync(tempDir, { recursive: true });
-const tempHandlers = join(tempDir, "tei-handlers.mjs");
-copyFileSync(resolve(handlersPath), tempHandlers);
-
-let teiToHast;
-try {
-  const mod = await import(`file:///${tempHandlers.replace(/\\/g, "/")}`);
-  teiToHast = mod.teiToHast;
-  if (!teiToHast) throw new Error("teiToHast not exported");
-  log(`✓ Handler module loaded`);
-} catch (e) {
-  console.error(`[render-interactive] ✗ Failed: ${e.message}`);
-  process.exit(1);
-}
+const teiToHast = await loadHandlers(handlersPath);
 
 // ---------------------------------------------------------------------------
 // Read the ODD-generated stylesheet (odd-to-css.mjs) once, to inline below.
@@ -75,54 +55,11 @@ try {
 }
 
 // ---------------------------------------------------------------------------
-// Serialize hast → HTML
-// ---------------------------------------------------------------------------
-const VOID_ELEMENTS = new Set([
-  "area", "base", "br", "col", "embed", "hr", "img",
-  "input", "link", "meta", "param", "source", "track", "wbr",
-]);
-
-function serialize(node) {
-  if (!node) return "";
-  if (node.type === "text") return esc(node.value || "");
-  if (node.type === "root") return (node.children || []).map(serialize).join("");
-  if (node.type !== "element") return "";
-
-  const tag = node.tagName;
-  const props = node.properties || {};
-  const attrParts = [];
-
-  for (const [key, val] of Object.entries(props)) {
-    if (val == null || val === false) continue;
-    if (key === "className") {
-      const cls = Array.isArray(val) ? val.join(" ") : val;
-      if (cls) attrParts.push(`class="${esc(cls)}"`);
-    } else if (val === true) {
-      attrParts.push(key);
-    } else {
-      // Preserve Vue directive attributes as-is (v-scope, v-show, @click, etc.)
-      attrParts.push(`${key}="${esc(String(val))}"`);
-    }
-  }
-
-  const attrStr = attrParts.length > 0 ? " " + attrParts.join(" ") : "";
-  if (VOID_ELEMENTS.has(tag)) return `<${tag}${attrStr}>`;
-  const children = (node.children || []).map(serialize).join("");
-  return `<${tag}${attrStr}>${children}</${tag}>`;
-}
-
-// ---------------------------------------------------------------------------
 // Render one TEI document → an interactive (petite-vue) HTML page.
 // ---------------------------------------------------------------------------
 function renderPage(teiFile) {
-  const teiSrc = readFileSync(resolve(teiFile), "utf-8");
-  const xastTree = parseXmlToXast(teiSrc);
-
-  const inputTree = (xastTree.type === "root" && xastTree.children)
-    ? xastTree.children.find(c => c.type === "element") || xastTree
-    : xastTree;
-
-  const { hast, notes } = teiToHast(inputTree);
+  const xastTree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
+  const { hast, notes } = teiToHast(xastTree);
 
   // -------------------------------------------------------------------------
   // Post-process hast: inject petite-vue reactive directives.
@@ -193,7 +130,7 @@ function renderPage(teiFile) {
           type: "element",
           tagName: "a",
           properties: {
-            className: ["tei-note-ref"],
+            className: refNode.properties.className,
             href: "#",
             role: "doc-noteref",
             "aria-label": `Note ${noteIdx}`,
@@ -263,7 +200,7 @@ function renderPage(teiFile) {
   transformForPetiteVue(hast);
   log(`✓ ${teiFile}: petite-vue directives injected (${noteMap.size} notes, inline)`);
 
-  const htmlBody = serialize(hast);
+  const htmlBody = toHtml(hast);
   const title = extractTeiTitle(xastTree);
 
   // -------------------------------------------------------------------------
@@ -329,35 +266,6 @@ ${editionCss}
     /* petite-vue [v-cloak] hides elements until mounted */
     [v-cloak] { display: none; }
 
-    /* Before/after markers */
-    .tei-before, .tei-after { font-size: 0.85em; color: #999; }
-
-    /* Facsimile thumbnails (pb compound: a linked thumbnail) + show/hide
-       toggle. Its own centred block that stacks vertically between the text;
-       resets the colliding .tei-pb rules that also land on this <a>/<figure>
-       (the page-break fallback's height:0 would otherwise collapse the box so
-       the image overflows onto the text). */
-    a.tei-pb { display: block; clear: both; height: auto; width: auto; max-width: 150px;
-      margin: 1.2em auto; padding: 4px; border: 1px solid #ccc;
-      background: #fafafa; line-height: 0; }
-    a.tei-pb figure.tei-pb { display: block; height: auto; max-width: none; margin: 0; border: 0; }
-    a.tei-pb img { display: block; width: 100%; height: auto; }
-    #edition.facs-hidden a.tei-pb { display: none; }
-    .facs-toggle { display: none; margin: 0 0 1.2em; font-family: system-ui, sans-serif; }
-    html.js .facs-toggle { display: block; }
-    .facs-toggle button { font: inherit; font-size: 0.85em; cursor: pointer;
-      padding: 0.3em 0.8em; border: 1px solid #c7c7c7; border-radius: 4px; background: #f3f3f3; }
-
-    /* Legend */
-    .legend {
-      font-family: system-ui, sans-serif; font-size: 0.8em;
-      display: flex; flex-wrap: wrap; gap: 1em; margin: 1.5em 0;
-      padding: 0.8em; background: #f8f8f8; border-radius: 4px;
-    }
-    .legend-dot {
-      display: inline-block; width: 12px; height: 12px;
-      border-radius: 2px; vertical-align: middle; margin-right: 4px;
-    }
   </style>
 </head>
 <body>
@@ -374,22 +282,8 @@ ${editionCss}
       readings to toggle. Without JavaScript the content stays fully visible.</p>
   </div>
 
-  <div class="legend">
-    <span><span class="legend-dot" style="background:#8e44ad"></span> Person</span>
-    <span><span class="legend-dot" style="background:#27ae60"></span> Place</span>
-    <span><span class="legend-dot" style="background:#2980b9"></span> Link</span>
-    <span><span class="legend-dot" style="background:#e67e22"></span> Abbreviation</span>
-    <span><span class="legend-dot" style="background:#c0392b"></span> Correction</span>
-    <span><span class="legend-dot" style="background:#2563eb"></span> Note (click to expand)</span>
-  </div>
-
   <!-- petite-vue mount scope -->
-  <div id="edition" v-scope="{ facs: true }" :class="{ 'facs-hidden': !facs }"
-       @vue:mounted="$el.removeAttribute('v-cloak')" v-cloak>
-    <div class="facs-toggle">
-      <button type="button" @click="facs = !facs" :aria-pressed="facs ? 'true' : 'false'"
-        v-text="facs ? 'Hide facsimiles' : 'Show facsimiles'">Hide facsimiles</button>
-    </div>
+  <div id="edition" v-scope @vue:mounted="$el.removeAttribute('v-cloak')" v-cloak>
     ${htmlBody}
   </div>
 
@@ -433,8 +327,6 @@ if (multi) {
   }));
   log(`✓ Index written to ${indexFile}`);
 }
-
-try { rmSync(tempDir, { recursive: true }); } catch { /* ignore */ }
 
 log(`  petite-vue (~7 KB) provides interactivity`);
 log(`  Content visible without JS (graceful degradation)`);

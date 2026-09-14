@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc><titleStmt><title>Structure</title></titleStmt></fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div xml:id="d1">
+        <head rendition="#c">A division</head>
+        <p rendition="#b">A paragraph with <hi rendition="#b">bold</hi>, a
+          <hi rend="block" rendition="#b">block</hi> inside, <seg type="x">a segment</seg> and
+          <supplied xml:id="s1">supplied</supplied> text.</p>
+        <div>
+          <head>A subdivision</head>
+          <lg>
+            <head>A stanza</head>
+          </lg>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

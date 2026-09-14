@@ -20,6 +20,8 @@
     "demo": "npm run build && npm run build:unified && npm run render:unified && npm run render:interactive",
     "demo:multi": "npm run build && npm run build:unified && npm run render:multi",
     "build:simpleprint": "node odd-to-css.mjs --odd ../examples/tei_simplePrint.odd --out output/simpleprint",
+    "build:extension": "node odd-to-css.mjs --odd ../examples/extensions/nested-pb/tei_simler-nested-pb.odd --out output/nested-pb && node odd-to-unified.mjs --odd ../examples/extensions/nested-pb/tei_simler-nested-pb.odd --out output/nested-pb",
+    "render:extension": "node render-unified.mjs --handlers output/nested-pb/tei-handlers.mjs --tei ../examples/extensions/nested-pb/sample.xml --css output/nested-pb/edition.css --out output/nested-pb",
     "build:demo": "node ../demo/build-demo.mjs",
     "test": "node --test"
   },

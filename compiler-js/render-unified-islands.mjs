@@ -15,19 +15,14 @@
  * Usage: node render-unified-islands.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
  */
 
-import { readFileSync, mkdirSync, copyFileSync, rmSync } from "fs";
-import { resolve, join, dirname } from "path";
-import { tmpdir } from "os";
-import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
 import {
-  parseArgs, createLogger, writeOut, escapeHtml as esc,
+  parseArgs, createLogger, writeOut, toHtml, loadHandlers,
   resolveInputFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
-// ---------------------------------------------------------------------------
-// CLI
-// ---------------------------------------------------------------------------
 const cli = parseArgs();
 const log = createLogger("render-islands");
 
@@ -39,57 +34,14 @@ const outDir       = cli.get("--out")      || "output";
 const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-poem.xml");
 const multi = teiFiles.length > 1;
 
-// ---------------------------------------------------------------------------
-// Import the generated handlers (copied to temp to dodge the # in the path).
-// ---------------------------------------------------------------------------
-const tempDir = join(tmpdir(), `odd-islands-${Date.now()}`);
-mkdirSync(tempDir, { recursive: true });
-copyFileSync(resolve(handlersPath), join(tempDir, "tei-handlers.mjs"));
-
-let teiToHast;
-try {
-  const mod = await import(`file:///${join(tempDir, "tei-handlers.mjs").replace(/\\/g, "/")}`);
-  teiToHast = mod.teiToHast;
-  if (!teiToHast) throw new Error("teiToHast not exported");
-} catch (e) {
-  console.error(`[render-islands] ✗ Failed to import handlers: ${e.message}`);
-  process.exit(1);
-}
+const teiToHast = await loadHandlers(handlersPath);
 
 let editionCss = "";
 try { editionCss = readFileSync(resolve(cssPath), "utf-8"); }
 catch { log(`⚠ edition.css not found at ${cssPath} — the edition will be unstyled`); }
 
 // The generic runtime ships verbatim beside the page as tei-islands.js.
-const runtime = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "islands-runtime.js"), "utf-8");
-
-// ---------------------------------------------------------------------------
-// Serialise hast → HTML (custom-element and data-* attributes pass through).
-// ---------------------------------------------------------------------------
-const VOID_ELEMENTS = new Set([
-  "area", "base", "br", "col", "embed", "hr", "img",
-  "input", "link", "meta", "param", "source", "track", "wbr",
-]);
-
-function serialize(node) {
-  if (!node) return "";
-  if (node.type === "text") return esc(node.value || "");
-  if (node.type === "root") return (node.children || []).map(serialize).join("");
-  if (node.type !== "element") return "";
-  const props = node.properties || {};
-  const attrs = [];
-  for (const [key, val] of Object.entries(props)) {
-    if (val == null || val === false) continue;
-    if (key === "className") {
-      const cls = Array.isArray(val) ? val.join(" ") : val;
-      if (cls) attrs.push(`class="${esc(cls)}"`);
-    } else if (val === true) attrs.push(key);
-    else attrs.push(`${key}="${esc(String(val))}"`);
-  }
-  const attrStr = attrs.length ? " " + attrs.join(" ") : "";
-  if (VOID_ELEMENTS.has(node.tagName)) return `<${node.tagName}${attrStr}>`;
-  return `<${node.tagName}${attrStr}>${(node.children || []).map(serialize).join("")}</${node.tagName}>`;
-}
+const runtime = readFileSync(new URL("islands-runtime.js", import.meta.url), "utf-8");
 
 // ---------------------------------------------------------------------------
 // Mark interactive regions as islands. The static markup inside stays intact, so
@@ -98,15 +50,12 @@ function serialize(node) {
 const island = (type, on, child) =>
   ({ type: "element", tagName: "tei-island", properties: { type, on }, children: [child] });
 
-function markIslands(node, ctx) {
-  if (!node || node.type === "text") return node;
-  if (node.type === "root") { node.children = (node.children || []).map((c) => markIslands(c, ctx)); return node; }
+function markIslands(node) {
   if (node.type !== "element") return node;
   const cls = node.properties?.className || [];
-  if (cls.includes("tei-pb")) ctx.hasFacs = true;
   if (cls.includes("tei-note-ref")) return island("note", "visible", node);
   if (cls.includes("tei-alternate")) return island("choice", "visible", node);
-  if (node.children) node.children = node.children.map((c) => markIslands(c, ctx));
+  node.children = node.children.map(markIslands);
   return node;
 }
 
@@ -114,18 +63,10 @@ function markIslands(node, ctx) {
 // Render one TEI document → a progressively-enhanced islands page.
 // ---------------------------------------------------------------------------
 function renderPage(teiFile) {
-  const teiSrc = readFileSync(resolve(teiFile), "utf-8");
-  const xastTree = parseXmlToXast(teiSrc);
-  const inputTree = (xastTree.type === "root" && xastTree.children)
-    ? xastTree.children.find((c) => c.type === "element") || xastTree
-    : xastTree;
-
-  const { hast, notes } = teiToHast(inputTree);
-  const ctx = { hasFacs: false };
-  markIslands(hast, ctx);
-  const htmlBody = serialize(hast);
+  const xastTree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
+  const { hast, notes } = teiToHast(xastTree);
+  const htmlBody = toHtml(markIslands(hast));
   const title = extractTeiTitle(xastTree);
-  const facsIsland = ctx.hasFacs ? `<tei-island type="facsimile" on="load"></tei-island>\n    ` : "";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -169,17 +110,6 @@ ${editionCss}
     tei-island[type="choice"][data-hydrated] .tei-alternate {
       border-bottom: 1px dotted #999; cursor: pointer; }
     .tei-alternate-alt { color: #b91c1c; }
-
-    /* Facsimile thumbnails + the injected show/hide control. Reset the colliding
-       .tei-pb floor rules that also land on this <a>/<figure>. */
-    a.tei-pb { display: block; clear: both; height: auto; width: auto; max-width: 150px;
-      margin: 1.2em auto; padding: 4px; border: 1px solid #ccc; background: #fafafa; line-height: 0; }
-    a.tei-pb figure.tei-pb { display: block; height: auto; max-width: none; margin: 0; border: 0; }
-    a.tei-pb img { display: block; width: 100%; height: auto; }
-    [data-edition].facs-hidden a.tei-pb { display: none; }
-    .facs-toggle-btn { font: inherit; font-family: system-ui, sans-serif; font-size: 0.85em;
-      cursor: pointer; padding: 0.3em 0.8em; margin: 0 0 1.2em;
-      border: 1px solid #c7c7c7; border-radius: 4px; background: #f3f3f3; }
   </style>
 </head>
 <body>
@@ -195,9 +125,7 @@ ${editionCss}
       stays fully readable.</p>
   </div>
 
-  <div data-edition>
-    ${facsIsland}${htmlBody}
-  </div>
+  ${htmlBody}
 
   <!-- The generic island runtime — self-hosted, framework-free. -->
   <script src="tei-islands.js" defer></script>
@@ -231,5 +159,4 @@ if (multi) {
   log(`✓ Index written to ${indexFile}`);
 }
 
-try { rmSync(tempDir, { recursive: true }); } catch { /* ignore */ }
 log(`  Generic island runtime hydrates only the marked regions, on demand`);

@@ -9,13 +9,14 @@
 
      Interactivity comes from IXSL event templates (mode="ixsl:onclick"), the
      SaxonJS-native counterpart of the build path's ~12-line enhancement script —
-     no hand-written JavaScript. -->
+     no hand-written JavaScript: note markers open their notes, apparatus
+     readings swap. -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
                 xmlns:tei="http://www.tei-c.org/ns/1.0"
-                xmlns:local="urn:x-poc:odd"
+                xmlns:pm="urn:x-poc:pm"
                 extension-element-prefixes="ixsl"
-                exclude-result-prefixes="tei local"
+                exclude-result-prefixes="tei pm"
                 version="3.0">
 
   <!-- The build-time stylesheet: all the TEI element templates. -->
@@ -27,10 +28,12 @@
   <!-- TEI document to load, relative to the hosting page. -->
   <xsl:param name="tei-uri" select="'simler-poem.xml'"/>
 
-  <!-- On load: fetch the TEI and render its <text> into the page container. -->
+  <!-- On load: fetch the TEI and render the edition into the page container. -->
   <xsl:template name="main">
     <xsl:result-document href="#tei-content" method="ixsl:replace-content">
-      <xsl:apply-templates select="doc($tei-uri)//tei:text"/>
+      <xsl:call-template name="pm:edition">
+        <xsl:with-param name="doc" select="doc($tei-uri)"/>
+      </xsl:call-template>
     </xsl:result-document>
   </xsl:template>
 
@@ -53,23 +56,6 @@
         <xsl:otherwise><ixsl:set-attribute name="hidden" select="'hidden'"/></xsl:otherwise>
       </xsl:choose>
     </xsl:for-each>
-  </xsl:template>
-
-  <!-- Click the facsimile button → hide/show the page-break thumbnails.
-       Page elements live in the XHTML namespace, so match on @id / local-name()
-       rather than the bare element name (as the class-based handlers above do). -->
-  <xsl:template match="*[@id = 'facs-toggle-btn']" mode="ixsl:onclick">
-    <xsl:variable name="body" select="ixsl:page()//*[local-name() = 'body']"/>
-    <xsl:variable name="hidden" select="contains-token($body/@class, 'facs-hidden')"/>
-    <xsl:for-each select="$body">
-      <ixsl:set-attribute name="class"
-        select="if ($hidden)
-                then string-join(tokenize(normalize-space(@class), ' ')[. ne 'facs-hidden'], ' ')
-                else normalize-space(string-join((@class, 'facs-hidden'), ' '))"/>
-    </xsl:for-each>
-    <xsl:result-document href="#facs-toggle-btn" method="ixsl:replace-content">
-      <xsl:value-of select="if ($hidden) then 'Hide facsimiles' else 'Show facsimiles'"/>
-    </xsl:result-document>
   </xsl:template>
 
 </xsl:stylesheet>

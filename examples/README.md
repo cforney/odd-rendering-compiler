@@ -7,10 +7,11 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 
 | File | What it is |
 |------|------------|
-| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition (authored Processing-Model layer); the primary example |
-| `simler-poem.xml` | a Simler poem (Psalm 117); its `<pb facs>` carry e-rara IIIF image URLs, rendered as facsimile thumbnails via the ODD's nested `pb` model |
+| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition (authored Processing-Model layer), as of June 2026; the primary example. Its `pb` renders with the standard `break` behaviour, as in the project's own ODD |
+| `simler-poem.xml` | a Simler poem (Psalm 117); its `<pb facs>` carry e-rara IIIF image URLs, which the page breaks carry as `data-page` |
 | `simler-buchstabwechsel.xml` | Simler poem VI — the interleaved-column / acrostic layout showcase |
-| `tei_simplePrint.odd` | the TEI's SimplePrint exemplar (a real-world ODD composed via `<specGrpRef>`), used to probe CSS-floor coverage |
+| `tei_simplePrint.odd` | the TEI's SimplePrint exemplar (a real-world ODD composed via `<specGrpRef>`), a second ODD to test the compilers on |
+| `extensions/nested-pb/` | **an extension, not TEI**: the Simler ODD with Boot's (2024) nested page-break model, a facsimile thumbnail linking to the full scan; with its own ODD-language customisation (`poc_odds.odd`) to validate it. See its [README](extensions/nested-pb/README.md) |
 
 ## Sources & credits
 

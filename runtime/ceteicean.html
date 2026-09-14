@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!-- The page of the CETEIcean tier; the generators fill in {{behaviours}} and {{tei}}. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CETEIcean Rendering — TEI Edition</title>
+  <!-- The same ODD-generated stylesheet the unified and XSLT pages use: the behaviours
+       give the elements the same classes. -->
+  <link rel="stylesheet" href="edition.css">
+  <style>
+    body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
+    .render-info { font-family: system-ui, sans-serif; background: #fce7f3; border: 1px solid #f9a8d4; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
+    .render-info h3 { margin: 0 0 0.5em; color: #db2777; }
+    .render-info code { background: #fdf2f8; padding: 0.1em 0.3em; border-radius: 3px; }
+    .tei-note-interactive .tei-note-body { display: none; }
+    .tei-note-interactive.open .tei-note-body { display: inline; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.15em 0.4em; border-radius: 4px; }
+    .tei-note-ref { cursor: pointer; color: #2563eb; text-decoration: none; }
+    .tei-alternate { cursor: pointer; border-bottom: 1px dotted #999; }
+  </style>
+</head>
+<body>
+
+  <div class="render-info">
+    <h3>CETEIcean Rendering Path (a subset, in the browser)</h3>
+    <p><strong>Pipeline:</strong> ODD → generator → tei-ceteicean-behaviours.js → CETEIcean (browser) → HTML</p>
+    <p>CETEIcean registers TEI elements as <code>tei-</code> custom elements; the
+      ODD-derived behaviours reshape them into the HTML the other renderers emit,
+      with the same classes, so the shared <code>edition.css</code> applies. This
+      tier takes a subset of the Processing Model: predicates CSS can express,
+      simple params. Click notes to expand; click corrections to toggle readings.</p>
+  </div>
+
+  <div id="TEI"></div>
+
+  <script type="application/xml" id="tei-source">{{tei}}</script>
+  <script src="https://github.com/TEIC/CETEIcean/releases/download/v1.9.5/CETEI.js"></script>
+  <script>
+{{behaviours}}
+  </script>
+  <script>
+    var ct = new CETEI();
+    ct.addBehaviors(teiBehaviours(teiModels));
+    var doc = new DOMParser().parseFromString(document.getElementById('tei-source').textContent, 'application/xml');
+    ct.domToHTML5(doc, function (data) { document.getElementById('TEI').appendChild(data); });
+
+    // Notes open inline, corrections toggle; event delegation works whenever CETEIcean is done.
+    document.addEventListener('click', function (e) {
+      var ref = e.target.closest('.tei-note-ref');
+      if (ref) { e.preventDefault(); ref.parentNode.classList.toggle('open'); return; }
+      var alt = e.target.closest('.tei-alternate');
+      if (alt) alt.querySelectorAll('.tei-alternate-default, .tei-alternate-alt').forEach(function (r) { r.hidden = !r.hidden; });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,188 @@
+/**
+ * The runtime of the generated tei-handlers.mjs: renders a TEI xast tree to hast
+ * by the models the generator took from the ODD. It ships beside the handlers,
+ * with xpath.mjs, which evaluates their predicates and params.
+ *
+ * Each element takes the first model of the output being rendered whose
+ * predicate holds, else the first such model without @output; with none, its
+ * content passes through. A sequence renders each of its parts whose predicate
+ * holds; the element's id goes on the first.
+ */
+
+import { xpath, bool, str, seq, isPos } from "./xpath.mjs";
+
+export const h = (tagName, properties = {}, children = []) => ({ type: "element", tagName, properties, children });
+export const text = (value) => ({ type: "text", value });
+
+const isElement = (n) => n?.type === "element";
+const isText = (n) => n?.type === "text";
+const localName = (qname) => qname.slice(qname.indexOf(":") + 1);
+const textOf = (n) => (isText(n) ? n.value : (n.children ?? []).map(textOf).join(""));
+/** XML whitespace, as XPath counts it (not the no-break space). */
+const blank = (s) => !/[^ \t\n\r]/.test(s);
+const collapse = (s) => s.replace(/[ \t\n\r]+/g, " ");
+
+/** HTML elements whose content must be phrasing: a block inside becomes a span. */
+const PHRASING = new Set(["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"]);
+/** Note places that get a numbered marker in the text and go to the footnotes. */
+const NUMBERED = ["end", "foot"];
+const FIRST = xpath("*[1]");
+const SECOND = xpath("*[2]");
+
+const children = ({ node, up }) =>
+  (node.children ?? []).filter((c) => isElement(c) || isText(c)).map((c) => ({ node: c, up: [...up, node] }));
+const parentOf = ({ up }) => ({ node: up.at(-1), up: up.slice(0, -1) });
+
+/** `@rendition="#a #b"` → `r-a r-b`. */
+const renditions = (node) =>
+  (node.attributes.rendition ?? "").split(/\s+/).filter(Boolean).map((t) => "r-" + t.replace(/^#/, ""));
+
+/** Params named `--…` become CSS custom properties, `data-…` attributes. */
+function paramProps(params) {
+  const named = (prefix) => Object.keys(params).filter((k) => k.startsWith(prefix)).sort();
+  const style = named("--").map((k) => `${k}: ${str(params[k])}`).join("; ");
+  return { ...Object.fromEntries(named("data-").map((k) => [k, str(params[k])])), ...(style && { style }) };
+}
+
+export function createRenderer(models) {
+  return function teiToHast(tree, { output = "web" } = {}) {
+    const notes = [];
+
+    const select = (ms, pos, out) => ms.find((m) => (m.output ?? null) === out && (!m.predicate || bool(m.predicate(pos))));
+    const modelOf = (pos) => {
+      const ms = models[localName(pos.node.name)] ?? [];
+      return select(ms, pos, output) ?? select(ms, pos, null);
+    };
+    const flow = (pos) => (isElement(pos.node) && modelOf(pos)?.flow) || "";
+
+    /** Whitespace-only text at the edge of a block, or next to one, is indentation. */
+    function indentation(pos) {
+      if (!pos.up.length) return true;
+      const parent = parentOf(pos);
+      if (flow(parent) === "inline") return false;
+      const siblings = children(parent);
+      const i = siblings.findIndex((s) => s.node === pos.node);
+      const [before, after] = [siblings[i - 1], siblings[i + 1]];
+      return !before || !after || flow(before) === "block" || flow(after) === "block";
+    }
+
+    /** Nothing but whitespace, or a block, before this node in its parent. */
+    function atLineStart(pos) {
+      if (!pos.up.length) return true;
+      const siblings = children(parentOf(pos));
+      for (let i = siblings.findIndex((s) => s.node === pos.node) - 1; i >= 0; i--) {
+        const s = siblings[i];
+        if (isElement(s.node)) return flow(s) === "block";
+        if (!blank(s.node.value)) return false;
+      }
+      return true;
+    }
+
+    function render(pos, phrasing) {
+      const { node, up } = pos;
+      if (isText(node)) {
+        if (up.some((a) => a.attributes["xml:space"] === "preserve")) return [text(node.value)];
+        if (!blank(node.value)) return [text(collapse(node.value))];
+        return indentation(pos) ? [] : [text(" ")];
+      }
+      const model = modelOf(pos);
+      if (!model) return children(pos).flatMap((c) => render(c, phrasing));
+      if (model.behaviour === "sequence") {
+        const live = model.parts.filter((p) => !p.predicate || bool(p.predicate(pos)));
+        return live.flatMap((p, k) => apply(p, pos, phrasing, k === 0));
+      }
+      return apply(model, pos, phrasing, true);
+    }
+
+    function apply(m, pos, phrasing, first, inner) {
+      const { node } = pos;
+      const params = Object.fromEntries(Object.entries(m.params).map(([k, f]) => [k, f(pos)]));
+      const props = {
+        className: [`tei-${localName(node.name)}`, ...m.classes, ...(m.source ? renditions(node) : [])],
+        id: first ? node.attributes["xml:id"] : undefined,
+        lang: node.attributes["xml:lang"],
+        ...paramProps(params),
+      };
+      const kids = (ph) => children(pos).flatMap((c) => render(c, ph));
+      /** A param's value: the nodes it selects rendered by their own models (the element itself by its content), anything else as text. */
+      const value = (v, ph) =>
+        seq(v).flatMap((item) =>
+          !isPos(item) ? (String(item) ? [text(String(item))] : []) : item.node === node ? kids(ph) : render(item, ph),
+        );
+      const content = (ph) => ("content" in params ? value(params.content, ph) : kids(ph));
+      const wrap = (tag) =>
+        m.flow === "block" && phrasing
+          ? [h("span", { ...props, className: [...props.className, "pm-block"] }, content(true))]
+          : [h(tag, props, content(PHRASING.has(tag)))];
+
+      switch (m.behaviour) {
+        case "omit":
+        case "metadata":
+          return [];
+        case "text":
+          return content(phrasing);
+        case "heading": {
+          const level = Math.min(6, Math.max(1, Math.trunc(Number(str(params.level ?? ""))) || 1));
+          return wrap(`h${level}`);
+        }
+        case "alternate":
+          return [h("span", { ...props, className: [...props.className, "tei-alternate"] }, [
+            h("span", { className: ["tei-alternate-default"] }, value("default" in params ? params.default : FIRST(pos), true)),
+            h("span", { className: ["tei-alternate-alt"], hidden: true }, value("alternate" in params ? params.alternate : SECOND(pos), true)),
+          ])];
+        case "note": {
+          const place = "place" in params ? str(params.place) : "end";
+          const note = { place: NUMBERED.includes(place) ? "end" : place };
+          notes.push(note);
+          if (note.place === "end") note.n = notes.filter((x) => x.place === "end").length;
+          note.body = content(false);
+          if (note.place !== "end") return [];
+          const range = "range" in params ? str(params.range).replace(/^#/, "") : undefined;
+          return [h("a", { ...props, id: undefined, className: [...props.className, "tei-note-ref"], href: `#note-${note.n}`, "data-range": range }, [text(String(note.n))])];
+        }
+        case "break": {
+          const line = "type" in params && str(params.type) === "line";
+          if (line && atLineStart(pos)) return [];
+          if (!("label" in params)) return [h("br", props)];
+          const label = str(params.label);
+          const span = h("span", props, label ? [text(label)] : []);
+          return line ? [span, h("br", { ...props, id: undefined })] : [span];
+        }
+        case "anchor":
+          return props.id ? [h("span", props)] : [];
+        case "link":
+          return [h("a", { ...props, href: str(params.uri ?? "") }, inner ?? content(true))];
+        case "graphic":
+          return [h("img", { ...props, src: str(params.url ?? ""), alt: "" })];
+        case "compound": {
+          const link = m.parts.find((p) => p.behaviour === "link");
+          const rest = m.parts.filter((p) => p !== link).flatMap((p) => apply(p, pos, phrasing, p === m.parts[0]));
+          return link ? apply(link, pos, phrasing, link === m.parts[0], rest) : rest;
+        }
+        case "index": {
+          const heads = [];
+          (function walk(n) {
+            for (const c of (n.children ?? []).filter(isElement)) localName(c.name) === "head" ? heads.push(textOf(c)) : walk(c);
+          })(node);
+          if (heads.length < 2) return [];
+          return [h("nav", { className: ["tei-toc"] }, [h("ul", {}, heads.map((t) => h("li", {}, [text(collapse(t).trim())])))])];
+        }
+        default:
+          return wrap(m.tag);
+      }
+    }
+
+    const top = tree.type === "root" ? tree.children.filter(isElement) : [tree];
+    const body = top.flatMap((node) => render({ node, up: [] }, false));
+
+    const ends = notes.filter((n) => n.place === "end").map((n) =>
+      h("aside", { className: ["tei-note-body"], id: `note-${n.n}` }, [h("span", { className: ["tei-note-num"] }, [text(`${n.n}.`)]), text(" "), ...n.body]));
+    const sections = [...new Set(notes.map((n) => n.place))].map((place) =>
+      place === "end"
+        ? h("section", { className: ["tei-footnotes"] }, ends)
+        : h("section", { className: ["tei-notes"], "data-place": place },
+          notes.filter((n) => n.place === place).map((n) => h("aside", { className: ["tei-note-body"] }, n.body))));
+
+    return { hast: h("div", { className: ["tei-edition"] }, [...body, ...sections]), notes: ends };
+  };
+}

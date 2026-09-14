@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * byte-identity.mjs — the JS↔XSLT equivalence gate.
+ * byte-identity.mjs — the equivalence gate between the renders.
  *
- * Both compilers render the same ODD; the <body> is identical modulo
- * serialisation (attribute order, generated note IDs, whitespace).
+ * The unified and XSLT renders of the same ODD have the same <body> modulo
+ * serialisation (attribute order, whitespace between and within tags).
  * normaliseRenderedBody() strips exactly that, so the comparison holds whichever
- * engine (Saxon HE, SaxonJS, xslt-processor) produced each file.
+ * engine (Saxon HE, SaxonJS, or the unified serialiser) produced each file.
  *
  *   normaliseRenderedBody(html) → canonical string
  *   CLI:  node byte-identity.mjs <a.html> <b.html>   (exit 0 = equivalent)
@@ -20,13 +20,6 @@ export function normaliseRenderedBody(html) {
 
   // Drop the render-info banner (preview chrome, differs per path).
   b = b.replace(/<div class="render-info">[\s\S]*?<\/div>\s*/, "");
-
-  // Re-key engine-generated note IDs by first-appearance order.
-  const order = new Map();
-  b = b.replace(/note-([A-Za-z0-9_.-]+)/g, (_, tok) => {
-    if (!order.has(tok)) order.set(tok, `N${order.size + 1}`);
-    return "note-" + order.get(tok);
-  });
 
   // Sort each start tag's attributes (order is not significant).
   b = b.replace(/<([A-Za-z][\w-]*)((?:\s+[\w:-]+="[^"]*")*)\s*>/g, (_, tag, attrs) => {

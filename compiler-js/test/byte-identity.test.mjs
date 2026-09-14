@@ -1,10 +1,12 @@
 /**
- * Byte-identity gate: the JS and XSLT compilers must render the same ODD into an
- * equivalent static body (compared via byte-identity.mjs, which normalises
- * attribute order, generated note IDs and whitespace).
+ * Byte-identity gate: the example edition rendered by the unified handlers, by
+ * the stylesheet from odd-to-xslt.mjs and by the one from compiler-xslt's
+ * odd-to-xsl.xsl must have an equivalent static body (compared via
+ * byte-identity.mjs, which normalises attribute order and whitespace).
  *
- * Needs both renders on disk; CI builds them first. Locally it SKIPS unless:
- *   (compiler-js)   npm run build:xslt && npm run render:xslt
+ * Needs the renders on disk; CI builds them first. Locally it SKIPS unless:
+ *   (compiler-js)   npm run build && npm run build:unified && npm run render:unified
+ *                   npm run build:xslt && npm run render:xslt
  *   (compiler-xslt) bash build.sh        # Java + Saxon HE 12
  */
 import { test } from "node:test";
@@ -15,22 +17,18 @@ import { fileURLToPath } from "node:url";
 import { normaliseRenderedBody } from "../byte-identity.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const JS_RENDER = resolve(pocDir, "output/rendered-xslt.html");
-const XSLT_RENDER = resolve(pocDir, "../compiler-xslt/output/rendered-xslt.html");
+const RENDERS = {
+  unified: resolve(pocDir, "output/rendered-unified.html"),
+  "odd-to-xslt.mjs": resolve(pocDir, "output/rendered-xslt.html"),
+  "odd-to-xsl.xsl": resolve(pocDir, "../compiler-xslt/output/rendered-xslt.html"),
+};
 
-test("JS and XSLT renders are equivalent (normalised byte-identity)", (t) => {
-  if (!existsSync(JS_RENDER) || !existsSync(XSLT_RENDER)) {
-    t.skip(
-      "needs both renders — run `npm run build:xslt && npm run render:xslt` " +
-      "and `compiler-xslt/build.sh` (Saxon) first",
-    );
+test("the unified and XSLT renders are equivalent (normalised byte-identity)", (t) => {
+  const missing = Object.values(RENDERS).filter((f) => !existsSync(f));
+  if (missing.length) {
+    t.skip(`needs the renders — missing ${missing.join(", ")}`);
     return;
   }
-  const js = normaliseRenderedBody(readFileSync(JS_RENDER, "utf8"));
-  const xslt = normaliseRenderedBody(readFileSync(XSLT_RENDER, "utf8"));
-  assert.equal(
-    js, xslt,
-    "JS-emitted and XSLT-emitted renders differ after normalising attribute " +
-    "order, generated note IDs and whitespace",
-  );
+  const [first, ...rest] = Object.entries(RENDERS).map(([name, file]) => [name, normaliseRenderedBody(readFileSync(file, "utf8"))]);
+  for (const [name, body] of rest) assert.equal(body, first[1], `${name} differs from ${first[0]}`);
 });

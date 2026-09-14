@@ -4,7 +4,7 @@
 
   Emits a small static page that loads the SaxonJS runtime from a CDN, then runs
   the compiled stylesheet (edition-saxonjs.sef.json) in the browser to render the
-  TEI named in $tei. IXSL handles the note / apparatus / facsimile toggles, so no
+  TEI named in $tei. IXSL handles the note and apparatus toggles, so no
   hand-written JavaScript is needed. Point -s: at the ODD (only its title is read).
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/generate-saxonjs-page.xsl
@@ -35,32 +35,24 @@
         <title><xsl:value-of select="$title"/></title>
         <link rel="stylesheet" href="edition.css"/>
         <style>
-body.tei-edition { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
+body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
 /* Preview chrome: the banner naming the pipeline, not part of the edition. */
 .render-info { font-family: system-ui, sans-serif; background: #e0f2fe; border: 1px solid #38bdf8; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
 .render-info h3 { margin: 0 0 0.5em; color: #0284c7; }
 .render-info code { background: #f0f9ff; padding: 0.1em 0.3em; border-radius: 3px; }
-/* interactive note + apparatus + facsimile (mirrors the edition.xsl interactive tier) */
+/* interactive note + apparatus (mirrors the edition.xsl interactive tier) */
 .tei-note-interactive .tei-note-body { display: none; }
 .tei-note-interactive.open .tei-note-body { display: inline; background: #fffde7; border: 1px solid #e0e0e0; padding: 0.15em 0.4em; border-radius: 4px; }
 .tei-note-ref { cursor: pointer; color: #2563eb; text-decoration: none; }
 .tei-alternate { cursor: pointer; border-bottom: 1px dotted #999; }
-.facs-toggle { margin: 0 0 1.2em; font-family: system-ui, sans-serif; }
-.facs-toggle button { font: inherit; font-size: 0.85em; cursor: pointer; padding: 0.3em 0.8em; border: 1px solid #c7c7c7; border-radius: 4px; background: #f3f3f3; }
-body.facs-hidden a.tei-pb { display: none; }
-a.tei-pb { display: block; clear: both; height: auto; width: auto; max-width: 150px; margin: 1.2em auto; padding: 4px; border: 1px solid #ccc; background: #fafafa; line-height: 0; }
-a.tei-pb figure.tei-pb { display: block; height: auto; max-width: none; margin: 0; border: 0; }
-a.tei-pb img { display: block; width: 100%; height: auto; }
+.tei-notes { margin-top: 2em; border-top: 1px solid #ddd; padding-top: 1em; }
 </style>
       </head>
-      <body class="tei-edition">
+      <body>
         <div class="render-info">
           <h3>SaxonJS Rendering Path (client-side, in the browser)</h3>
           <p><strong>Pipeline:</strong> ODD → <code>odd-to-xsl.xsl</code> → <code>edition.xsl</code> → <code>xslt3&#160;-export</code> → <code>edition-saxonjs.sef.json</code> → SaxonJS + IXSL (in the browser)</p>
-          <p>The <em>same</em> XSLT 3.0 stylesheet Saxon runs at build time, here compiled to a Stylesheet Export File (SEF) and executed client-side by SaxonJS. Note, apparatus and facsimile toggles are handled by IXSL (interactive XSLT) — no hand-written JavaScript. Needs JavaScript and an HTTP server, since it fetches the SEF and the TEI; the build-time pages need neither.</p>
-        </div>
-        <div class="facs-toggle">
-          <button id="facs-toggle-btn" type="button">Hide facsimiles</button>
+          <p>The <em>same</em> XSLT 3.0 stylesheet Saxon runs at build time, here compiled to a Stylesheet Export File (SEF) and executed client-side by SaxonJS. Note and apparatus toggles are handled by IXSL (interactive XSLT) — no hand-written JavaScript. Needs JavaScript and an HTTP server, since it fetches the SEF and the TEI; the build-time pages need neither.</p>
         </div>
         <div id="tei-content">
           <p>Rendering with SaxonJS…</p>

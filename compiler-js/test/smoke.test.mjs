@@ -1,21 +1,21 @@
 /**
  * End-to-end smoke tests for the canonical pipeline (odd-to-css →
- * odd-to-unified → render-unified), using only Node's built-in test runner.
- * Run with `npm test`.
+ * odd-to-unified → render-unified) on the example ODDs, using only Node's
+ * built-in test runner. Run with `npm test`.
  *
- * Each test asserts the rendered HTML actually contains the expected output — a
- * heading, a footnote ref, a tagged entity, an apparatus, a compiled facsimile —
- * so a passing run means the pipeline ran end to end, not just exited 0. The
- * XSLT and CETEIcean paths need optional engines and are out of scope here.
+ * Each test asserts the rendered HTML contains what the ODD asks for, so a pass
+ * means the pipeline ran end to end, not just that it exited 0. The behaviours
+ * one by one are the business of fixtures.test.mjs.
  */
 
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, readFileSync, existsSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readOdd } from "../odd-parser.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ODD = "../examples/tei_simler.odd";
@@ -36,70 +36,61 @@ after(() => {
   if (outDir) rmSync(outDir, { recursive: true, force: true });
 });
 
-test("odd-to-css generates edition.css from the Processing Model", () => {
+test("odd-to-css generates edition.css from the ODD", () => {
   run("odd-to-css.mjs", ["--odd", ODD, "--out", outDir]);
 
   const css = readFileSync(join(outDir, "edition.css"), "utf8");
-  assert.match(css, /CSS generated from TEI ODD Processing Model/);
-  // One rule block per element with a Processing Model (24 in the Simler ODD).
-  assert.equal((css.match(/\/\* --- </g) || []).length, 24, "a rule block per PM element");
-  // The 19 source-appearance renditions from <tagsDecl> compile to .r-* rules,
-  // including the CSS-grid layout that reconstructs the acrostic pages.
-  assert.equal((css.match(/^\.r-/gm) || []).length, 19, "source renditions compiled");
-  assert.match(css, /\.r-twocol\s*\{[^}]*display:\s*grid/, "two-column grid rendition compiled from the ODD");
+  assert.equal((css.match(/^\.r-/gm) || []).length, 19, "the 19 source renditions of <tagsDecl>");
+  assert.match(css, /^\.r-twocol \{[^}]*display: grid/m, "the two-column grid rendition");
+  assert.match(css, /^\.pb-group \{[^}]*display: flex/m, "a model group's rendition on its class");
+  assert.match(css, /^\.pb-rule::before \{/m, "a scoped rendition as a pseudo-element");
 });
 
 test("odd-to-unified + render-unified produce a rendered edition", () => {
   run("odd-to-unified.mjs", ["--odd", ODD, "--out", outDir]);
-  run("render-unified.mjs", [
-    "--handlers", join(outDir, "tei-handlers.mjs"),
-    "--tei", TEI,
-    "--out", outDir,
-  ]);
+  run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", TEI, "--out", outDir]);
 
   const html = readFileSync(join(outDir, "rendered-unified.html"), "utf8");
-  assert.match(html, /<h1 class="tei-head"/, "heading rendered from <head>");
-  assert.match(html, /class="tei-note-ref"/, "footnote reference rendered from <note>");
-  assert.match(html, /class="tei-footnotes"/, "collected footnotes section present");
-  assert.match(html, /class="tei-rs/, "tagged entity rendered from <rs>");
-  assert.match(html, /class="tei-alternate/, "editorial apparatus rendered from <choice>");
+  assert.match(html, /<h1 class="tei-head">/, "heading rendered from <head>");
+  assert.match(html, /<span class="tei-hi r-b r-c">/, "the source rendition where the model uses it");
+  assert.match(html, /<a class="tei-note tei-note-ref" href="#note-1">1<\/a>/, "numbered note marker");
+  assert.match(html, /<section class="tei-footnotes">/, "collected footnotes");
+  assert.match(html, /class="tei-rs rs-1/, "entity rendered from the first <rs> model that fits");
+  assert.match(html, /class="tei-choice tei-alternate/, "apparatus rendered from <choice>");
+  assert.match(html, /<span class="tei-pb pb-group pb-rule" data-page="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203">\[194\]<\/span>/,
+    "a page break as its labelled rule, carrying the page image");
 });
 
-test("Boot's nested model: Simler's <pb> compiles to a clickable facsimile", () => {
-  // tei_simler.odd renders <pb facs> via a nested model (Boot 2024): a compound
-  // link + graphic where the link WRAPS the graphic, so it is one clickable
-  // thumbnail — and both IIIF image URLs are built from @facs inside the ODD.
-  // Reuses the handlers/CSS built above.
-  run("render-unified.mjs", [
-    "--handlers", join(outDir, "tei-handlers.mjs"),
-    "--tei", TEI,
-    "--css", join(outDir, "edition.css"),
-    "--out", outDir,
-  ]);
+test("odd-to-unified fails on XPath outside the subset, naming the model", () => {
+  const odd = join(outDir, "bad.odd");
+  writeFileSync(odd, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="x">
+    <elementSpec ident="p" mode="change"><model behaviour="block"/><model predicate="@a | @b" behaviour="inline"/></elementSpec>
+  </schemaSpec></body></text></TEI>`);
+  const result = spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", odd, "--out", join(outDir, "bad")], { cwd: pocDir, encoding: "utf8" });
+  assert.notEqual(result.status, 0, "the build fails");
+  assert.match(result.stderr, /<p>, model 2: XPath "@a \| @b"/, "the error names the element and the model");
+});
 
-  const html = readFileSync(join(outDir, "rendered-unified.html"), "utf8");
-  assert.match(
-    html,
-    /<a class="tei-pb" href="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/full\/0\/default\.jpg"><figure class="tei-pb"><img src="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/pct:25\/0\/default\.jpg"/,
-    "pb compiles to a clickable facsimile thumbnail (link wraps graphic)",
-  );
+test("the nested page-break extension renders a facsimile thumbnail", () => {
+  const ext = "../examples/extensions/nested-pb";
+  const out = join(outDir, "nested-pb");
+  run("odd-to-unified.mjs", ["--odd", `${ext}/tei_simler-nested-pb.odd`, "--out", out]);
+  run("render-unified.mjs", ["--handlers", join(out, "tei-handlers.mjs"), "--tei", `${ext}/sample.xml`, "--out", out]);
+
+  const html = readFileSync(join(out, "rendered-unified.html"), "utf8");
+  assert.match(html,
+    /<a class="tei-pb pb-link" href="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/full\/0\/default\.jpg"><img class="tei-pb pb-thumbnail" src="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/pct:25\/0\/default\.jpg" alt=""><\/a>/,
+    "the link wraps the thumbnail; both IIIF URLs come from @facs and the manifest");
+  assert.match(html, /<span class="tei-pb pb-rule">\[6\]<\/span>/, "without a facsimile, the page number");
+  assert.match(html, /<div class="tei-l r-et">/, "the rest of the Simler ODD, through the chain");
 });
 
 test("render-unified-islands wraps interactive regions and ships the runtime", () => {
-  // Reuses the handlers + CSS the earlier tests generated into outDir. The static
-  // body is unchanged; interactive regions are wrapped in <tei-island> markers and
-  // one generic runtime hydrates them — the static fallbacks must remain.
-  run("render-unified-islands.mjs", [
-    "--handlers", join(outDir, "tei-handlers.mjs"),
-    "--tei", TEI,
-    "--css", join(outDir, "edition.css"),
-    "--out", outDir,
-  ]);
+  run("render-unified-islands.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", TEI, "--css", join(outDir, "edition.css"), "--out", outDir]);
 
   const html = readFileSync(join(outDir, "rendered-unified-islands.html"), "utf8");
   assert.match(html, /<tei-island type="note" on="visible">/, "note region wrapped as an island");
   assert.match(html, /<tei-island type="choice" on="visible">/, "apparatus region wrapped as an island");
-  assert.match(html, /<tei-island type="facsimile" on="load">/, "facsimile control marked as an island");
   assert.match(html, /class="tei-footnotes"/, "static footnote fallback preserved (works with no JS)");
   assert.match(html, /<script src="tei-islands\.js" defer>/, "the generic runtime is shipped");
 
@@ -108,8 +99,6 @@ test("render-unified-islands wraps interactive regions and ships the runtime", (
 });
 
 test("render-unified renders a corpus (glob) with an index", () => {
-  // Both Simler poems → one page per source plus a linking index. Reuses the
-  // handlers + CSS the previous tests generated into outDir.
   const multiOut = join(outDir, "edition");
   run("render-unified.mjs", [
     "--handlers", join(outDir, "tei-handlers.mjs"),
@@ -118,38 +107,20 @@ test("render-unified renders a corpus (glob) with an index", () => {
     "--out", multiOut,
   ]);
 
-  // One page per source, named after the source basename.
-  const sample = readFileSync(join(multiOut, "simler-poem.html"), "utf8");
   const buchst = readFileSync(join(multiOut, "simler-buchstabwechsel.html"), "utf8");
-  assert.match(sample, /<h1 class="tei-head"/, "first poem rendered");
-  // The acrostic poem's two columns + marginal letters are CSS-grid renditions
-  // from the ODD applied at render time.
   assert.match(buchst, /class="tei-lg r-twocol"/, "the <lg> becomes the two-column grid container");
   assert.match(buchst, /class="tei-hi r-acroInit"/, "acrostic initials pinned to the margin cell");
 
-  // An index links both pages.
   const index = readFileSync(join(multiOut, "index.html"), "utf8");
   assert.match(index, /href="simler-poem\.html"/);
   assert.match(index, /href="simler-buchstabwechsel\.html"/);
-
-  // Multi-file mode must NOT emit the single-file legacy filename.
-  assert.equal(
-    existsSync(join(multiOut, "rendered-unified.html")), false,
-    "multi mode uses per-source names, not rendered-unified.html",
-  );
+  assert.equal(existsSync(join(multiOut, "rendered-unified.html")), false, "multi mode uses per-source names");
 });
 
-test("odd-to-css resolves <specGrpRef> indirection (tei_simplePrint)", () => {
-  // The TEI's simplePrint exemplar composes its schema through <specGrpRef>
-  // (seven references) rather than inlining every <elementSpec>. Resolving it
-  // is what lets the generator reach the full element set, so a successful run
-  // with the expected rule count proves the resolver ran.
-  const spOut = join(outDir, "simpleprint");
-  run("odd-to-css.mjs", ["--odd", "../examples/tei_simplePrint.odd", "--out", spOut]);
-
-  const css = readFileSync(join(spOut, "edition.css"), "utf8");
-  // 111 of simplePrint's 119 elements carry a Processing Model → one rule block
-  // each; far more than any single <specGrp> holds, so the references resolved.
-  assert.equal((css.match(/\/\* --- </g) || []).length, 111, "all referenced specs reached the schema");
-  assert.match(css, /\.tei-p\b/, "a spec pulled in via <specGrpRef> is present");
+test("readOdd resolves <specGrpRef> indirection (tei_simplePrint)", () => {
+  // simplePrint composes its schema from seven <specGrpRef>s: 111 of its 119
+  // elements carry a Processing Model, far more than any single <specGrp> holds.
+  const { specs } = readOdd(resolve(pocDir, "../examples/tei_simplePrint.odd"));
+  assert.equal(specs.length, 119, "every referenced spec reached the schema");
+  assert.equal(specs.filter((s) => s.models.length).length, 111);
 });

@@ -2,7 +2,7 @@
  * Generic island hydration — framework-free, ~2 KB.
  *
  * The renderer wraps each interactive region in
- *   <tei-island type="note|choice|facsimile" on="load|idle|visible|media(…)">
+ *   <tei-island type="note|choice" on="load|idle|visible|media(…)">
  * around HTML that already works without JavaScript. This custom element upgrades
  * that one region when its strategy fires, so only marked regions ship behaviour,
  * and only on demand — static-first interactivity. The `type` → behaviour table is
@@ -81,22 +81,6 @@
     alt.addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
     });
-  });
-
-  // Facsimile: inject a show/hide control for the page's facsimile thumbnails.
-  // Absent without JS, so the static page simply shows the thumbnails.
-  register("facsimile", function (island) {
-    var root = island.closest("[data-edition]") || document.body;
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "facs-toggle-btn";
-    btn.textContent = "Hide facsimiles";
-    btn.addEventListener("click", function () {
-      var hidden = root.classList.toggle("facs-hidden");
-      btn.textContent = hidden ? "Show facsimiles" : "Hide facsimiles";
-      btn.setAttribute("aria-pressed", String(hidden));
-    });
-    island.appendChild(btn);
   });
 
   window.TeiIslands = { register: register };

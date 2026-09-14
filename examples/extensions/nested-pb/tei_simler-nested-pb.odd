@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="poc_odds.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>TEI Simler with a nested page-break model (an extension)</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Part of the ODD Rendering Compiler proof of concept.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Changes one element of ../../tei_simler.odd.</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>The Simler ODD with one change: a page break with a facsimile renders as a thumbnail of
+        the page that links to the full scan. The two images are two behaviours of one element,
+        written as a <gi>model</gi> that holds a <gi>modelSequence</gi>: the nested model Boot
+        (2024) proposes. This is not TEI: the ODD is invalid against <ident>tei_odds.rng</ident> and
+        valid against the customisation <ident>poc_odds.odd</ident>. Only this proof of concept
+        renders it.</p>
+      <p>The ODD chains to the Simler ODD (<att>source</att> on <gi>schemaSpec</gi>): its specs are
+        the Simler ODD's, with the models of <gi>pb</gi> replaced.</p>
+      <schemaSpec ident="tei_simler_nested_pb" start="TEI" source="../../tei_simler.odd">
+        <elementSpec ident="pb" mode="change">
+          <!-- With a @facs: a compound of a link and a graphic, the link wrapping the graphic.
+               @facs is the image id; the IIIF image root is the manifest's, without its last
+               two steps. -->
+          <model predicate="@facs" behaviour="compound">
+            <modelSequence>
+              <model behaviour="link" cssClass="pb-link">
+                <param name="uri" value="concat(replace((//idno[@type='URLIIIF'])[1], '[^/]+/manifest$', ''), @facs, '/full/full/0/default.jpg')"/>
+                <outputRendition>display: block; width: max-content; margin: 1.2em auto;</outputRendition>
+              </model>
+              <model behaviour="graphic" cssClass="pb-thumbnail">
+                <param name="url" value="concat(replace((//idno[@type='URLIIIF'])[1], '[^/]+/manifest$', ''), @facs, '/full/pct:25/0/default.jpg')"/>
+                <outputRendition>display: block; max-width: 120px; border: 1px solid #ccc;</outputRendition>
+              </model>
+            </modelSequence>
+          </model>
+          <!-- Without: the page number between rules. -->
+          <model behaviour="break" cssClass="pb-rule">
+            <param name="type" value="'page'"/>
+            <param name="label" value="concat('[', translate((@n, '·')[1], '[]', ''), ']')"/>
+            <outputRendition>display: block; margin: 1.4em 0; text-align: center; font-family: system-ui, sans-serif; font-size: 0.68em; color: #888;</outputRendition>
+          </model>
+        </elementSpec>
+      </schemaSpec>
+    </body>
+  </text>
+</TEI>

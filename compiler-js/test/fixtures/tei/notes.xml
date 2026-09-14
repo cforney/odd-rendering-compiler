@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc><titleStmt><title>Notes</title></titleStmt></fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>A note<note>The first, with <note>a nested note</note> inside.</note>, a margin
+        note<note place="margin">In the margin.</note> and a <anchor xml:id="a1"/>commented
+        range<note targetEnd="#a1">On the range.</note>.</p>
+    </body>
+  </text>
+</TEI>

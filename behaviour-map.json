@@ -1,36 +1,31 @@
 {
-  "_comment": "Shared behaviour contract — the single source of truth mapping each TEI Processing-Model behaviour to its HTML element and base style. Consumed by compiler-js (behaviour-map.mjs) AND the compiler-xslt generators (odd-to-xsl.xsl, odd-to-css.xsl, via json-doc). Edit here, not in either compiler. Fields: tag = HTML element; display = CSS display; css = extra base declarations; wrapper = simple wrapper element (drives the XSLT $tag dispatch); requiresJS = needs a script at runtime; omit/passthrough/void/compound = special handling. Human-readable view: docs/behaviour-table.md.",
+  "_comment": "Shared behaviour contract, read by both compilers when they generate. For each TEI Processing-Model behaviour: `tag`, the HTML element that wraps the content (for the behaviours that do no more than that), and `flow`, whether it renders as a block or inline, which decides where indentation is dropped and where a line break is already implied. Behaviours without a tag render in their own way (heading, note, alternate, …). Edit here, not in either compiler. Human-readable view: docs/behaviour-table.md.",
 
-  "document":  { "tag": "article" },
-  "body":      { "tag": "div",        "display": "block", "wrapper": true },
-  "section":   { "tag": "section",    "display": "block", "wrapper": true },
-  "block":     { "tag": "div",        "display": "block", "wrapper": true },
-  "paragraph": { "tag": "p",          "display": "block", "css": "margin-top: 0.5em; margin-bottom: 0.5em;", "wrapper": true },
-  "heading":   { "tag": "h",          "display": "block", "css": "font-weight: bold;" },
+  "document":  { "tag": "article",    "flow": "block" },
+  "body":      { "tag": "div",        "flow": "block" },
+  "section":   { "tag": "section",    "flow": "block" },
+  "block":     { "tag": "div",        "flow": "block" },
+  "paragraph": { "tag": "p",          "flow": "block" },
+  "list":      { "tag": "ul",         "flow": "block" },
+  "listItem":  { "tag": "li",         "flow": "block" },
+  "cit":       { "tag": "blockquote", "flow": "block" },
+  "table":     { "tag": "table",      "flow": "block" },
+  "row":       { "tag": "tr",         "flow": "block" },
+  "cell":      { "tag": "td",         "flow": "block" },
+  "inline":    { "tag": "span",       "flow": "inline" },
+  "title":     { "tag": "span",       "flow": "inline" },
+  "glyph":     { "tag": "span",       "flow": "inline" },
 
-  "inline":    { "tag": "span",       "display": "inline", "wrapper": true },
-  "title":     { "tag": "span",       "wrapper": true },
-  "text":      { "passthrough": true },
-
-  "list":      { "tag": "ul",         "display": "block", "css": "list-style-type: disc; padding-left: 1.5em;", "wrapper": true },
-  "listItem":  { "tag": "li",         "display": "list-item", "wrapper": true },
-  "table":     { "tag": "table",      "display": "table", "wrapper": true },
-  "row":       { "tag": "tr",         "display": "table-row", "wrapper": true },
-  "cell":      { "tag": "td",         "display": "table-cell", "wrapper": true },
-
-  "cit":       { "tag": "blockquote", "display": "block", "wrapper": true },
-  "break":     { "tag": "br",         "display": "block", "css": "/* break */", "void": true },
-
-  "metadata":  { "display": "none", "omit": true },
-  "omit":      { "display": "none", "omit": true },
-
-  "note":      { "requiresJS": true },
-  "link":      { "requiresJS": true },
-  "alternate": { "requiresJS": true },
-  "graphic":   { "requiresJS": true },
-  "glyph":     { "requiresJS": true },
-  "anchor":    { "requiresJS": true },
-  "index":     { "requiresJS": true },
-
-  "compound":  { "compound": true }
+  "heading":   { "flow": "block" },
+  "text":      { "flow": "block" },
+  "index":     { "flow": "block" },
+  "note":      { "flow": "inline" },
+  "alternate": { "flow": "inline" },
+  "break":     { "flow": "inline" },
+  "anchor":    { "flow": "inline" },
+  "link":      { "flow": "inline" },
+  "graphic":   { "flow": "inline" },
+  "metadata":  {},
+  "omit":      {},
+  "compound":  {}
 }

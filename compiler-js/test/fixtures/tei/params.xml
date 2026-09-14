@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc><titleStmt><title>Params and breaks</title></titleStmt></fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <pb n="[1]" facs="page-1"/>
+      <lg>
+        <l>First line</l>
+        <lb/>
+        <l rend="indent">Second line with a hyphen<lb break="no"/>ated word</l>
+        <lb/>
+        <l>Third line</l>
+        <lb/>
+        <l rend="last">Last line</l>
+      </lg>
+      <p>A <choice><sic>mistake</sic><corr>correction</corr></choice>, <num>7</num>, a
+        <ref target="https://example.org/">link</ref>, a <graphic url="image.png"/> and a
+        line<lb/>break in prose.</p>
+      <pb n="2"/>
+    </body>
+  </text>
+</TEI>
