@@ -3,7 +3,12 @@
 #
 #   GENERATE (the XSLT way):  ODD --odd-to-xsl.xsl--> edition.xsl
 #                             ODD --odd-to-css.xsl--> edition.css
-#   RENDER:                   edition.xsl(TEI)     --> rendered HTML
+#   RENDER:                   edition.xsl(TEI)     --> one HTML page per TEI file
+#
+#   bash build.sh [ODD [TEI…]]
+# With no arguments, the Simler ODD and every ../examples/simler-*.xml. TOKENS
+# names the design tokens for edition.css, relative to the ODD (default
+# simler-tokens.css; set it empty for none).
 #
 # Saxon HE 12 is located via $SAXON_HOME — point it at your unpacked SaxonHE12
 # directory (containing saxon-he-12*.jar and lib/xmlresolver-*.jar). Download it
@@ -34,64 +39,63 @@ CP="$SAXON_JAR$SEP$RESOLVER"
 saxon() { java -cp "$CP" net.sf.saxon.Transform "$@"; }
 
 ODD="${1:-../examples/tei_simler.odd}"
-TEI="${2:-../examples/simler-poem.xml}"
-mkdir -p output
+[ $# -gt 0 ] && shift
+shopt -s nullglob
+TEIS=("$@")
+[ ${#TEIS[@]} -gt 0 ] || TEIS=(../examples/simler-*.xml)
+TOKENS="${TOKENS-simler-tokens.css}"
+NAMES=()
+for f in "${TEIS[@]}"; do NAMES+=("$(basename "$f")"); done
+mkdir -p output/xslt output/xslt-interactive output/ceteicean
 
 echo "① generate  edition.xsl  ← $ODD"
 saxon -s:"$ODD" -xsl:generate/odd-to-xsl.xsl -o:output/edition.xsl
 
-echo "① generate  edition.css  ← $ODD"
-saxon -s:"$ODD" -xsl:generate/odd-to-css.xsl -o:output/edition.css
+echo "① generate  edition.css  ← $ODD${TOKENS:+ + $TOKENS}"
+saxon -s:"$ODD" -xsl:generate/odd-to-css.xsl -o:output/edition.css ${TOKENS:+tokens="$TOKENS"}
+cp output/edition.css output/xslt/
+cp output/edition.css output/ceteicean/
 
-echo "① generate  tei-ceteicean-behaviours.js + rendered-ceteicean.html  ← $ODD"
-saxon -s:"$ODD" -xsl:generate/odd-to-ceteicean.xsl -o:output/tei-ceteicean-behaviours.js tei="$(basename "$TEI")"
+echo "① generate  ceteicean/ (behaviours + a page per TEI file)  ← $ODD"
+saxon -s:"$ODD" -xsl:generate/odd-to-ceteicean.xsl -o:output/ceteicean/tei-ceteicean-behaviours.js tei="${NAMES[*]}"
 
-echo "② render    rendered-xslt.html  ← $TEI (static, zero-JS)"
-saxon -s:"$TEI" -xsl:output/edition.xsl -o:output/rendered-xslt.html
-
-echo "② render    rendered-xslt-interactive.html  ← $TEI (progressively enhanced)"
-saxon -s:"$TEI" -xsl:output/edition.xsl -o:output/rendered-xslt-interactive.html interactive=true
-
-# Corpus → output/edition-interactive/: one interactive page per source plus a
-# linking index.html, mirroring the JS render:multi output. The corpus is every
-# simler-*.xml next to $TEI (the glob expands alphabetically, as the JS glob does).
-TEI_DIR="$(dirname "$TEI")"
-echo "③ corpus    output/edition-interactive/  ← $TEI_DIR/simler-*.xml"
-mkdir -p output/edition-interactive
-NAMES=""
-COUNT=0
-shopt -s nullglob
-for f in "$TEI_DIR"/simler-*.xml; do
+# Each TEI file: a static page (zero-JS) and a progressively enhanced one, plus an
+# index of the enhanced pages, as the JS renderers write them.
+echo "② render    xslt/, xslt-interactive/  ← ${#TEIS[@]} TEI file(s)"
+for f in "${TEIS[@]}"; do
   base="$(basename "$f" .xml)"
-  saxon -s:"$f" -xsl:output/edition.xsl -o:"output/edition-interactive/$base.html" interactive=true
-  NAMES="${NAMES:+$NAMES|}$(basename "$f")"
-  COUNT=$((COUNT + 1))
+  saxon -s:"$f" -xsl:output/edition.xsl -o:"output/xslt/$base.html"
+  saxon -s:"$f" -xsl:output/edition.xsl -o:"output/xslt-interactive/$base.html" interactive=true
 done
-saxon -s:"$ODD" -xsl:generate/generate-index.xsl -o:output/edition-interactive/index.html \
-  files="$NAMES" \
+saxon -s:"${TEIS[0]}" -xsl:generate/generate-index.xsl -o:output/xslt-interactive/index.html \
+  files="$(IFS='|'; echo "${NAMES[*]}")" \
   title="TEI Edition — XSLT (progressively enhanced)" \
-  subtitle="$COUNT documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
+  subtitle="${#TEIS[@]} documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
 
-# ④ SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
+# ③ SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
 #    File (SEF) and run in the browser — completing the template-matching axis on
 #    the client. The SEF compiler is xslt3 (SaxonJS, Node): Saxon HE cannot emit a
 #    SaxonJS-runnable SEF, and only xslt3 understands the IXSL toggle templates.
 #    render-saxonjs.xsl imports edition.xsl and adds the IXSL handlers; the runtime
-#    is self-hosted next to the page so the demo works offline.
+#    is self-hosted next to the pages so the demo works offline.
 if command -v npx >/dev/null 2>&1; then
-  echo "④ saxonjs   edition-saxonjs.sef.json (IXSL) + rendered-saxonjs.html  ← edition.xsl"
+  echo "③ saxonjs   edition-saxonjs.sef.json (IXSL) + saxonjs/  ← edition.xsl"
   npx --yes xslt3 -xsl:generate/render-saxonjs.xsl -export:output/edition-saxonjs.sef.json -nogo
-  saxon -s:"$ODD" -xsl:generate/generate-saxonjs-page.xsl -o:output/rendered-saxonjs.html \
-    tei="$(basename "$TEI")"
-  cp "$TEI" "output/$(basename "$TEI")"   # the page fetches the TEI at view time
+  [ -s output/edition-saxonjs.sef.json ] || { echo "SEF was not produced" >&2; exit 1; }
+  mkdir -p output/saxonjs
+  for f in "${TEIS[@]}"; do
+    base="$(basename "$f" .xml)"
+    cp "$f" output/saxonjs/   # each page fetches its TEI at view time
+    saxon -s:"$ODD" -xsl:generate/generate-saxonjs-page.xsl -o:"output/saxonjs/$base.html" \
+      tei="$base.xml" sef=../edition-saxonjs.sef.json runtime=../SaxonJS2.rt.js css=../edition.css
+  done
   RT="output/SaxonJS2.rt.js"              # SaxonJS 2 runtime, matching xslt3 2.7
   if [ ! -f "$RT" ]; then
     curl -fsSL "https://www.saxonica.com/saxon-js/documentation2/SaxonJS/SaxonJS2.rt.js" -o "$RT" \
-      || echo "  ⚠ could not fetch SaxonJS2.rt.js — drop it next to rendered-saxonjs.html to view"
+      || echo "  ⚠ could not fetch SaxonJS2.rt.js — drop it into output/ to view the saxonjs/ pages"
   fi
-  [ -s output/edition-saxonjs.sef.json ] || { echo "SEF was not produced" >&2; exit 1; }
 else
-  echo "④ saxonjs   skipped (Node/npx not found — needed to compile the SEF with xslt3)"
+  echo "③ saxonjs   skipped (Node/npx not found — needed to compile the SEF with xslt3)"
 fi
 
-echo "done — output/{edition.xsl, edition.css, rendered-xslt.html, rendered-xslt-interactive.html, tei-ceteicean-behaviours.js, rendered-ceteicean.html, edition-interactive/, rendered-saxonjs.html + edition-saxonjs.sef.json}"
+echo "done — output/{edition.xsl, edition.css, xslt/, xslt-interactive/, ceteicean/, saxonjs/ + edition-saxonjs.sef.json}"

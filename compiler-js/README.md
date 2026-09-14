@@ -8,23 +8,28 @@ handlers, and CETEIcean behaviours — with the renderers that turn TEI into HTM
 
 | Module | Output | PM coverage |
 |--------|--------|-------------|
-| `odd-to-css.mjs` | `edition.css`: the `<tagsDecl>` renditions and each model's `<outputRendition>` | all |
+| `odd-to-css.mjs` | `edition.css`: the design tokens (`--tokens`), the `<tagsDecl>` renditions and each model's `<outputRendition>` | all |
 | `odd-to-unified.mjs` | `tei-handlers.mjs` (ESM), with `pm-runtime.mjs` and `xpath.mjs` | all; XPath in a subset |
 | `odd-to-xslt.mjs` | `edition.xsl` (XSLT 3.0) | all; any XPath |
-| `odd-to-ceteicean.mjs` | CETEIcean behaviours + a page rendering in the browser | a subset |
+| `odd-to-ceteicean.mjs` | CETEIcean behaviours + a page per source, rendering in the browser | a subset |
+
+The ODD's CSS may read design tokens, custom properties such as `--c-muted`.
+`odd-to-css.mjs` puts the tokens file given with `--tokens` first in
+`edition.css`, and reports any custom property that neither the tokens, the ODD's
+CSS nor a `--…` param defines.
 
 ## Renderers (artefacts + TEI → HTML)
 
-| Script | Source artefact | Output |
+| Script | Source artefact | Output (`npm run …`) |
 |--------|----------------|--------|
-| `render-unified.mjs` | `tei-handlers.mjs` | `rendered-unified.html` |
-| `render-unified-interactive.mjs` | `tei-handlers.mjs` + petite-vue | `rendered-unified-interactive.html` |
-| `render-unified-islands.mjs` | `tei-handlers.mjs` + `islands-runtime.js` | `rendered-unified-islands.html` |
-| `render-xslt.mjs` | `edition.xsl`, run by SaxonJS (`xslt3`) | `rendered-xslt.html` |
+| `render-unified.mjs` | `tei-handlers.mjs` | `unified/` |
+| `render-unified-interactive.mjs` | `tei-handlers.mjs` + petite-vue | `unified-interactive/` |
+| `render-unified-islands.mjs` | `tei-handlers.mjs` + `islands-runtime.js` | `unified-islands/` |
+| `render-xslt.mjs` | `edition.xsl`, run by SaxonJS (`xslt3`) | `xslt/` |
 
-CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`).
-`render-unified.mjs` and `render-xslt.mjs` take `--output <name>`, the PM output
-to render (default `web`).
+CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`, into
+`ceteicean/`). `render-unified.mjs` and `render-xslt.mjs` take `--output <name>`,
+the PM output to render (default `web`).
 
 > **Islands.** `render-unified-islands.mjs` ships the *same* static body, but wraps
 > each interactive region in a `<tei-island>` custom element that one tiny generic
@@ -38,24 +43,26 @@ to render (default `web`).
 
 Every renderer accepts **one file or a whole corpus**: `--tei` may be a single
 file, a directory, a `* ? **` glob (quote it), a comma-separated list, or a
-repeated flag. One input keeps the fixed output name; several write one
-`<basename>.html` per source plus a linking `index.html`.
+repeated flag. Each source gives `<basename>.html`; several also a linking
+`index.html`. The npm scripts render every example, `../examples/simler-*.xml`.
 
 ## Quick start
 
 ```bash
 npm install
-npm run demo               # the Simler edition → static + interactive pages
-npm run demo:multi         # both Simler poems → interactive corpus + index
+npm run demo               # the Simler examples → static + interactive pages
 npm test                   # smoke tests, conformance fixtures, byte-identity gate
 npm run build:all          # all four generators from the Simler ODD
+npm run render:all         # every renderer on every example
 npm run build:extension && npm run render:extension   # the nested page-break extension
+npm run sync:odd -- <commit>   # vendor the Simler ODD and tokens at a commit
 ```
 
 Individual generators (`build`, `build:xslt`, `build:unified`, `build:ceteicean`)
-default to `../examples/tei_simler.odd`; individual renderers (`render:unified`,
-`render:interactive`, `render:islands`, `render:xslt`, `render:ceteicean`,
-`render:multi`) default to `../examples/simler-poem.xml`.
+read `../examples/tei_simler.odd`, and `build` adds its tokens,
+`../examples/simler-tokens.css`. Individual renderers (`render:unified`,
+`render:interactive`, `render:islands`, `render:xslt`, `render:ceteicean`)
+render every example.
 
 **Reproducible output.** Each generator writes a timestamp into its header by
 default. Pass `--no-timestamp` to omit it, or set `SOURCE_DATE_EPOCH` (Unix
@@ -64,7 +71,8 @@ seconds) to pin it.
 **Tests.** `npm test` runs the smoke tests, the conformance fixtures in
 `test/fixtures/` and the byte-identity gate. With Saxon HE 12 at `$SAXON_HOME`
 the fixtures also go through the stylesheets of both XSLT generators.
-Otherwise those tests, and the gate without the renders on disk, are skipped.
+Otherwise those tests are skipped, and so is the gate for an example whose renders
+are not on disk.
 
 ## Layout
 
@@ -115,6 +123,9 @@ a table, with predicates and params as XPath. `pm-runtime.mjs` renders by it:
   custom properties.
 - **Flow:** block or inline decides where TEI indentation is dropped and where a
   line break is already implied.
+- **Joined line ends:** at an `lb break="no"` the encoded hyphen and the spaces
+  around the break are dropped from the text, so the `lb`'s model sets the one
+  hyphen the print shows.
 - **Notes** are numbered in document order and collected by place.
 
 The generated stylesheet does the same with `../runtime/pm.xsl`, so the unified

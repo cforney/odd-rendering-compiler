@@ -43,6 +43,7 @@ body {
 .artefact { grid-area: art; }
 
 .pane { display: flex; flex-direction: column; min-width: 0; }
+.pane[hidden] { display: none; }
 .pane-bar {
   display: flex; gap: 0.5rem; align-items: center;
   font-size: 0.8rem; color: var(--muted); padding: 0 0 0.3rem;

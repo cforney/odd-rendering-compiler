@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Simler Digital, C 1663: Haubtbegriff des erſten Pſalms, Psalms I–V (pp. 4–5).
+  Source: DHBern/simler_data at 7e02398, webdav/data/sources/tei/C_1663_dok.xml,
+  lines 1473–1567, verbatim. Added around them: this comment, the teiHeader, the
+  start tags of the enclosing elements (from lines 23, 24) and the closing tags.
+  Valid against the schema of ../tei_simler.odd, without Schematron warnings.
+-->
+<TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Haubtbegriff des erſten Pſalms, Psalms I–V (C 1663, pp. 4–5)</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, reused as an example.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <bibl><idno type="URLIIIF">https://www.e-rara.ch/i3f/v20/4049159/manifest</idno></bibl>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div>
+            <pb facs="4049203" n="4"/>
+            <fw place="top" type="pageNum">4</fw>
+            <lb/>
+            <fw place="top" type="header">Das erſt bu&#x366;ch</fw>
+            <lb/>
+            <div n="1">
+            <div n="2" xml:id="n1">
+            <div n="3">
+            <head rendition="#b #c">Haubtbegriff des erſten
+            <lb/>
+            Pſalms.</head>
+            <lb/>
+            <lg type="poem">
+            <l><hi rendition="#in">W</hi>Er ſcha&#x364;lk' und ſpo&#x364;tter fleucht/ und Gottes wort be-
+            <lb break="no"/>
+            trachtet/</l>
+            <lb/>
+            <l rendition="#et">der gru&#x366;net wie ein baum an einem waſſerfluß/</l>
+            <lb/>
+            <l rendition="#et">iſt ſelig hier und dort: ſein tuhn gerahten muß:</l>
+            <lb/>
+            <l>wie leichte ſpreu verfliegt wer Gottes wort verachtet.</l>
+            </lg>
+            </div>
+            <lb/>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>II.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Die gwaltigen umſonſt ſich wider Chriſtum lehnen:</l>
+            <lb/>
+            <l rendition="#et">dann Gottes rahtſchluß muß fortgehen immerzu/</l>
+            <lb/>
+            <l rendition="#et">er ſchaffet ſeiner kirch in ſeim Geſalbten ruh/</l>
+            <lb/>
+            <l>zerſchmeißt hingegen die/ ſo nicht nach ihme ſehnen.</l>
+            </lg>
+            </div>
+            <lb/>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>III.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Der David ſetzt auf Gott ſein hoffnung und vertrauen/</l>
+            <lb/>
+            <l rendition="#et">alß ihn von ſeinem reic<anchor xml:id="a23"/>h<note type="annotation" targetEnd="a23"><p>In den Vergleichsexemplaren Wien und Zürich ist das "h" ganz klar ersichtlich.</p></note> vertriben in die flucht</l>
+            <lb/>
+            <l rendition="#et">ſein ſohn/ der Abſolon/ der ihn zu to&#x364;den ſucht:</l>
+            <lb/>
+            <l>mit bitt/ daß Gottes hülff er würklich mo&#x364;ge ſchauen.</l>
+            </lg>
+            </div>
+            <lb/>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>IV.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Die fürſten Jſraels begeren zu zerſto&#x364;ren</l>
+            <lb/>
+            <l rendition="#et">Des Davids wahl und reich: welchs ihnen er ver-
+            <lb break="no"/>
+            weißt/</l>
+            <lb/>
+            <l rendition="#et">vermahnet ſie zur buß/ und Gottes gu&#x364;te preißt/</l>
+            <lb/>
+            <l>der ihn/ wie vor ſo ietz/ unfehlbar werd erho&#x364;ren.</l>
+            </lg>
+            </div>
+            <lb/>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>V.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Die ſchmeichelra&#x364;hte Sauls des Davids elend mehren</l>
+            <lb/>
+            <l rendition="#et">durch vil verlu&#x364;mdungen; welchs er dem Herꝛen
+            <lb/>
+            klagt/</l>
+            <lb/>
+            <fw place="bottom" type="catch">wünſcht</fw>
+            <lb/>
+            <pb facs="4049204" n="5"/>
+            <fw place="top" type="pageNum">5</fw>
+            <lb/>
+            <fw place="top" type="header">der Pſalmen.</fw>
+            <lb/>
+            <l rendition="#et">wünſcht ihren untergang/ und wartet unverzagt</l>
+            <lb/>
+            <l>auf Gottes hülff und gnad/ gelobet ihn zu ehren.</l>
+            </lg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

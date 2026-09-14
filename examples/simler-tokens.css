@@ -1,0 +1,108 @@
+/* Simler Digital's design tokens: DHBern/simler_data, preview/assets/tokens.css at 7e02398. */
+/**
+ * Design tokens.
+ *
+ * Note:
+ *
+ *   1. Colours are stored as **RGB channels**, not colours, so an opacity
+ *      modifier (`bg-accent/10`) still works through the Tailwind theme.
+ *   2. There are **two token layers** — the text layer (`--c-*`) and the control
+ *      layer (`--c-ui-*`). They are identical here; separating them is what lets
+ *      a warm reading page carry a sober toolbar later without becoming two
+ *      designs.
+ *
+ * Style is `data-theme` on <html>, light/dark is `data-mode`. A second style is
+ * another `[data-theme="…"]` block and nothing else.
+ */
+
+:root {
+  --f-serif: 'EB Garamond Variable', 'EB Garamond', Cardo, Georgia, 'Times New Roman', serif;
+  --f-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --f-text: var(--f-serif);
+  --f-display: var(--f-serif);
+  --f-ui: var(--f-sans);
+  --f-antiqua: var(--f-sans);
+
+  --fs-text: 1.125rem;
+  --lh-text: 1.62;
+  --measure: 68ch;
+  --r: 2px;
+
+  /* Semantic entity colours. */
+  --c-person: 33 105 87;
+  --c-place: 140 89 27;
+  --c-work: 90 74 156;
+  --c-org: 36 92 138;
+  --c-bibl: 122 47 95;
+  --c-institution: 74 107 42;
+}
+
+/* ── Stil 1 · Papier ─────────────────────────────────────────────────────── */
+:root,
+[data-theme='papier'] {
+  --c-paper: 247 246 242;
+  --c-panel: 255 255 255;
+  --c-ink: 37 36 33;
+  --c-muted: 106 102 95;
+  --c-line: 217 213 203;
+  --c-accent: 45 87 76;
+  --c-onaccent: 255 255 255;
+}
+
+[data-mode='dark'] {
+  color-scheme: dark;
+  --c-paper: 26 25 23;
+  --c-panel: 34 32 29;
+  --c-ink: 236 231 221;
+  --c-muted: 166 159 147;
+  --c-line: 60 55 48;
+  --c-accent: 138 190 173;
+  --c-onaccent: 20 30 27;
+
+  --c-person: 126 194 172;
+  --c-place: 214 168 106;
+  --c-work: 175 160 232;
+  --c-org: 132 175 219;
+  --c-bibl: 214 149 186;
+  --c-institution: 160 195 118;
+}
+
+/* Follow the OS until the reader says otherwise. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode='light']) {
+    color-scheme: dark;
+    --c-paper: 26 25 23;
+    --c-panel: 34 32 29;
+    --c-ink: 236 231 221;
+    --c-muted: 166 159 147;
+    --c-line: 60 55 48;
+    --c-accent: 138 190 173;
+    --c-onaccent: 20 30 27;
+
+    --c-person: 126 194 172;
+    --c-place: 214 168 106;
+    --c-work: 175 160 232;
+    --c-org: 132 175 219;
+    --c-bibl: 214 149 186;
+    --c-institution: 160 195 118;
+  }
+}
+
+/* ── The control layer ────────────────────────────────────────────────────── */
+:root {
+  --c-ui-bg: var(--c-panel);
+  --c-ui-surface: var(--c-paper);
+  --c-ui-line: var(--c-line);
+  --c-ui-ink: var(--c-ink);
+  --c-ui-muted: var(--c-muted);
+  --c-ui-accent: var(--c-accent);
+  --c-ui-onaccent: var(--c-onaccent);
+  --r-ui: var(--r);
+}
+
+/* ── Reader preferences ───────────────────────────────────────────────────── */
+[data-size='s'] { --fs-text: 1rem; }
+[data-size='m'] { --fs-text: 1.125rem; }
+[data-size='l'] { --fs-text: 1.25rem; }
+[data-size='xl'] { --fs-text: 1.4rem; }

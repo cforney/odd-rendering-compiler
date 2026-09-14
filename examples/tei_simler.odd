@@ -8,15 +8,16 @@
         <author>Simler Project Team</author>
       </titleStmt>
       <publicationStmt>
-        <p>Distributed as part of the Simler Oxygen Author Framework.</p>
+        <p>Distributed with the Simler data repository; the schema and the rendering of the edition are
+          both derived from this file.</p>
       </publicationStmt>
       <sourceDesc>
         <p>This ODD was created from scratch as a slim, project-focused replacement for the
           adapted <ref target="https://www.deutschestextarchiv.de/doku/basisformat/">DTA-Basisformat
-          (DTABf)</ref> customization (<ident>basisformat_all_customized.odd</ident>). Its scope is
-          derived primarily from the encoding of Simler's
-          <hi rend="italic">Teutsche Gedichte</hi>; it selects only the elements, attributes and
-          values that edition actually uses, and follows the documentation conventions of the TEI
+          (DTABf)</ref> customization (<ident>basisformat_all_customized.odd</ident>), and carries all of
+          the project's modifications of that customization. Its scope is derived from the encoding of
+          Simler's <hi rend="italic">Teutsche Gedichte</hi>; it selects the elements, attributes and
+          values the edition uses, and follows the documentation conventions of the TEI
           <ref target="https://github.com/TEIC/TEI/blob/dev/P5/Exemplars/tei_simplePrint.odd"
             >Simple Print (tei_simplePrint)</ref> exemplar — in particular, the appearance of the
           source is recorded with <gi>rendition</gi> declarations in <gi>tagsDecl</gi> referenced
@@ -28,21 +29,17 @@
         <p>TEI Simler is a TEI P5 customization for the digital scholarly edition of the collected
           poems of the Zurich poet Johann Wilhelm Simler (1605–1672). Several editions of the
           <hi rend="italic">Teutsche Gedichte</hi> are transcribed (A 1648, B 1653, C 1663, D 1688
-          and minor pieces); this schema is intended to
-          serve the whole corpus. The transcription is a line- and page-faithful diplomatic rendering
-          of early-modern printed books set mainly in Fraktur (blackletter) type.</p>
+          and minor pieces); this schema serves the whole corpus. The transcription is a line- and
+          page-faithful diplomatic rendering of early-modern printed books set mainly in Fraktur.</p>
       </projectDesc>
       <editorialDecl>
         <p>The transcription preserves the physical layout of the printed source: every printed line
           <emph>end</emph> is marked with <gi>lb</gi> (following the DTABf convention — the line break
           is set after the outermost closing element), every page with <gi>pb</gi>, and hyphenation
           across a line is encoded with <gi>lb</gi> <att>break</att>=<val>no</val> (the hyphen being
-          retained). Verse is encoded with <gi>lg</gi> and
-          <gi>l</gi>; front matter (title pages, dedications, frontispieces) with <gi>front</gi>,
-          <gi>titlePage</gi> and typed <gi>div</gi>. The appearance of the source (Antiqua within
-          Fraktur, bold, centring, indentation, initials, letter-spacing, small capitals, super-
-          script, larger/smaller type) is recorded on <att>rendition</att> using the pointer tokens
-          declared in <gi>tagsDecl</gi>.</p>
+          retained). Verse is encoded with <gi>lg</gi> and <gi>l</gi>; front matter with
+          <gi>front</gi>, <gi>titlePage</gi> and typed <gi>div</gi>. The appearance of the source is
+          recorded on <att>rendition</att> using the pointer tokens declared in <gi>tagsDecl</gi>.</p>
         <p>Obvious printing errors are corrected with <gi>choice</gi> (<gi>sic</gi>/<gi>corr</gi>);
           unreadable passages with <gi>unclear</gi>; editorially supplied text with <gi>supplied</gi>.
           Named entities are tagged with <gi>rs</gi> carrying <att>type</att> and a typed
@@ -53,32 +50,31 @@
           variation does not invalidate a document.</p>
       </editorialDecl>
       <tagsDecl>
-        <!-- Source appearance, declared once and pointed to from @rendition (simplePrint style).
-             The CSS records how the passage looks in the SOURCE, not any intended output. -->
-        <rendition xml:id="aq" scheme="css">font-family: serif;</rendition><!-- Antiqua within Fraktur -->
-        <rendition xml:id="b" scheme="css">font-weight: bold;</rendition>
+        <!-- Source appearance, declared once and pointed to from @rendition. The CSS records how
+             the passage looks in the SOURCE; custom properties are the edition's design tokens. -->
+        <rendition xml:id="aq" scheme="css">font-family: var(--f-antiqua);</rendition><!-- Antiqua within Fraktur -->
+        <rendition xml:id="fr" scheme="css">font-family: var(--f-text);</rendition><!-- Fraktur within Antiqua -->
+        <rendition xml:id="b" scheme="css">font-weight: 600;</rendition>
         <rendition xml:id="i" scheme="css">font-style: italic;</rendition>
         <rendition xml:id="c" scheme="css">text-align: center;</rendition>
         <rendition xml:id="right" scheme="css">text-align: right;</rendition>
         <rendition xml:id="g" scheme="css">letter-spacing: 0.125em;</rendition><!-- gesperrt -->
         <rendition xml:id="k" scheme="css">font-variant: small-caps;</rendition><!-- Kapitälchen -->
-        <rendition xml:id="in" scheme="css">font-size: 2em; line-height: 1;</rendition><!-- Initiale -->
+        <rendition xml:id="in" scheme="css">float: left; font-size: 2.1em; line-height: 0.86; padding-right: 0.06em; font-weight: 500;</rendition><!-- Initiale -->
         <rendition xml:id="sup" scheme="css">vertical-align: super; font-size: smaller;</rendition>
         <rendition xml:id="larger" scheme="css">font-size: larger;</rendition>
         <rendition xml:id="smaller" scheme="css">font-size: smaller;</rendition>
         <rendition xml:id="et" scheme="css">text-indent: 2em;</rendition>
         <rendition xml:id="et2" scheme="css">text-indent: 4em;</rendition>
         <rendition xml:id="et3" scheme="css">text-indent: 6em;</rendition>
-        <rendition xml:id="hr" scheme="css">display: block; border-top: 1px solid; width: 30%; margin: 0.5em auto;</rendition>
-        <!-- Page-layout renditions for the interleaved two-column / acrostic poems.
-             The layout *is* the rendition: an <lg rendition="#twocol"> becomes a 2-column CSS grid
-             whose row-major auto-flow reproduces the line-1-left / line-1-right
-             reading order; an <l rendition="#acrostic"> becomes a 3-cell mini-grid
-             pinning the marginal initial/final letters into aligned name columns. -->
-        <rendition xml:id="twocol" scheme="css">display: grid; grid-template-columns: 1fr 1fr; column-gap: 2.5em; align-items: baseline;</rendition>
-        <rendition xml:id="acrostic" scheme="css">display: grid; grid-template-columns: 1.4em 1fr 1.4em; column-gap: 0.15em; align-items: baseline;</rendition>
-        <rendition xml:id="acroInit" scheme="css">grid-column: 1; text-align: left;</rendition>
-        <rendition xml:id="acroFin" scheme="css">grid-column: 3; text-align: right;</rendition>
+        <rendition xml:id="hr" scheme="css">display: block; border-top: 1px solid rgb(var(--c-line)); width: 30%; margin: 1.2em auto;</rendition>
+        <!-- The Buchstabwechsel pages: an interleaved two-column setting (read row by row, so the
+             lines alternate left and right) whose acrostic lines carry marginal letters, set in the
+             line's padding. The line boxes are laid out by the l models. -->
+        <rendition xml:id="twocol" scheme="css">--acro-body: 1.45em; --acro-fin: 1.25em; --indent-step: 0.5em; display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.3em; align-items: baseline;</rendition>
+        <rendition xml:id="acrostic" scheme="css">position: relative;</rendition>
+        <rendition xml:id="acroInit" scheme="css">position: absolute; left: 0; font-weight: 600;</rendition>
+        <rendition xml:id="acroFin" scheme="css">position: absolute; right: 0; font-weight: 600;</rendition>
       </tagsDecl>
     </encodingDesc>
   </teiHeader>
@@ -88,10 +84,9 @@
 
       <p>This document defines TEI Simler, a slim customization of the
         <ref target="https://tei-c.org/guidelines/">TEI Guidelines</ref> for the digital scholarly
-        edition of Johann Wilhelm Simler's <hi rend="italic">Teutsche Gedichte</hi>. It reproduces the
-        validation behaviour of the project's previous, much larger DTABf-derived schema for the
-        existing source files, while excluding the many DTABf modules, elements and attributes that
-        the project does not use (drama, manuscript description, tables, apparatus, etc.).</p>
+        edition of Johann Wilhelm Simler's <hi rend="italic">Teutsche Gedichte</hi>. It keeps the
+        project's modifications of the DTABf-derived schema while excluding the DTABf modules,
+        elements and attributes that the project does not use.</p>
 
       <p>Each source document is a printed edition encoded within a <gi>TEI</gi> element holding a
         <gi>teiHeader</gi> and one <gi>text</gi>. The <gi>text</gi> may open with <gi>front</gi>
@@ -99,28 +94,35 @@
         hierarchy of <gi>div</gi> elements (book → poem) whose verse is encoded with <gi>lg</gi> and
         <gi>l</gi>.</p>
 
-      <schemaSpec ident="tei_simler" start="TEI" prefix="tei_" targetLang="de" docLang="en">
+      <p>The Processing Model renders the edition. Each element takes the first <gi>model</gi> whose
+        <att>predicate</att> holds; a <gi>modelSequence</gi> renders each of its models whose
+        predicate holds, one after the other. A <gi>modelGrp</gi>'s <gi>outputRendition</gi> styles
+        all of its models; a styled model among several names its class with <att>cssClass</att>.
+        Predicates see the text as encoded. Params are
+        XPath: the nodes they select are rendered by their own models, anything else as text;
+        params named <val>--…</val> become CSS custom properties of the rendered element,
+        <val>data-…</val> its attributes. Models with an <att>output</att> belong to that output
+        and take precedence over the base models there. <val>page</val>, on <gi>TEI</gi>, names
+        what the page shows around the text. <val>plain</val>, the text of the search index, is
+        rendered on its own. <val>normalized</val> (the reading text) and <val>entities</val> (entity
+        highlighting) are views over the base rendering that can be switched on and off: a view's
+        model omits the element, restyles it, or gives the same behaviour other params — an
+        <val>alternate</val> shows the view's own default; a view's <gi>modelSequence</gi> does so
+        model by model for the base sequence. The source appearance
+        (<att>rendition</att>) is carried where the model sets <att>useSourceRendition</att>; a model
+        that lays out the rendition itself does without. Colours, fonts and measures are the
+        edition's design tokens (CSS custom properties).</p>
 
-        <!-- ===================================================================
-             PROCESSING MODEL
-             Each <model> below maps a Simler element to a PM behaviour so the
-             build-time spine (odd-to-unified -> render-unified) renders the
-             edition straight from this ODD. Source typography (italic, bold,
-             centring, indentation, initials) is deliberately NOT repeated here:
-             it stays in <tagsDecl> and is applied through the @rendition
-             pointers wherever a model sets @useSourceRendition, compiled into
-             .r-* CSS rules.
-             NB: for readability the <model> is written first inside each
-             <elementSpec>; a strict ODD sequence places it after <attList>.
-             =================================================================== -->
+      <schemaSpec ident="tei_simler" start="TEI" prefix="tei_" targetLang="de" docLang="en">
 
         <!-- ===================================================================
              MODULES — only those the Simler edition uses
              =================================================================== -->
-        <moduleRef key="header" include="teiHeader fileDesc titleStmt editionStmt edition publicationStmt sourceDesc idno profileDesc langUsage language textClass classCode"/>
-        <moduleRef key="core" include="p lb pb head label hi l lg list item rs choice sic corr unclear milestone note num title author bibl name date pubPlace publisher ref cit quote abbr cb"/>
+        <moduleRef key="header" include="teiHeader fileDesc titleStmt editionStmt edition publicationStmt sourceDesc biblFull extent idno encodingDesc editorialDecl profileDesc langUsage language textClass classCode"/>
+        <moduleRef key="core" include="p lb pb head label hi l lg list item rs choice sic corr unclear milestone note num title author bibl name date pubPlace publisher ref cit quote abbr cb measure respStmt resp"/>
         <moduleRef key="textstructure" include="TEI text front body div titlePage titlePart docTitle docAuthor docImprint docDate docEdition closer signed salute dateline epigraph byline"/>
         <moduleRef key="namesdates" include="persName surname forename"/>
+        <moduleRef key="msdescription" include="msDesc msIdentifier repository physDesc typeDesc"/>
         <moduleRef key="transcr" include="fw supplied space"/>
         <moduleRef key="figures" include="figure"/>
         <moduleRef key="linking" include="anchor"/>
@@ -138,9 +140,8 @@
           </attList>
         </classSpec>
 
-        <!-- @rendition: a whitespace-separated list of pointer tokens declared in tagsDecl.
-             Following tei_simplePrint, the value space is NOT closed here: new appearance
-             tokens may be added by declaring them in tagsDecl. @rend / @style are removed. -->
+        <!-- @rendition: pointer tokens declared in tagsDecl. As in tei_simplePrint the value space is
+             not closed: new appearance tokens are added by declaring them in tagsDecl. -->
         <classSpec type="atts" ident="att.global.rendition" mode="change">
           <attList>
             <attDef ident="rend" mode="delete"/>
@@ -157,8 +158,7 @@
         </classSpec>
 
         <!-- ===================================================================
-             REUSABLE CONTENT — inline (phrase-level) model used across the
-             transcription. Kept generous on purpose (WIP sources).
+             REUSABLE CONTENT — phrase-level model shared across the transcription
              =================================================================== -->
         <macroSpec ident="macro.simlerInline" mode="add">
           <desc>The phrase-level content shared by the transcription elements: text interspersed with
@@ -170,6 +170,8 @@
               <elementRef key="hi"/>
               <elementRef key="rs"/>
               <elementRef key="choice"/>
+              <elementRef key="sic"/>
+              <elementRef key="corr"/>
               <elementRef key="unclear"/>
               <elementRef key="supplied"/>
               <elementRef key="num"/>
@@ -204,6 +206,14 @@
               </valList>
             </attDef>
           </attList>
+          <model behaviour="text"/>
+          <!-- what the page shows around the text: its title, the facsimile, the entities it names -->
+          <model output="page" behaviour="metadata">
+            <param name="title" value="normalize-space(teiHeader/fileDesc/titleStmt/title[1])"/>
+            <param name="manifest" value="normalize-space((descendant::idno[@type='URLIIIF'])[1])"/>
+            <param name="pages" value="descendant::pb/@facs"/>
+            <param name="entities" value="descendant::rs/@key"/>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <TEI type="simler-framework"><teiHeader><!-- ... --></teiHeader><text><!-- ... --></text></TEI>
@@ -212,15 +222,16 @@
         </elementSpec>
 
         <elementSpec ident="teiHeader" module="header" mode="change">
-          <model behaviour="metadata"/>
-          <desc>Document metadata: a <gi>fileDesc</gi> and an optional (possibly empty)
-            <gi>profileDesc</gi>.</desc>
+          <desc>Document metadata: a <gi>fileDesc</gi>, an optional <gi>encodingDesc</gi> and an
+            optional (possibly empty) <gi>profileDesc</gi>.</desc>
           <content>
             <sequence>
               <elementRef key="fileDesc"/>
+              <elementRef key="encodingDesc" minOccurs="0"/>
               <elementRef key="profileDesc" minOccurs="0"/>
             </sequence>
           </content>
+          <model behaviour="metadata"/>
         </elementSpec>
 
         <elementSpec ident="fileDesc" module="header" mode="change">
@@ -236,11 +247,13 @@
         </elementSpec>
 
         <elementSpec ident="titleStmt" module="header" mode="change">
-          <desc>One or more <gi>title</gi>s and an optional <gi>author</gi>.</desc>
+          <desc>One or more <gi>title</gi>s, optional <gi>author</gi>s and statements of
+            responsibility.</desc>
           <content>
             <sequence>
               <elementRef key="title" minOccurs="1" maxOccurs="unbounded"/>
               <elementRef key="author" minOccurs="0" maxOccurs="unbounded"/>
+              <elementRef key="respStmt" minOccurs="0" maxOccurs="unbounded"/>
             </sequence>
           </content>
         </elementSpec>
@@ -253,6 +266,14 @@
               <valList type="semi" mode="replace">
                 <valItem ident="main"><desc>main title</desc></valItem>
                 <valItem ident="sub"><desc>subtitle</desc></valItem>
+              </valList>
+            </attDef>
+            <attDef ident="level" mode="change" usage="opt">
+              <valList type="closed" mode="replace">
+                <valItem ident="a"><desc>analytic: an article or a part</desc></valItem>
+                <valItem ident="j"><desc>a journal</desc></valItem>
+                <valItem ident="m"><desc>a monograph: in the header, the printed volume</desc></valItem>
+                <valItem ident="s"><desc>a series</desc></valItem>
               </valList>
             </attDef>
           </attList>
@@ -319,8 +340,13 @@
         </elementSpec>
 
         <elementSpec ident="sourceDesc" module="header" mode="change">
-          <desc>Describes the digitised printed source.</desc>
-          <content><elementRef key="bibl" minOccurs="1" maxOccurs="unbounded"/></content>
+          <desc>Describes the digitised printed source: its bibliographic record (<gi>biblFull</gi> from
+            the DTA import, or a loose <gi>bibl</gi>) and the physical copy (<gi>msDesc</gi>).</desc>
+          <content>
+            <alternate minOccurs="1" maxOccurs="unbounded">
+              <elementRef key="bibl"/><elementRef key="biblFull"/><elementRef key="msDesc"/>
+            </alternate>
+          </content>
         </elementSpec>
 
         <elementSpec ident="bibl" module="core" mode="change">
@@ -355,14 +381,47 @@
           <attList>
             <attDef ident="type" mode="change" usage="opt">
               <valList type="semi" mode="replace">
-                <valItem ident="URLIIIF"><desc>URL of the IIIF presentation manifest (e-rara)</desc></valItem>
+                <valItem ident="URLIIIF"><desc>URL of the IIIF presentation manifest; its root is also the
+                  root of the page images named by <att>facs</att></desc></valItem>
                 <valItem ident="URLImages"><desc>URL of the page images</desc></valItem>
                 <valItem ident="URLCatalogue"><desc>URL of the library catalogue record</desc></valItem>
+                <valItem ident="DOI"><desc>DOI of the digitised copy</desc></valItem>
                 <valItem ident="Transkribus"><desc>Transkribus document/collection identifier</desc></valItem>
                 <valItem ident="shelfmark"><desc>library shelfmark of the printed copy</desc></valItem>
               </valList>
             </attDef>
           </attList>
+        </elementSpec>
+
+        <elementSpec ident="date" module="core" mode="change">
+          <attList>
+            <attDef ident="type" mode="change" usage="opt">
+              <valList type="semi" mode="replace">
+                <valItem ident="publication"><desc>date of publication of the source</desc></valItem>
+                <valItem ident="firstPublication"><desc>date of first publication</desc></valItem>
+                <valItem ident="importDTA"><desc>date of the DTA import</desc></valItem>
+              </valList>
+            </attDef>
+          </attList>
+        </elementSpec>
+
+        <elementSpec ident="measure" module="core" mode="change">
+          <attList>
+            <attDef ident="type" mode="change" usage="opt">
+              <valList type="semi" mode="replace">
+                <valItem ident="pages"><desc>number of pages</desc></valItem>
+              </valList>
+            </attDef>
+          </attList>
+        </elementSpec>
+
+        <elementSpec ident="publisher" module="core" mode="change">
+          <content>
+            <alternate minOccurs="0" maxOccurs="unbounded">
+              <macroRef key="macro.simlerInline"/><elementRef key="name"/>
+            </alternate>
+          </content>
+          <model behaviour="inline"/>
         </elementSpec>
 
         <elementSpec ident="profileDesc" module="header" mode="change">
@@ -379,14 +438,16 @@
              =================================================================== -->
         <elementSpec ident="text" module="textstructure" mode="change">
           <desc>The transcribed text: an optional <gi>front</gi> and a <gi>body</gi>. A front-matter
-            volume (e.g. the title-page/dedication part of an edition) may carry <gi>front</gi>
-            without a <gi>body</gi>.</desc>
+            volume may carry <gi>front</gi> without a <gi>body</gi>.</desc>
           <content>
             <sequence>
               <elementRef key="front" minOccurs="0"/>
               <elementRef key="body" minOccurs="0"/>
             </sequence>
           </content>
+          <model behaviour="block">
+            <outputRendition>font-size: var(--fs-text); line-height: var(--lh-text); hyphens: none; max-width: var(--measure); font-variant-ligatures: common-ligatures;</outputRendition>
+          </model>
         </elementSpec>
 
         <elementSpec ident="front" module="textstructure" mode="change">
@@ -397,51 +458,61 @@
               <elementRef key="milestone"/><elementRef key="lb"/><elementRef key="pb"/>
             </alternate>
           </content>
+          <model behaviour="text"/>
         </elementSpec>
 
         <elementSpec ident="body" module="textstructure" mode="change">
           <desc>The body of the document, holding the page/line stream and the hierarchy of
-            structural divisions.</desc>
+            structural divisions. A document not yet transcribed holds a single empty <gi>p</gi>.</desc>
           <content>
             <alternate minOccurs="1" maxOccurs="unbounded">
-              <elementRef key="div"/><elementRef key="lg"/><elementRef key="head"/>
-              <elementRef key="pb"/><elementRef key="lb"/><elementRef key="milestone"/>
-              <elementRef key="fw"/>
+              <elementRef key="div"/><elementRef key="lg"/><elementRef key="l"/><elementRef key="p"/>
+              <elementRef key="head"/><elementRef key="pb"/><elementRef key="lb"/>
+              <elementRef key="milestone"/><elementRef key="fw"/>
             </alternate>
           </content>
+          <model behaviour="text"/>
         </elementSpec>
 
         <elementSpec ident="div" module="textstructure" mode="change">
-          <model behaviour="block" useSourceRendition="true">
-            <outputRendition>margin: 1.5em 0;</outputRendition>
-          </model>
           <desc>A structural division — a book, a group of poems, or an individual poem. <att>type</att>
             classifies the division; <att>n</att> records its level/running number.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
               <textNode/>
-              <elementRef key="div"/><elementRef key="head"/><elementRef key="lg"/>
+              <elementRef key="div"/><elementRef key="head"/><elementRef key="lg"/><elementRef key="l"/>
               <elementRef key="p"/><elementRef key="list"/><elementRef key="label"/>
-              <elementRef key="closer"/><elementRef key="figure"/><elementRef key="note"/>
-              <elementRef key="fw"/><elementRef key="cb"/><elementRef key="anchor"/>
-              <elementRef key="milestone"/><elementRef key="lb"/><elementRef key="pb"/>
-              <elementRef key="hi"/><elementRef key="rs"/><elementRef key="choice"/>
-              <elementRef key="unclear"/><elementRef key="supplied"/><elementRef key="num"/>
+              <elementRef key="closer"/><elementRef key="epigraph"/><elementRef key="figure"/>
+              <elementRef key="note"/><elementRef key="fw"/><elementRef key="cb"/>
+              <elementRef key="anchor"/><elementRef key="milestone"/><elementRef key="lb"/>
+              <elementRef key="pb"/><elementRef key="hi"/><elementRef key="rs"/>
+              <elementRef key="choice"/><elementRef key="unclear"/><elementRef key="supplied"/>
+              <elementRef key="num"/>
             </alternate>
           </content>
           <attList>
             <attDef ident="type" mode="change" usage="opt">
               <valList type="semi" mode="replace">
                 <valItem ident="poem"><desc>an individual poem</desc></valItem>
+                <valItem ident="poem-div"><desc>a group of poems</desc></valItem>
+                <valItem ident="stanza-div"><desc>a stanza of a strophic poem</desc></valItem>
                 <valItem ident="dedication"><desc>a dedication</desc></valItem>
                 <valItem ident="frontispiece"><desc>a frontispiece</desc></valItem>
+                <valItem ident="letter"><desc>a letter</desc></valItem>
+                <valItem ident="preface"><desc>a preface</desc></valItem>
+                <valItem ident="music"><desc>notated music (Noten)</desc></valItem>
               </valList>
             </attDef>
           </attList>
+          <!-- a division directly after another one is set apart from it -->
+          <model cssClass="div-after-div" predicate="preceding-sibling::*[not(self::lb or self::pb or self::fw or self::cb or self::milestone or self::anchor)][1][self::div]" behaviour="section">
+            <outputRendition>margin-top: 2rem;</outputRendition>
+          </model>
+          <model behaviour="section"/>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <div n="3" type="poem">
-                <head><hi rendition="#aq #c">III.</hi></head>
+                <head rendition="#c"><hi rendition="#aq">III.</hi></head>
                 <lb/>
                 <lg type="poem"><!-- ... --></lg>
               </div>
@@ -451,9 +522,6 @@
 
         <!-- ===== title page ===== -->
         <elementSpec ident="titlePage" module="textstructure" mode="change">
-          <model behaviour="block" useSourceRendition="true">
-            <outputRendition>text-align: center; margin: 2em auto; padding-bottom: 1em; border-bottom: 1px solid #ddd;</outputRendition>
-          </model>
           <desc>A title page transcribed within <gi>front</gi>.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
@@ -464,8 +532,15 @@
             </alternate>
           </content>
           <attList>
-            <attDef ident="type" mode="change" usage="opt"/>
+            <attDef ident="type" mode="change" usage="opt">
+              <valList type="semi" mode="replace">
+                <valItem ident="main"><desc>the main title page</desc></valItem>
+              </valList>
+            </attDef>
           </attList>
+          <model behaviour="section">
+            <outputRendition>text-align: center;</outputRendition>
+          </model>
         </elementSpec>
         <elementSpec ident="docTitle" module="textstructure" mode="change">
           <content>
@@ -473,6 +548,9 @@
               <elementRef key="titlePart"/><elementRef key="lb"/>
             </alternate>
           </content>
+          <model behaviour="block">
+            <outputRendition>margin: 1.2em 0;</outputRendition>
+          </model>
         </elementSpec>
         <elementSpec ident="titlePart" module="textstructure" mode="change">
           <content>
@@ -487,9 +565,13 @@
               </valList>
             </attDef>
           </attList>
+          <model behaviour="block" useSourceRendition="true">
+            <outputRendition>margin: 0.4em 0;</outputRendition>
+          </model>
         </elementSpec>
         <elementSpec ident="docAuthor" module="textstructure" mode="change">
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="block" useSourceRendition="true"/>
         </elementSpec>
         <elementSpec ident="docImprint" module="textstructure" mode="change">
           <content>
@@ -498,30 +580,31 @@
               <elementRef key="publisher"/><elementRef key="docDate"/><elementRef key="lb"/>
             </alternate>
           </content>
+          <model behaviour="block" useSourceRendition="true"/>
+        </elementSpec>
+        <elementSpec ident="docEdition" module="textstructure" mode="change">
+          <model behaviour="block" useSourceRendition="true"/>
         </elementSpec>
         <elementSpec ident="docDate" module="textstructure" mode="change">
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="inline"/>
         </elementSpec>
         <elementSpec ident="pubPlace" module="core" mode="change">
           <content><macroRef key="macro.simlerInline"/></content>
-        </elementSpec>
-        <elementSpec ident="publisher" module="core" mode="change">
-          <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="inline"/>
         </elementSpec>
 
         <!-- ===================================================================
              VERSE
              =================================================================== -->
         <elementSpec ident="lg" module="core" mode="change">
-          <model behaviour="block" useSourceRendition="true">
-            <outputRendition>margin: 1em 0;</outputRendition>
-          </model>
           <desc>A group of verse lines — in the Simler edition typically a poem
             (<att>type</att>=<val>poem</val>) or a sub-group/stanza.</desc>
           <content>
             <alternate minOccurs="1" maxOccurs="unbounded">
               <elementRef key="l"/><elementRef key="lg"/><elementRef key="head"/>
               <elementRef key="label"/><elementRef key="p"/><elementRef key="note"/>
+              <elementRef key="fw"/><elementRef key="figure"/><elementRef key="anchor"/>
               <elementRef key="cb"/><elementRef key="milestone"/><elementRef key="lb"/>
               <elementRef key="pb"/>
             </alternate>
@@ -536,6 +619,12 @@
             </attDef>
             <attDef ident="n" mode="change" usage="opt"/>
           </attList>
+          <model cssClass="lg-inner" predicate="ancestor::lg" behaviour="block" useSourceRendition="true">
+            <outputRendition>margin: 0.9em 0;</outputRendition>
+          </model>
+          <model cssClass="lg-outer" behaviour="block" useSourceRendition="true">
+            <outputRendition>margin: 1.3em 0;</outputRendition>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <lg type="poem">
@@ -548,22 +637,49 @@
         </elementSpec>
 
         <elementSpec ident="l" module="core" mode="change">
-          <model behaviour="block" useSourceRendition="true">
-            <outputRendition>margin: 0; line-height: 1.5;</outputRendition>
-          </model>
           <desc>A single verse line. <att>rendition</att> records the indentation of the printed
             line; line/word breaks of the setting are encoded with <gi>lb</gi>.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
               <textNode/><elementRef key="hi"/><elementRef key="rs"/><elementRef key="choice"/>
               <elementRef key="unclear"/><elementRef key="supplied"/><elementRef key="num"/>
-              <elementRef key="label"/><elementRef key="note"/><elementRef key="anchor"/>
-              <elementRef key="space"/><elementRef key="lb"/><elementRef key="pb"/>
+              <elementRef key="abbr"/><elementRef key="label"/><elementRef key="note"/>
+              <elementRef key="anchor"/><elementRef key="space"/><elementRef key="fw"/>
+              <elementRef key="lb"/><elementRef key="pb"/>
             </alternate>
           </content>
           <attList>
             <attDef ident="n" mode="change" usage="opt"/>
+            <attDef ident="next" mode="change" usage="opt">
+              <desc>The next part of a verse line the print splits, e.g. by a heading or a page;
+                <att>prev</att> points back. So also on <gi>div</gi> and <gi>head</gi>.</desc>
+            </attDef>
+            <attDef ident="prev" mode="change" usage="opt"/>
           </attList>
+          <!-- A verse line hangs: an overlong line wraps indented, and @rendition indents are counted
+               from the hanging edge. On a two-column page the grid cell is the line box. -->
+          <modelGrp useSourceRendition="true">
+            <outputRendition>margin: 0; line-height: var(--lh-text); padding-left: 1.6em; text-indent: -1.6em;</outputRendition>
+            <!-- On a two-column page the lines alternate between the columns. An acrostic line starts
+                 behind its marginal letter, and so does an indented line in a column that has them;
+                 a closing letter keeps the line's end clear. The model lays out @rendition itself. -->
+            <model predicate="parent::lg[contains-token(@rendition, '#twocol')]" behaviour="block" cssClass="l-twocol" useSourceRendition="false">
+              <param name="--acro" value="if (contains-token(@rendition, '#acrostic') or (contains-token(@rendition, '#et') or contains-token(@rendition, '#et2')) and (preceding-sibling::l[position() mod 2 = 0], following-sibling::l[position() mod 2 = 0])[contains-token(@rendition, '#acrostic')]) then 1 else 0"/>
+              <param name="--fin" value="if (descendant::*[contains-token(@rendition, '#acroFin')]) then 1 else 0"/>
+              <param name="--indent" value="if (contains-token(@rendition, '#et2')) then 2 else if (contains-token(@rendition, '#et')) then 1 else 0"/>
+              <outputRendition>min-width: 0; position: relative; text-indent: 0; padding-left: calc(var(--acro) * var(--acro-body) + var(--indent) * var(--indent-step)); padding-right: calc(var(--fin) * (var(--acro-fin) + 0.1em));</outputRendition>
+            </model>
+            <model predicate="contains-token(@rendition, '#et')" behaviour="block" cssClass="l-et">
+              <outputRendition>text-indent: 0.4em;</outputRendition>
+            </model>
+            <model predicate="contains-token(@rendition, '#et2')" behaviour="block" cssClass="l-et2">
+              <outputRendition>text-indent: 2.4em;</outputRendition>
+            </model>
+            <model predicate="contains-token(@rendition, '#et3')" behaviour="block" cssClass="l-et3">
+              <outputRendition>text-indent: 4.4em;</outputRendition>
+            </model>
+            <model behaviour="block"/>
+          </modelGrp>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <l rendition="#et">der wird <rs type="place" key="place_027">Sion</rs>sfeind’ auch straffen sonder fehl.</l>
@@ -575,29 +691,44 @@
              PHRASE-LEVEL TRANSCRIPTION
              =================================================================== -->
         <elementSpec ident="hi" module="core" mode="change">
-          <!-- inline; the actual look (italic/bold/centring/…) comes from the
-               @rendition pointer, resolved to .r-* CSS from <tagsDecl>. -->
-          <model behaviour="inline" useSourceRendition="true"/>
           <desc>A typographically distinct span of the source. <att>rendition</att> is required on
             <gi>hi</gi> (it is optional elsewhere) and points to one or more <gi>rendition</gi>
-            declarations in <gi>tagsDecl</gi>; tokens combine (e.g. <val>#aq #c</val>). <gi>hi</gi>
-            may nest.</desc>
+            declarations in <gi>tagsDecl</gi>; tokens combine (e.g. <val>#aq #b</val>). <gi>hi</gi>
+            may nest. The renditions of a line or block — alignment (<val>#c</val>,
+            <val>#right</val>) and indent (<val>#et</val>, <val>#et2</val>, <val>#et3</val>) — are
+            recorded on the block, not on <gi>hi</gi>.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
+          <constraintSpec ident="hi-block-rendition" scheme="schematron">
+            <desc>Alignment and indent are properties of a line or block: they are recorded on the
+              block element, where they take effect.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+                context="tei:hi[tokenize(@rendition, '\s+') = ('#c', '#right', '#et', '#et2', '#et3')]">
+                <sch:report role="warning" test="true()">[S-HI] Alignment and indent (#c, #right,
+                  #et, #et2, #et3) belong on the enclosing block (head, p, l, …), not on hi.</sch:report>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
           <attList>
             <attDef ident="rendition" mode="change" usage="req"/>
           </attList>
+          <!-- An initial drops only at the head of running prose: not in verse, not nested, not
+               among several initials (an author line "J(ohann) W(ilhelm) S(imler)"), not centred. -->
+          <model cssClass="hi-initial-inline" predicate="contains-token(@rendition, '#in') and (ancestor::l or ancestor::hi or ancestor::titlePage or ancestor::*[contains-token(@rendition, '#c')] or preceding-sibling::*[contains-token(@rendition, '#in')] or following-sibling::*[contains-token(@rendition, '#in')])" behaviour="inline" useSourceRendition="true">
+            <outputRendition>float: none; font-size: 1.15em; line-height: inherit;</outputRendition>
+          </model>
+          <!-- Fallback for an indent left on a hi: on a line of its own within a block, the hi is
+               that line, since a span cannot be indented. -->
+          <model predicate="(contains-token(@rendition, '#et') or contains-token(@rendition, '#et2') or contains-token(@rendition, '#et3')) and (parent::head or parent::p or parent::l or parent::salute or parent::signed or parent::dateline or parent::closer or parent::titlePart or parent::docAuthor or parent::item) and (not(preceding-sibling::*) or preceding-sibling::*[1][self::lb]) and (not(following-sibling::*) or following-sibling::*[1][self::lb])" behaviour="block" useSourceRendition="true"/>
+          <model behaviour="inline" useSourceRendition="true"/>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
-              <head><hi rendition="#b #c">Aller<lb/> Psalmen Davids Haubt<lb break="no"/>begriff/</hi></head>
+              <head rendition="#c"><hi rendition="#b">Aller<lb/> Psalmen Davids Haubt<lb break="no"/>begriff/</hi></head>
             </egXML>
           </exemplum>
         </elementSpec>
 
         <elementSpec ident="head" module="core" mode="change">
-          <model behaviour="heading" useSourceRendition="true">
-            <param name="level" value="count(ancestor::div)"/>
-            <outputRendition>font-size: 1.2em; text-align: center; margin: 0.8em 0 0.4em;</outputRendition>
-          </model>
           <desc>A heading of a <gi>div</gi>, <gi>lg</gi>, <gi>list</gi> or <gi>figure</gi>.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
@@ -610,37 +741,58 @@
           <attList>
             <attDef ident="n" mode="change" usage="opt"/>
           </attList>
+          <!-- Only a division's head is a document heading, one level below its division; in an
+               lg it is a stanza number, in a list or figure a caption. -->
+          <modelGrp useSourceRendition="true">
+            <outputRendition>font-family: var(--f-display); font-weight: 600; text-wrap: balance;</outputRendition>
+            <model cssClass="head-first" predicate="parent::div and not(preceding-sibling::*[not(self::lb or self::pb or self::fw or self::cb or self::milestone or self::anchor)])" behaviour="heading">
+              <param name="level" value="count(ancestor::div) + 1"/>
+              <outputRendition>margin: 0 0 0.7em;</outputRendition>
+            </model>
+            <model cssClass="head-div" predicate="parent::div" behaviour="heading">
+              <param name="level" value="count(ancestor::div) + 1"/>
+              <outputRendition>margin: 1.6em 0 0.7em;</outputRendition>
+            </model>
+            <model cssClass="head-stanza" predicate="parent::lg" behaviour="paragraph">
+              <outputRendition>font-family: var(--f-ui); font-size: 0.72em; font-weight: 500; letter-spacing: 0.06em; color: rgb(var(--c-muted)); margin: 0 0 0.25em;</outputRendition>
+            </model>
+            <model cssClass="head-caption" predicate="parent::list or parent::figure" behaviour="paragraph">
+              <outputRendition>margin: 0 0 0.3em;</outputRendition>
+            </model>
+            <model cssClass="head-other" behaviour="paragraph">
+              <outputRendition>margin: 1.6em 0 0.7em;</outputRendition>
+            </model>
+          </modelGrp>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
-              <head>
+              <head rendition="#c">
                 <label>[1.]</label>
                 <lb/>
-                <hi rendition="#b #c">[Das erst bu&#x364;ch der Psalmen.]</hi>
+                <hi rendition="#b">[Das erst bu&#x364;ch der Psalmen.]</hi>
               </head>
             </egXML>
           </exemplum>
         </elementSpec>
 
         <elementSpec ident="label" module="core" mode="change">
-          <model behaviour="inline" useSourceRendition="true">
-            <outputRendition>font-variant: small-caps; color: #555;</outputRendition>
-          </model>
           <desc>A label, typically the (often editorially supplied, bracketed) number of a heading or
             poem.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="inline">
+            <outputRendition>font-weight: 500;</outputRendition>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples"><label>[2.]</label></egXML>
           </exemplum>
         </elementSpec>
 
         <elementSpec ident="num" module="core" mode="change">
-          <model behaviour="inline" useSourceRendition="true"/>
           <desc>A number (Roman or Arabic) marked as such in the source.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="inline"/>
         </elementSpec>
 
         <elementSpec ident="p" module="core" mode="change">
-          <model behaviour="paragraph" useSourceRendition="true"/>
           <desc>A prose paragraph (e.g. closing formulae of a book, captions, header notes).</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
@@ -651,39 +803,18 @@
               <elementRef key="pb"/>
             </alternate>
           </content>
+          <model behaviour="paragraph" useSourceRendition="true">
+            <outputRendition>margin: 0.9em 0;</outputRendition>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
-              <p><hi rendition="#smaller #c">Ende des ersten buchs der<lb/> Psalmen Davids.</hi></p>
+              <p rendition="#c"><hi rendition="#smaller">Ende des ersten buchs der<lb/> Psalmen Davids.</hi></p>
             </egXML>
           </exemplum>
         </elementSpec>
 
         <!-- ===== entity reference ===== -->
         <elementSpec ident="rs" module="core" mode="change">
-          <!-- Entity reference, colour-coded by @type. The per-type predicates
-               compile to a JS if-chain in the spine and to data-type selectors
-               in the CSS floor. -->
-          <model predicate="@type='person'" behaviour="inline" useSourceRendition="true">
-            <outputRendition>color: #8e44ad;</outputRendition>
-          </model>
-          <model predicate="@type='place'" behaviour="inline" useSourceRendition="true">
-            <outputRendition>color: #2980b9;</outputRendition>
-          </model>
-          <model predicate="@type='org'" behaviour="inline" useSourceRendition="true">
-            <outputRendition>color: #16a085;</outputRendition>
-          </model>
-          <model predicate="@type='institution'" behaviour="inline" useSourceRendition="true">
-            <outputRendition>color: #16a085;</outputRendition>
-          </model>
-          <model predicate="@type='work'" behaviour="inline" useSourceRendition="true">
-            <outputRendition>font-style: italic; color: #b9770e;</outputRendition>
-          </model>
-          <model predicate="@type='bibl'" behaviour="inline" useSourceRendition="true">
-            <outputRendition>font-style: italic; color: #7f8c8d;</outputRendition>
-          </model>
-          <model behaviour="inline" useSourceRendition="true">
-            <outputRendition>border-bottom: 1px dotted #aaa;</outputRendition>
-          </model>
           <desc>A referencing string identifying a named entity. <att>type</att> classifies the
             entity; <att>key</att> is the typed identifier of the entry in the project registers
             (its prefix should match <att>type</att>).</desc>
@@ -694,6 +825,17 @@
               <elementRef key="anchor"/><elementRef key="lb"/>
             </alternate>
           </content>
+          <constraintSpec ident="rs-key" scheme="schematron">
+            <desc>A key names an entry of the register its <att>type</att> belongs to; <val>org</val>
+              is in the institutions, <val>bibl</val> in the works.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:rs">
+                <sch:let name="register" value="if (@type = 'org') then 'institution' else if (@type = 'bibl') then 'work' else string(@type)"/>
+                <sch:assert test="matches(@key, concat('^', $register, '_\d+$'))">[S-RK] "<sch:value-of
+                  select="@key"/>" is not a key of the <sch:value-of select="$register"/> register.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
           <attList>
             <attDef ident="type" mode="change" usage="req">
               <valList type="semi" mode="replace">
@@ -702,15 +844,35 @@
                 <valItem ident="org"><desc>organisation</desc></valItem>
                 <valItem ident="institution"><desc>institution</desc></valItem>
                 <valItem ident="work"><desc>literary work</desc></valItem>
-                <valItem ident="bibl"><desc>bibliographic item</desc></valItem>
+                <valItem ident="bibl"><desc>a Bible reference (never the research bibliography)</desc></valItem>
               </valList>
             </attDef>
             <attDef ident="key" mode="change" usage="req">
-              <desc>The typed entity identifier, normally of the form
-                <val>{type}_{id}</val> (e.g. <val>person_049</val>).</desc>
+              <desc>The entry in the register of <att>type</att>, as <val>{register}_{number}</val>
+                (e.g. <val>person_049</val>); see <ident>rs-key</ident>.</desc>
               <datatype><dataRef key="teidata.text"/></datatype>
             </attDef>
           </attList>
+          <model behaviour="inline"/>
+          <!-- entity highlighting, colour-coded by type -->
+          <model cssClass="entity-person" output="entities" predicate="@type='person'" behaviour="inline">
+            <outputRendition>color: rgb(var(--c-person)); text-decoration: underline solid; text-underline-offset: 0.22em;</outputRendition>
+          </model>
+          <model cssClass="entity-place" output="entities" predicate="@type='place'" behaviour="inline">
+            <outputRendition>color: rgb(var(--c-place)); text-decoration: underline solid; text-underline-offset: 0.22em;</outputRendition>
+          </model>
+          <model cssClass="entity-work" output="entities" predicate="@type='work'" behaviour="inline">
+            <outputRendition>color: rgb(var(--c-work)); text-decoration: underline dashed; text-underline-offset: 0.22em;</outputRendition>
+          </model>
+          <model cssClass="entity-org" output="entities" predicate="@type='org'" behaviour="inline">
+            <outputRendition>color: rgb(var(--c-org)); text-decoration: underline solid; text-underline-offset: 0.22em;</outputRendition>
+          </model>
+          <model cssClass="entity-institution" output="entities" predicate="@type='institution'" behaviour="inline">
+            <outputRendition>color: rgb(var(--c-institution)); text-decoration: underline dotted; text-underline-offset: 0.22em;</outputRendition>
+          </model>
+          <model cssClass="entity-bibl" output="entities" predicate="@type='bibl'" behaviour="inline">
+            <outputRendition>color: rgb(var(--c-bibl)); text-decoration: underline dotted; text-underline-offset: 0.22em;</outputRendition>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <l>Der <rs type="person" key="person_049">David</rs> setzt auf Gott sein hoffnung und vertrauen/</l>
@@ -718,9 +880,8 @@
           </exemplum>
         </elementSpec>
 
-        <!-- ===== editorial interventions ===== -->
+        <!-- ===== editorial interventions: the print, or in the reading text the correction ===== -->
         <elementSpec ident="choice" module="core" mode="change">
-          <model behaviour="alternate" useSourceRendition="true"/>
           <desc>Groups the source reading (<gi>sic</gi>) and its editorial correction
             (<gi>corr</gi>), in either order.</desc>
           <content>
@@ -728,6 +889,19 @@
               <elementRef key="sic"/><elementRef key="corr"/>
             </alternate>
           </content>
+          <!-- the print, and in the reading text the correction; the search finds both -->
+          <model predicate="sic and corr" behaviour="alternate">
+            <param name="default" value="sic"/>
+            <param name="alternate" value="corr"/>
+          </model>
+          <model behaviour="inline"/>
+          <model output="normalized" predicate="sic and corr" behaviour="alternate">
+            <param name="default" value="corr"/>
+            <param name="alternate" value="sic"/>
+          </model>
+          <model output="plain" predicate="sic and corr" behaviour="inline">
+            <param name="content" value="(sic, ' ', corr)"/>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <l>Wiewol ich krankner mir gedult hab <choice><sic>fu&#x364;rgenommen</sic><corr>fürgenommen</corr></choice>/</l>
@@ -735,24 +909,20 @@
           </exemplum>
         </elementSpec>
         <elementSpec ident="sic" module="core" mode="change">
-          <model behaviour="inline" useSourceRendition="true">
-            <outputRendition>color: #c0392b;</outputRendition>
-          </model>
           <desc>The reading actually present in the source, retained unchanged.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="inline"/>
         </elementSpec>
         <elementSpec ident="corr" module="core" mode="change">
-          <model behaviour="inline" useSourceRendition="true">
-            <outputRendition>color: #1e8449;</outputRendition>
-          </model>
           <desc>The editorial correction of an obvious printing error.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
+          <!-- an editorial correction is marked as one: dotted, never silent -->
+          <model behaviour="inline">
+            <outputRendition>text-decoration: underline dotted rgb(var(--c-muted)); text-underline-offset: 0.22em;</outputRendition>
+          </model>
         </elementSpec>
 
         <elementSpec ident="supplied" module="transcr" mode="change">
-          <model behaviour="inline" useSourceRendition="true">
-            <outputRendition>color: #2980b9;</outputRendition>
-          </model>
           <desc>Text supplied by the editors where the source is missing or illegible.
             <att>cert</att> may record the confidence of the supplement.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
@@ -763,12 +933,26 @@
               </valList>
             </attDef>
           </attList>
+          <!-- The brackets are the edition's text, not the search's. -->
+          <modelSequence>
+            <model cssClass="supplied-bracket" behaviour="inline">
+              <param name="content" value="'['"/>
+              <outputRendition>color: rgb(var(--c-muted));</outputRendition>
+            </model>
+            <model behaviour="inline"/>
+            <model cssClass="supplied-bracket" behaviour="inline">
+              <param name="content" value="']'"/>
+              <outputRendition>color: rgb(var(--c-muted));</outputRendition>
+            </model>
+          </modelSequence>
+          <modelSequence output="plain">
+            <model behaviour="omit"/>
+            <model behaviour="inline"/>
+            <model behaviour="omit"/>
+          </modelSequence>
         </elementSpec>
 
         <elementSpec ident="unclear" module="core" mode="change">
-          <model behaviour="inline" useSourceRendition="true">
-            <outputRendition>opacity: 0.65; font-style: italic;</outputRendition>
-          </model>
           <desc>A passage that cannot be read with certainty; <att>reason</att> records why.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
           <attList>
@@ -779,6 +963,9 @@
               </valList>
             </attDef>
           </attList>
+          <model behaviour="inline">
+            <outputRendition>text-decoration: underline wavy rgb(var(--c-muted) / 0.7); text-underline-offset: 0.22em;</outputRendition>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <l rendition="#et">die <unclear reason="uncleanPrint">kind</unclear> und […]</l>
@@ -789,41 +976,86 @@
         <elementSpec ident="abbr" module="core" mode="change">
           <desc>An abbreviation as it appears in the source.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="inline"/>
+          <model output="normalized" predicate="parent::choice" behaviour="omit"/>
         </elementSpec>
 
         <!-- ===================================================================
-             NOTES, LISTS, FIGURES, REFERENCES
+             NOTES, LISTS, FIGURES, QUOTATIONS
              =================================================================== -->
         <elementSpec ident="note" module="core" mode="change">
-          <model behaviour="note" useSourceRendition="true">
-            <outputRendition>font-size: 0.9em;</outputRendition>
-          </model>
-          <desc>An editorial note or comment. <att>type</att> classifies it; <att>targetEnd</att>
-            (with a preceding <gi>anchor</gi> pair) delimits the commented range;
-            <att>resp</att> records responsibility.</desc>
+          <desc>A note. Editorial notes (<val>annotation</val>) comment on a range delimited by an
+            <gi>anchor</gi> and <att>targetEnd</att>, or without one on the whole division; Bible
+            references, speaker names and marginalia are printed in the source.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
               <textNode/><elementRef key="p"/><elementRef key="hi"/><elementRef key="rs"/>
-              <elementRef key="lb"/>
+              <elementRef key="choice"/><elementRef key="unclear"/><elementRef key="supplied"/>
+              <elementRef key="note"/><elementRef key="anchor"/><elementRef key="lb"/>
             </alternate>
           </content>
+          <constraintSpec ident="note-range" scheme="schematron">
+            <desc>A range comment runs from the <gi>anchor</gi> its <att>targetEnd</att> names, which
+              precedes it, to the note.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:note[@targetEnd]">
+                <sch:let name="id" value="replace(@targetEnd, '^#', '')"/>
+                <sch:assert test="preceding::tei:anchor[@xml:id = $id]">[S-NR] targetEnd names no
+                  preceding anchor.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+          <constraintSpec ident="note-type" scheme="schematron">
+            <desc>A note says what it is: a range comment by <att>targetEnd</att>, any other by
+              <att>type</att>.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:note[not(@targetEnd)]">
+                <sch:assert role="warning" test="@type">[S-NT] A note without targetEnd needs a
+                  type.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
           <attList>
             <attDef ident="type" mode="change" usage="opt">
               <valList type="semi" mode="replace">
                 <valItem ident="annotation"><desc>an editorial annotation</desc></valItem>
+                <valItem ident="bibl"><desc>a marginal Bible reference printed in the source</desc></valItem>
+                <valItem ident="speaker"><desc>a speaker designation in dialogue verse</desc></valItem>
+                <valItem ident="marginalia"><desc>a marginal note printed in the source</desc></valItem>
+                <valItem ident="remarkResponsibility"><desc>a note on editorial responsibility</desc></valItem>
               </valList>
             </attDef>
             <attDef ident="place" mode="change" usage="opt">
               <valList type="semi" mode="replace">
-                <valItem ident="comment"><desc>an out-of-line editorial comment</desc></valItem>
-                <valItem ident="right"/><valItem ident="bottom"/>
+                <valItem ident="left"/><valItem ident="right"/><valItem ident="bottom"/>
               </valList>
             </attDef>
           </attList>
+          <model cssClass="note-bibl" predicate="@type='bibl'" behaviour="inline" useSourceRendition="true">
+            <outputRendition>font-family: var(--f-ui); font-size: 0.8em; color: rgb(var(--c-muted));</outputRendition>
+          </model>
+          <model cssClass="note-speaker" predicate="@type='speaker'" behaviour="inline" useSourceRendition="true">
+            <outputRendition>font-family: var(--f-ui); font-size: 0.72em; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(var(--c-muted));</outputRendition>
+          </model>
+          <model cssClass="note-marginalia" predicate="@type='marginalia'" behaviour="block" useSourceRendition="true">
+            <outputRendition>max-width: 15em; margin: 0.3em 0 0.5em; padding-left: 0.6em; border-left: 2px solid rgb(var(--c-line)); font-size: 0.85em; line-height: 1.35; color: rgb(var(--c-muted));</outputRendition>
+          </model>
+          <model predicate="@type='remarkResponsibility'" behaviour="omit"/>
+          <!-- a range comment: a numbered marker in the text, the note in the apparatus; the range
+               runs from the anchor @targetEnd names to the marker -->
+          <model cssClass="note-anchored" predicate="@targetEnd" behaviour="note" useSourceRendition="true">
+            <param name="place" value="'end'"/>
+            <param name="range" value="@targetEnd"/>
+            <outputRendition>font-family: var(--f-ui); font-size: 0.62em; font-weight: 600; vertical-align: super; line-height: 0; padding: 0 0.12em; color: rgb(var(--c-accent)); text-decoration: none; scroll-margin-top: 6rem;</outputRendition>
+          </model>
+          <!-- a comment on the whole division: no marker, shown above the text -->
+          <model behaviour="note" useSourceRendition="true">
+            <param name="place" value="'overview'"/>
+          </model>
+          <model output="plain" predicate="@targetEnd" behaviour="omit"/>
         </elementSpec>
 
         <elementSpec ident="list" module="core" mode="change">
-          <model behaviour="list" useSourceRendition="true"/>
           <desc>A list.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
@@ -831,29 +1063,56 @@
               <elementRef key="pb"/>
             </alternate>
           </content>
+          <model behaviour="list">
+            <outputRendition>list-style: none; margin: 0.9em 0; padding-left: 0;</outputRendition>
+          </model>
         </elementSpec>
         <elementSpec ident="item" module="core" mode="change">
-          <model behaviour="listItem" useSourceRendition="true"/>
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="listItem"/>
         </elementSpec>
 
         <elementSpec ident="figure" module="figures" mode="change">
-          <model behaviour="block" useSourceRendition="true">
-            <outputRendition>margin: 1em auto; text-align: center; padding: 0.5em; border: 1px dashed #ccc;</outputRendition>
-          </model>
-          <desc>A figure (woodcut, frontispiece engraving, decorative element), optionally with a
-            heading and descriptive paragraph.</desc>
+          <desc>A figure (woodcut, frontispiece engraving, decorative element) or notated music,
+            optionally with a heading and descriptive paragraph.</desc>
           <content>
             <alternate minOccurs="0" maxOccurs="unbounded">
               <elementRef key="head"/><elementRef key="p"/><elementRef key="lb"/>
               <elementRef key="pb"/>
             </alternate>
           </content>
+          <attList>
+            <attDef ident="type" mode="change" usage="opt">
+              <valList type="semi" mode="replace">
+                <valItem ident="notatedMusic"><desc>notated music; <att>corresp</att> points to its
+                  encoding (MEI)</desc></valItem>
+              </valList>
+            </attDef>
+          </attList>
+          <!-- notated music is a placeholder until the MEI encoding exists -->
+          <modelGrp>
+            <outputRendition>margin: 1.35rem 0; padding: 1.1rem 1rem; border: 1px dashed rgb(var(--c-line)); border-radius: var(--r); text-align: center; font-family: var(--f-ui); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(var(--c-muted));</outputRendition>
+            <model predicate="@type='notatedMusic' and @corresp" behaviour="block">
+              <param name="content" value="concat('Notensatz: ', @corresp)"/>
+            </model>
+            <model predicate="@type='notatedMusic'" behaviour="block">
+              <param name="content" value="'Notensatz'"/>
+            </model>
+          </modelGrp>
+          <model cssClass="figure-plain" behaviour="block">
+            <outputRendition>margin: 1.2em 0; text-align: center;</outputRendition>
+          </model>
+          <model output="plain" predicate="@type='notatedMusic'" behaviour="omit"/>
         </elementSpec>
 
-        <elementSpec ident="ref" module="core" mode="change">
-          <desc>A pointer/reference within the text.</desc>
-          <content><macroRef key="macro.simlerInline"/></content>
+        <elementSpec ident="cit" module="core" mode="change">
+          <model behaviour="cit"/>
+        </elementSpec>
+        <elementSpec ident="quote" module="core" mode="change">
+          <model behaviour="block"/>
+        </elementSpec>
+        <elementSpec ident="epigraph" module="textstructure" mode="change">
+          <model behaviour="block"/>
         </elementSpec>
 
         <!-- ===================================================================
@@ -869,25 +1128,34 @@
               <elementRef key="lb"/>
             </alternate>
           </content>
+          <model behaviour="block" useSourceRendition="true">
+            <outputRendition>margin-top: 1.6em;</outputRendition>
+          </model>
         </elementSpec>
         <elementSpec ident="salute" module="textstructure" mode="change">
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="paragraph" useSourceRendition="true"/>
         </elementSpec>
         <elementSpec ident="dateline" module="textstructure" mode="change">
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="paragraph" useSourceRendition="true">
+            <outputRendition>margin: 0.3em 0;</outputRendition>
+          </model>
         </elementSpec>
         <elementSpec ident="signed" module="textstructure" mode="change">
           <content><macroRef key="macro.simlerInline"/></content>
+          <model behaviour="paragraph" useSourceRendition="true">
+            <outputRendition>margin: 0.3em 0;</outputRendition>
+          </model>
         </elementSpec>
 
         <!-- ===================================================================
              MILESTONE / BREAK / FORME-WORK ELEMENTS
              =================================================================== -->
         <elementSpec ident="milestone" module="core" mode="change">
-          <!-- empty; the source rule appearance comes from @rendition (#hr). -->
-          <model behaviour="block" useSourceRendition="true"/>
           <desc>An empty milestone marking a structural section boundary in the source.
-            <att>unit</att> is required.</desc>
+            <att>unit</att> is required; the rule it prints is its <att>rendition</att>
+            (<val>#hr</val>, as in the DTA base format).</desc>
           <content><empty/></content>
           <attList>
             <attDef ident="unit" mode="change" usage="req">
@@ -896,6 +1164,9 @@
               </valList>
             </attDef>
           </attList>
+          <model behaviour="block" useSourceRendition="true">
+            <outputRendition>margin: 1.6em auto;</outputRendition>
+          </model>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <milestone unit="section" rendition="#hr"/>
@@ -914,14 +1185,27 @@
               </valList>
             </attDef>
           </attList>
+          <model behaviour="break">
+            <param name="type" value="'column'"/>
+            <param name="label" value="''"/>
+          </model>
         </elementSpec>
 
         <elementSpec ident="anchor" module="linking" mode="change">
-          <model behaviour="anchor" useSourceRendition="true"/>
           <desc>An anchor point delimiting a commented range (paired with a <gi>note</gi> via
             <att>targetEnd</att>). The range is keyed either by <att>xml:id</att> or by <att>n</att>
             on a start/end pair.</desc>
           <content><empty/></content>
+          <constraintSpec ident="anchor-note" scheme="schematron">
+            <desc>An anchor with an <att>xml:id</att> starts the range of a following note.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:anchor[@xml:id]">
+                <sch:let name="id" value="@xml:id"/>
+                <sch:assert role="warning" test="following::tei:note[replace(@targetEnd, '^#', '') = $id]">[S-AN]
+                  No note comments the range this anchor starts.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
           <attList>
             <attDef ident="type" mode="change" usage="opt">
               <valList type="semi" mode="replace">
@@ -929,17 +1213,18 @@
               </valList>
             </attDef>
           </attList>
+          <model behaviour="anchor"/>
         </elementSpec>
 
         <elementSpec ident="space" module="transcr" mode="change">
           <desc>A significant blank space in the source.</desc>
           <content><empty/></content>
+          <model behaviour="inline">
+            <outputRendition>display: inline-block; min-width: 1.5em;</outputRendition>
+          </model>
         </elementSpec>
 
         <elementSpec ident="fw" module="transcr" mode="change">
-          <model behaviour="block" useSourceRendition="true">
-            <outputRendition>font-size: 0.8em; color: #999; text-align: center; margin: 0.3em 0;</outputRendition>
-          </model>
           <desc>Forme work — running material outside the text block (page numbers, signatures,
             catchwords, running headers). <att>type</att> classifies it, <att>place</att> locates
             it.</desc>
@@ -965,6 +1250,18 @@
               </valList>
             </attDef>
           </attList>
+          <!-- set where the print sets it, and kept out of the search index -->
+          <modelGrp useSourceRendition="true">
+            <outputRendition>font-family: var(--f-ui); font-size: 0.7em; letter-spacing: 0.04em; color: rgb(var(--c-muted)); margin: 0.4em 0;</outputRendition>
+            <model cssClass="fw-header" predicate="@type='header'" behaviour="block">
+              <outputRendition>text-align: center;</outputRendition>
+            </model>
+            <model cssClass="fw-right" predicate="@type='catch' or @type='pageNum'" behaviour="block">
+              <outputRendition>text-align: right;</outputRendition>
+            </model>
+            <model behaviour="block"/>
+          </modelGrp>
+          <model output="plain" behaviour="omit"/>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
               <fw type="pageNum" place="top">194</fw>
@@ -980,19 +1277,16 @@
           <attList>
             <attDef ident="n" mode="change" usage="opt"/>
             <attDef ident="facs" mode="change" usage="opt">
-              <desc>The IIIF image identifier URL of the page on e-rara (e.g.
-                <val>https://www.e-rara.ch/i3f/v20/4049203</val>); the page break carries it as
-                <val>data-page</val>, for a facsimile viewer. Optional: absent for pages identified
-                only by a printer's signature (e.g. <val>[A ii r]</val>) that have no separate
-                facsimile.</desc>
+              <desc>The image identifier of the page, relative to the root of the IIIF manifest named by
+                <gi>idno</gi> <att>type</att>=<val>URLIIIF</val> (e.g. <val>4017111</val>). Optional:
+                absent for pages identified only by a printer's signature.</desc>
               <datatype><dataRef key="teidata.pointer"/></datatype>
             </attDef>
           </attList>
-          <!-- A ruled marker across the column, `—— [5] ——`; inside a paragraph, a verse line or a
-               heading it stays in the line. The nested thumbnail model this ODD used before is
-               now an extension example (extensions/nested-pb/). -->
+          <!-- a ruled marker across the column, `—— [16] ——`; inside a paragraph, a verse line or a
+               heading it stays in the line. `data-page` opens the page in the facsimile. -->
           <modelGrp>
-            <outputRendition>display: flex; align-items: center; gap: 0.7em; margin: 1.4em 0; font-family: system-ui, sans-serif; font-size: 0.68em; letter-spacing: 0.04em; color: #888; user-select: none;</outputRendition>
+            <outputRendition>display: flex; align-items: center; gap: 0.7em; margin: 1.4em 0; font-family: var(--f-ui); font-size: 0.68em; font-weight: 500; letter-spacing: 0.04em; color: rgb(var(--c-muted)); user-select: none; scroll-margin-top: 5rem;</outputRendition>
             <model cssClass="pb-inline" predicate="ancestor::p or ancestor::l or ancestor::head" behaviour="break">
               <param name="type" value="'page'"/>
               <param name="data-page" value="@facs"/>
@@ -1003,14 +1297,14 @@
               <param name="type" value="'page'"/>
               <param name="data-page" value="@facs"/>
               <param name="label" value="concat('[', translate((@n, '·')[1], '[]', ''), ']')"/>
-              <outputRendition scope="before">content: ''; flex: 1; border-top: 1px solid #ddd;</outputRendition>
-              <outputRendition scope="after">content: ''; flex: 1; border-top: 1px solid #ddd;</outputRendition>
+              <outputRendition scope="before">content: ''; flex: 1; border-top: 1px solid rgb(var(--c-line));</outputRendition>
+              <outputRendition scope="after">content: ''; flex: 1; border-top: 1px solid rgb(var(--c-line));</outputRendition>
             </model>
           </modelGrp>
           <model output="plain" behaviour="omit"/>
           <exemplum>
             <egXML xmlns="http://www.tei-c.org/ns/Examples">
-              <pb n="194" facs="https://www.e-rara.ch/i3f/v20/4049203"/>
+              <pb n="194" facs="4049203"/>
             </egXML>
           </exemplum>
         </elementSpec>
@@ -1034,11 +1328,47 @@
                 <gi>front</gi>/<gi>body</gi>/<gi>back</gi>/<gi>titlePage</gi> closes.</item>
               <item>for a word hyphenated across the line, the visible hyphen is kept in the
                 transcription and <att>break</att>=<val>no</val> is set on the <gi>lb</gi> at that
-                line end.</item>
+                line end. Whitespace on either side of such an <gi>lb</gi> is not significant: the
+                word is joined whatever the indentation. A hyphen that ends a word (an ellipsis,
+                as in <mentioned>buß- und gnadbegierig</mentioned>) takes a plain <gi>lb</gi>.</item>
             </list>
             The Schematron constraint <ident>lb-line-end-placement</ident> checks that <gi>lb</gi> is
             not left as the last child of a line-bearing element.</desc>
           <content><empty/></content>
+          <constraintSpec ident="lb-line-end-placement" scheme="schematron">
+            <desc>Enforces the DTABf rule that a line break marks a line END placed after the
+              outermost closing element: an <gi>lb</gi> may not be left as the last (significant)
+              child of a line-bearing element such as <gi>lg</gi>, <gi>l</gi> or <gi>div</gi> — it
+              should be moved to follow that element's closing tag.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+                context="tei:lb[not(following-sibling::*) and not(following-sibling::text()[normalize-space()])]">
+                <sch:report role="warning"
+                  test="parent::tei:l or parent::tei:lg or parent::tei:div or parent::tei:head
+                      or parent::tei:p or parent::tei:list or parent::tei:item or parent::tei:hi
+                      or parent::tei:closer or parent::tei:salute or parent::tei:signed
+                      or parent::tei:dateline or parent::tei:titlePart or parent::tei:figure
+                      or parent::tei:fw or parent::tei:body or parent::tei:front">
+                  [S-LB] A line break (lb) marks a line END and must follow the outermost closing
+                  element; here it is the last child of &lt;<sch:value-of select="local-name(parent::*)"/>&gt;.
+                  Move the lb to immediately after the closing &lt;/<sch:value-of select="local-name(parent::*)"/>&gt; tag.
+                </sch:report>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+          <constraintSpec ident="lb-joined" scheme="schematron">
+            <desc>A joined line end continues a word of its own line, so it does not open its
+              element; the line of a catchword ends with a plain <gi>lb</gi>, as in the DTA base
+              format.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:lb[@break='no']">
+                <sch:report role="warning" test="not(preceding-sibling::node()[normalize-space() or self::*])">[S-LBJ]
+                  A joined line end opens its element.</sch:report>
+                <sch:report role="warning" test="preceding-sibling::*[1][self::tei:fw[@type='catch']]">[S-LBC]
+                  The line of a catchword ends with a plain lb.</sch:report>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
           <attList>
             <attDef ident="break" mode="change" usage="opt">
               <valList type="closed" mode="replace">
@@ -1049,6 +1379,33 @@
               </valList>
             </attDef>
           </attList>
+          <!-- A line break is dropped where the output already starts a line (after a block). At a
+               hyphenated line end the print shows the hyphen — the source's own, where the
+               transcription kept it, or a supplied one, in grey — and the break. The reading text
+               joins every line but the title page's, and keeps the space between the words; the
+               search text joins the hyphenated word and needs no space. -->
+          <model cssClass="lb-hyphen" predicate="@break='no' and matches(preceding-sibling::node()[normalize-space()][1], '[-¬⸗&#xAD;&#x2010;&#x2011;]\s*$')" behaviour="break">
+            <param name="type" value="'line'"/>
+            <param name="label" value="'-'"/>
+          </model>
+          <model cssClass="lb-hyphen-supplied" predicate="@break='no'" behaviour="break">
+            <param name="type" value="'line'"/>
+            <param name="label" value="'-'"/>
+            <outputRendition>color: rgb(var(--c-muted));</outputRendition>
+          </model>
+          <modelSequence>
+            <model behaviour="break">
+              <param name="type" value="'line'"/>
+            </model>
+            <model behaviour="text">
+              <param name="content" value="' '"/>
+            </model>
+          </modelSequence>
+          <model output="normalized" predicate="@break='no' or not(ancestor::titlePage)" behaviour="omit"/>
+          <model output="plain" predicate="@break='no'" behaviour="omit"/>
+          <model output="plain" behaviour="break">
+            <param name="type" value="'line'"/>
+          </model>
           <exemplum>
             <p>The line end of the last verse line follows the <emph>outermost</emph> closing element
               — here after <gi>div</gi>, as a sibling of it — not inside <gi>lg</gi> after the last
@@ -1081,27 +1438,6 @@
               <l>und Gottes wort be<lb break="no"/>trachtet/</l>
             </egXML>
           </exemplum>
-          <constraintSpec ident="lb-line-end-placement" scheme="schematron">
-            <desc>Enforces the DTABf rule that a line break marks a line END placed after the
-              outermost closing element: an <gi>lb</gi> may not be left as the last (significant)
-              child of a line-bearing element such as <gi>lg</gi>, <gi>l</gi> or <gi>div</gi> — it
-              should be moved to follow that element's closing tag.</desc>
-            <constraint>
-              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron"
-                context="tei:lb[not(following-sibling::*) and not(following-sibling::text()[normalize-space()])]">
-                <sch:report role="warning"
-                  test="parent::tei:l or parent::tei:lg or parent::tei:div or parent::tei:head
-                      or parent::tei:p or parent::tei:list or parent::tei:item or parent::tei:hi
-                      or parent::tei:closer or parent::tei:salute or parent::tei:signed
-                      or parent::tei:dateline or parent::tei:titlePart or parent::tei:figure
-                      or parent::tei:fw or parent::tei:body or parent::tei:front">
-                  [S-LB] A line break (lb) marks a line END and must follow the outermost closing
-                  element; here it is the last child of &lt;<sch:value-of select="local-name(parent::*)"/>&gt;.
-                  Move the lb to immediately after the closing &lt;/<sch:value-of select="local-name(parent::*)"/>&gt; tag.
-                </sch:report>
-              </sch:rule>
-            </constraint>
-          </constraintSpec>
         </elementSpec>
 
       </schemaSpec>

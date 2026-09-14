@@ -9,8 +9,8 @@
  * (graceful degradation); petite-vue (~7 KB) adds the interactivity at load.
  *
  * As in render-unified.mjs, edition.css is inlined and this script owns only the
- * page chrome and interactive scaffolding. --tei accepts the same inputs; one
- * input → rendered-unified-interactive.html, several → per-source pages + index.
+ * page chrome and interactive scaffolding. --tei accepts the same inputs, with
+ * the same pages.
  *
  * Usage:  node render-unified-interactive.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
  */
@@ -34,7 +34,7 @@ const teiArg       = cli.getAll("--tei");
 const cssPath      = cli.get("--css")      || "output/edition.css";
 const outDir       = cli.get("--out")      || "output";
 
-const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-poem.xml");
+const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-*.xml");
 const multi = teiFiles.length > 1;
 
 log(`Handlers: ${handlersPath}`);
@@ -207,7 +207,7 @@ function renderPage(teiFile) {
   // Compose HTML page with petite-vue
   // -------------------------------------------------------------------------
   const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-mode="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -313,7 +313,7 @@ ${editionCss}
 const indexEntries = [];
 for (const teiFile of teiFiles) {
   const { html, notes, title } = renderPage(teiFile);
-  const pageName = multi ? htmlPageName(teiFile) : "rendered-unified-interactive.html";
+  const pageName = htmlPageName(teiFile);
   const outFile = writeOut(outDir, pageName, html);
   log(`✓ ${teiFile} → ${outFile}`);
   indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s) · interactive` });

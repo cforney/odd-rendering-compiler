@@ -6,10 +6,11 @@
  * stylesheet is XSLT 3.0: its predicates and params are XPath 3.1.
  *
  * --tei takes a file, a directory, a glob, a comma-separated list, or repeated
- * flags. One input → rendered-xslt.html; several → one <basename>.html per
- * source plus an index.html. --output names the PM output to render (default web).
+ * flags. Each source gives <basename>.html; several also an index.html. The
+ * pages link edition.css, which --css copies beside them. --output names the
+ * PM output to render (default web).
  *
- * Usage:  node render-xslt.mjs --xsl <path> --tei <path|dir|glob> [--out <dir>] [--output <name>]
+ * Usage:  node render-xslt.mjs --xsl <path> --tei <path|dir|glob> [--css <path>] [--out <dir>] [--output <name>]
  */
 
 import { execSync } from "child_process";
@@ -27,11 +28,15 @@ const log = createLogger("render-xslt");
 
 const xslPath = cli.get("--xsl") || "output/edition.xsl";
 const teiArg  = cli.getAll("--tei");
+const cssPath = cli.get("--css") || "output/edition.css";
 const outDir  = cli.get("--out") || "output";
 const output  = cli.get("--output") || "web";
 
-const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-poem.xml");
+const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-*.xml");
 const multi = teiFiles.length > 1;
+
+mkdirSync(resolve(outDir), { recursive: true });
+if (resolve(cssPath) !== resolve(outDir, "edition.css")) copyFileSync(resolve(cssPath), resolve(outDir, "edition.css"));
 
 // The CLI runs in a temp directory holding edition.xsl, so no path reaches the
 // shell; each document is written there as source.xml in turn.
@@ -51,7 +56,7 @@ function transform(teiFile) {
 const indexEntries = [];
 try {
   for (const teiFile of teiFiles) {
-    const pageName = multi ? htmlPageName(teiFile) : "rendered-xslt.html";
+    const pageName = htmlPageName(teiFile);
     const outFile = writeOut(outDir, pageName, transform(teiFile));
     log(`✓ ${teiFile} → ${outFile}`);
     const title = extractTeiTitle(parseXmlToXast(readFileSync(resolve(teiFile), "utf-8")));

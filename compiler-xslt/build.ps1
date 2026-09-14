@@ -3,14 +3,19 @@
 #
 #   GENERATE (the XSLT way):  ODD --odd-to-xsl.xsl--> edition.xsl
 #                             ODD --odd-to-css.xsl--> edition.css
-#   RENDER:                   edition.xsl(TEI)     --> rendered HTML (static + interactive)
+#   RENDER:                   edition.xsl(TEI)     --> one HTML page per TEI file (static + interactive)
 #
-# Saxon HE 12 is located via $env:SAXON_HOME — point it at your unpacked SaxonHE12
+#   ./build.ps1 [-Odd <path>] [-Tei <path>,<path>...] [-Tokens <css>]
+# With no arguments, the Simler ODD and every ../examples/simler-*.xml. -Tokens
+# names the design tokens for edition.css, relative to the ODD ("" for none).
+#
+# Saxon HE 12 is located via $env:SAXON_HOME - point it at your unpacked SaxonHE12
 # directory (download: https://www.saxonica.com/download/java.xml). With none set,
 # ./vendor/SaxonHE12-9J is tried.
 param(
   [string]$Odd = "../examples/tei_simler.odd",
-  [string]$Tei = "../examples/simler-poem.xml"
+  [string[]]$Tei = @(),
+  [string]$Tokens = "simler-tokens.css"
 )
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
@@ -25,51 +30,48 @@ $resolvers = (Get-ChildItem "$saxonHome\lib\xmlresolver-*.jar" | ForEach-Object 
 $cp = "$($saxonJar.FullName);$resolvers"
 function Invoke-Saxon([string[]]$a) { & java -cp $cp net.sf.saxon.Transform @a }
 
-New-Item -ItemType Directory -Force output | Out-Null
+$teis = if ($Tei.Count) { Get-Item $Tei } else { Get-ChildItem "../examples/simler-*.xml" | Sort-Object Name }
+$names = @($teis | ForEach-Object { $_.Name })
+New-Item -ItemType Directory -Force output/xslt, output/xslt-interactive, output/ceteicean | Out-Null
 
 Write-Host "(1) generate edition.xsl  <- $Odd"
 Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-xsl.xsl", "-o:output/edition.xsl")
-Write-Host "(1) generate edition.css  <- $Odd"
-Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-css.xsl", "-o:output/edition.css")
-Write-Host "(1) generate tei-ceteicean-behaviours.js + rendered-ceteicean.html  <- $Odd"
-Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-ceteicean.xsl", "-o:output/tei-ceteicean-behaviours.js", "tei=$([System.IO.Path]::GetFileName($Tei))")
-Write-Host "(2) render rendered-xslt.html  <- $Tei (static)"
-Invoke-Saxon @("-s:$Tei", "-xsl:output/edition.xsl", "-o:output/rendered-xslt.html")
-Write-Host "(2) render rendered-xslt-interactive.html  <- $Tei (progressively enhanced)"
-Invoke-Saxon @("-s:$Tei", "-xsl:output/edition.xsl", "-o:output/rendered-xslt-interactive.html", "interactive=true")
+Write-Host "(1) generate edition.css  <- $Odd $Tokens"
+Invoke-Saxon (@("-s:$Odd", "-xsl:generate/odd-to-css.xsl", "-o:output/edition.css") + @($(if ($Tokens) { "tokens=$Tokens" })))
+foreach ($dir in "output/xslt", "output/ceteicean") { Copy-Item output/edition.css $dir -Force }
+Write-Host "(1) generate ceteicean/ (behaviours + a page per TEI file)  <- $Odd"
+Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-ceteicean.xsl", "-o:output/ceteicean/tei-ceteicean-behaviours.js", "tei=$($names -join ' ')")
 
-# Corpus -> output/edition-interactive/: one interactive page per source plus a
-# linking index.html, mirroring the JS render:multi output. The corpus is every
-# simler-*.xml next to $Tei.
-$teiDir = Split-Path -Parent $Tei
-Write-Host "(3) corpus output/edition-interactive/  <- $teiDir/simler-*.xml"
-New-Item -ItemType Directory -Force output/edition-interactive | Out-Null
-$names = @()
-Get-ChildItem "$teiDir/simler-*.xml" | Sort-Object Name | ForEach-Object {
-  Invoke-Saxon @("-s:$($_.FullName)", "-xsl:output/edition.xsl", "-o:output/edition-interactive/$($_.BaseName).html", "interactive=true")
-  $names += $_.Name
+# Each TEI file: a static page (zero-JS) and a progressively enhanced one, plus an
+# index of the enhanced pages, as the JS renderers write them.
+Write-Host "(2) render xslt/, xslt-interactive/  <- $($teis.Count) TEI file(s)"
+foreach ($f in $teis) {
+  Invoke-Saxon @("-s:$($f.FullName)", "-xsl:output/edition.xsl", "-o:output/xslt/$($f.BaseName).html")
+  Invoke-Saxon @("-s:$($f.FullName)", "-xsl:output/edition.xsl", "-o:output/xslt-interactive/$($f.BaseName).html", "interactive=true")
 }
-$filesParam = $names -join '|'
-$subtitle = "$($names.Count) documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
-Invoke-Saxon @("-s:$Odd", "-xsl:generate/generate-index.xsl", "-o:output/edition-interactive/index.html",
-  "files=$filesParam", "title=TEI Edition — XSLT (progressively enhanced)", "subtitle=$subtitle")
+$subtitle = "$($names.Count) documents - prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
+Invoke-Saxon @("-s:$($teis[0].FullName)", "-xsl:generate/generate-index.xsl", "-o:output/xslt-interactive/index.html",
+  "files=$($names -join '|')", "title=TEI Edition - XSLT (progressively enhanced)", "subtitle=$subtitle")
 
-# (4) SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
+# (3) SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
 #     File (SEF) and run in the browser. The SEF compiler is xslt3 (SaxonJS, Node):
 #     Saxon HE cannot emit a SaxonJS-runnable SEF, and only xslt3 understands the
 #     IXSL toggle templates. The runtime is self-hosted so the demo works offline.
 if (Get-Command npx -ErrorAction SilentlyContinue) {
-  Write-Host "(4) saxonjs edition-saxonjs.sef.json (IXSL) + rendered-saxonjs.html  <- edition.xsl"
-  & npx --yes xslt3 -xsl:generate/render-saxonjs.xsl -export:output/edition-saxonjs.sef.json -nogo
+  Write-Host "(3) saxonjs edition-saxonjs.sef.json (IXSL) + saxonjs/  <- edition.xsl"
+  & npx --yes xslt3 "-xsl:generate/render-saxonjs.xsl" "-export:output/edition-saxonjs.sef.json" -nogo
   if ($LASTEXITCODE -ne 0) { throw "xslt3 failed to compile the SEF" }
-  Invoke-Saxon @("-s:$Odd", "-xsl:generate/generate-saxonjs-page.xsl", "-o:output/rendered-saxonjs.html",
-    "tei=$([System.IO.Path]::GetFileName($Tei))")
-  Copy-Item $Tei "output/$([System.IO.Path]::GetFileName($Tei))" -Force  # fetched at view time
+  New-Item -ItemType Directory -Force output/saxonjs | Out-Null
+  foreach ($f in $teis) {
+    Copy-Item $f.FullName output/saxonjs/ -Force                      # fetched at view time
+    Invoke-Saxon @("-s:$Odd", "-xsl:generate/generate-saxonjs-page.xsl", "-o:output/saxonjs/$($f.BaseName).html",
+      "tei=$($f.Name)", "sef=../edition-saxonjs.sef.json", "runtime=../SaxonJS2.rt.js", "css=../edition.css")
+  }
   if (-not (Test-Path output/SaxonJS2.rt.js)) {                          # SaxonJS 2 runtime
     try { Invoke-WebRequest -UseBasicParsing -Uri "https://www.saxonica.com/saxon-js/documentation2/SaxonJS/SaxonJS2.rt.js" -OutFile output/SaxonJS2.rt.js }
-    catch { Write-Warning "could not fetch SaxonJS2.rt.js - drop it next to rendered-saxonjs.html to view" }
+    catch { Write-Warning "could not fetch SaxonJS2.rt.js - drop it into output/ to view the saxonjs/ pages" }
   }
 } else {
-  Write-Host "(4) saxonjs skipped (Node/npx not found - needed to compile the SEF with xslt3)"
+  Write-Host "(3) saxonjs skipped (Node/npx not found - needed to compile the SEF with xslt3)"
 }
 Write-Host "done."

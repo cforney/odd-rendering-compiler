@@ -5,13 +5,13 @@
   produce the same page. For each TEI source it reads the <title> and counts the
   <note>s, and links the rendered <basename>.html.
 
-  Point -s: at any file in the corpus directory (the ODD will do): relative TEI
+  Point -s: at a file in the corpus directory, such as its first TEI file: TEI
   names in `files` resolve against that document's base URI, the same trick
   odd-to-ceteicean.xsl uses.
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/generate-index.xsl
-              -o:output/edition-interactive/index.html
-              files="simler-buchstabwechsel.xml|simler-poem.xml"
+              -o:output/xslt-interactive/index.html
+              files="simler-buchstabwechsel.xml|simler-psalmen.xml"
               title="…" subtitle="…"
 -->
 <xsl:stylesheet version="3.0"

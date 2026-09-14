@@ -3,15 +3,15 @@
   odd-to-ceteicean.xsl — the "generate" step for the CETEIcean tier, in XSLT.
 
   Emits tei-ceteicean-behaviours.js (the runtime ../../runtime/ceteicean.js and
-  the ODD's models as JSON) and, via xsl:result-document, rendered-ceteicean.html,
-  a page that renders the TEI in the browser. The tier is a subset of the
+  the ODD's models as JSON) and, via xsl:result-document, a page per TEI file
+  beside it, <basename>.html, that renders the TEI in the browser. The tier is a subset of the
   Processing Model, the same as in odd-to-ceteicean.mjs: models without @output
   and sequences; predicates @a, @a='v', parent::X, ancestor::X as CSS
   selectors; params that are literals, @a, or count(ancestor::X) plus a number.
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/odd-to-ceteicean.xsl \
-              -o:output/tei-ceteicean-behaviours.js tei=simler-poem.xml
-  The `tei` parameter is the TEI file's name, resolved next to the ODD.
+              -o:output/ceteicean/tei-ceteicean-behaviours.js "tei=simler-psalmen.xml simler-hausswesen.xml"
+  The `tei` parameter names the TEI files, separated by spaces, resolved next to the ODD.
 -->
 <xsl:stylesheet version="3.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -24,7 +24,7 @@
 
   <xsl:output method="text" encoding="UTF-8"/>
 
-  <xsl:param name="tei" select="'simler-poem.xml'"/>
+  <xsl:param name="tei" select="'simler-psalmen.xml'"/>
 
   <!-- A predicate as a CSS selector on the custom element, or () outside the subset. -->
   <xsl:function name="pm:selector" as="xs:string?">
@@ -95,12 +95,18 @@
       || 'const teiModels = ' || serialize(map:merge($models), map { 'method': 'json', 'indent': true() }) || ';&#10;'"/>
     <xsl:value-of select="$behaviours"/>
 
-    <xsl:variable name="teiUri" select="resolve-uri($tei, base-uri(/))"/>
-    <xsl:variable name="teiText" select="if (unparsed-text-available($teiUri)) then replace(unparsed-text($teiUri), '^&lt;\?xml[^>]*\?>\s*', '') else ''"/>
-    <xsl:result-document href="rendered-ceteicean.html" method="text">
-      <xsl:value-of select="unparsed-text('../../runtime/ceteicean.html')
-        => replace('{{behaviours}}', $behaviours, 'q') => replace('{{tei}}', $teiText, 'q')"/>
-    </xsl:result-document>
+    <xsl:variable name="odd" select="base-uri(/)"/>
+    <xsl:for-each select="tokenize($tei)">
+      <xsl:variable name="uri" select="resolve-uri(., $odd)"/>
+      <xsl:if test="not(unparsed-text-available($uri))">
+        <xsl:message select="'[odd-to-ceteicean.xsl] ⚠ TEI file not found next to the ODD: ' || ."/>
+      </xsl:if>
+      <xsl:variable name="teiText" select="if (unparsed-text-available($uri)) then replace(unparsed-text($uri), '^&lt;\?xml[^>]*\?>\s*', '') else ''"/>
+      <xsl:result-document href="{replace(tokenize(., '/')[last()], '\.xml$', '')}.html" method="text">
+        <xsl:value-of select="unparsed-text('../../runtime/ceteicean.html')
+          => replace('{{behaviours}}', $behaviours, 'q') => replace('{{tei}}', $teiText, 'q')"/>
+      </xsl:result-document>
+    </xsl:for-each>
   </xsl:template>
 
 </xsl:stylesheet>

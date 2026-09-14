@@ -12,24 +12,32 @@
  * `count(ancestor::X)` plus a number. A model outside it is left out with a
  * warning. The behaviours are the runtime ../runtime/ceteicean.js.
  *
- * Usage:   node odd-to-ceteicean.mjs --odd <path> --tei <path> [--out <dir>]
- * Outputs: <dir>/tei-ceteicean-behaviours.js, <dir>/rendered-ceteicean.html
+ * --tei takes the renderers' inputs: each source gives a page <basename>.html,
+ * several also an index.html. The pages link edition.css, which --css copies
+ * beside them.
+ *
+ * Usage:   node odd-to-ceteicean.mjs --odd <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
+ * Outputs: <dir>/tei-ceteicean-behaviours.js, <dir>/<basename>.html, <dir>/edition.css
  */
 
-import { readFileSync } from "fs";
+import { readFileSync, copyFileSync, mkdirSync } from "fs";
 import { resolve, basename } from "path";
-import { readOdd } from "./odd-parser.mjs";
-import { parseArgs, createLogger, writeOut, generatedStamp } from "./cli.mjs";
+import { readOdd, parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
+import {
+  parseArgs, createLogger, writeOut, generatedStamp,
+  resolveInputFiles, htmlPageName, buildIndexPage,
+} from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("odd-to-ceteicean");
 const oddPath = cli.get("--odd");
-const teiPath = cli.get("--tei") || "../examples/simler-poem.xml";
+const teiFiles = resolveInputFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml");
+const cssPath = cli.get("--css") || "output/edition.css";
 const outDir = cli.get("--out") || "output";
 const stamp = generatedStamp(cli);
 
 if (!oddPath) {
-  console.error("Usage: node odd-to-ceteicean.mjs --odd <path> --tei <path> [--out <dir>]");
+  console.error("Usage: node odd-to-ceteicean.mjs --odd <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]");
   process.exit(1);
 }
 
@@ -81,14 +89,18 @@ ${runtime("ceteicean.js")}
 const teiModels = ${JSON.stringify(models, null, 1)};
 `;
 
-let tei = "";
-try {
-  tei = readFileSync(resolve(teiPath), "utf-8");
-} catch {
-  log(`⚠ TEI file not found: ${teiPath}`);
-}
-const page = runtime("ceteicean.html").split("{{behaviours}}").join(behaviours).split("{{tei}}").join(tei.replace(/^<\?xml[^>]*\?>\s*/, ""));
-
 writeOut(outDir, "tei-ceteicean-behaviours.js", behaviours);
-const pagePath = writeOut(outDir, "rendered-ceteicean.html", page);
-log(`✓ ${pagePath} (${Object.keys(models).length} elements) + tei-ceteicean-behaviours.js`);
+mkdirSync(resolve(outDir), { recursive: true });
+if (resolve(cssPath) !== resolve(outDir, "edition.css")) copyFileSync(resolve(cssPath), resolve(outDir, "edition.css"));
+
+const entries = [];
+for (const teiFile of teiFiles) {
+  const tei = readFileSync(resolve(teiFile), "utf-8");
+  const page = runtime("ceteicean.html").split("{{behaviours}}").join(behaviours).split("{{tei}}").join(tei.replace(/^<\?xml[^>]*\?>\s*/, ""));
+  const pagePath = writeOut(outDir, htmlPageName(teiFile), page);
+  log(`✓ ${pagePath} (${Object.keys(models).length} elements)`);
+  entries.push({ href: htmlPageName(teiFile), title: extractTeiTitle(parseXmlToXast(tei)) || htmlPageName(teiFile), meta: "CETEIcean (in the browser)" });
+}
+if (entries.length > 1) {
+  writeOut(outDir, "index.html", buildIndexPage({ title: "TEI Edition — CETEIcean", subtitle: `${entries.length} documents · rendered in the browser`, entries }));
+}

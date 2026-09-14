@@ -71,7 +71,8 @@
             <param name="data-n" value="count(preceding-sibling::l) + 1"/>
           </model>
         </elementSpec>
-        <!-- breaks: a line break where a line starts is dropped; a label comes before the break -->
+        <!-- breaks: a line break where a line starts is dropped; a label comes before the break;
+             at a joined line end the encoded hyphen and the spaces go -->
         <elementSpec ident="lb" mode="change">
           <model predicate="@break = 'no'" behaviour="break" cssClass="lb-hyphen">
             <param name="type" value="'line'"/>

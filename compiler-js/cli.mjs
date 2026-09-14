@@ -113,7 +113,7 @@ function globFiles(pattern) {
  * Resolve a `--tei` argument into a sorted, de-duplicated list of input files.
  * Each spec (a string, or an array of strings from a repeated flag) may itself
  * be comma-separated, and each part may be:
- *   - a single file        — `../examples/simler-poem.xml`
+ *   - a single file        — `../examples/simler-psalmen.xml`
  *   - a directory          — `../examples`        (→ every `*.xml` inside)
  *   - a glob (`* ? **`)    — `"../examples/*.xml"`
  * A plain path that does not exist is still returned (so the caller can emit a

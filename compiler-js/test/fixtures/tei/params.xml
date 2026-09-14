@@ -17,7 +17,9 @@
       </lg>
       <p>A <choice><sic>mistake</sic><corr>correction</corr></choice>, <num>7</num>, a
         <ref target="https://example.org/">link</ref>, a <graphic url="image.png"/> and a
-        line<lb/>break in prose.</p>
+        line<lb/>break in prose, and a word the source <hi>hy-</hi>
+        <lb break="no"/>
+        phenates.</p>
       <pb n="2"/>
     </body>
   </text>

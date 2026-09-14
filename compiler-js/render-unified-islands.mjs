@@ -9,8 +9,7 @@
  * petite-vue and vanilla-JS interactive tiers (see islands-runtime.js for the
  * model, which mirrors Astro's <astro-island> + client:* directives).
  *
- * --tei accepts the same inputs as the other renderers; one input →
- * rendered-unified-islands.html, several → per-source pages + index.
+ * --tei accepts the same inputs as the other renderers, with the same pages.
  *
  * Usage: node render-unified-islands.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
  */
@@ -31,7 +30,7 @@ const teiArg       = cli.getAll("--tei");
 const cssPath      = cli.get("--css")      || "output/edition.css";
 const outDir       = cli.get("--out")      || "output";
 
-const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-poem.xml");
+const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-*.xml");
 const multi = teiFiles.length > 1;
 
 const teiToHast = await loadHandlers(handlersPath);
@@ -69,7 +68,7 @@ function renderPage(teiFile) {
   const title = extractTeiTitle(xastTree);
 
   const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-mode="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -144,7 +143,7 @@ writeOut(outDir, "tei-islands.js", runtime);
 const indexEntries = [];
 for (const teiFile of teiFiles) {
   const { html, notes, title } = renderPage(teiFile);
-  const pageName = multi ? htmlPageName(teiFile) : "rendered-unified-islands.html";
+  const pageName = htmlPageName(teiFile);
   const outFile = writeOut(outDir, pageName, html);
   log(`✓ ${teiFile} → ${outFile}`);
   indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s) · islands` });

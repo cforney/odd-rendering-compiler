@@ -18,7 +18,7 @@ echo "poc_odds.odd is valid TEI"
 jing "$TEI_ODDS_RNG" poc_odds.odd
 
 echo "poc_odds.odd → poc_odds.rng"
-saxon -s:poc_odds.odd -xsl:"$TEI_XSL/odds/odd2odd.xsl" -o:"$OUT/poc_odds.compiled.odd"
+saxon -s:poc_odds.odd -xsl:"$TEI_XSL/odds/odd2odd.xsl" -o:"$OUT/poc_odds.compiled.odd" defaultTEIVersion=4.12.0
 saxon -s:"$OUT/poc_odds.compiled.odd" -xsl:"$TEI_XSL/odds/odd2relax.xsl" -o:"$OUT/poc_odds.rng"
 
 echo "tei_simler-nested-pb.odd is valid against poc_odds.rng"

@@ -8,8 +8,7 @@
  * page chrome and the note scaffolding.
  *
  * --tei takes a file, a directory, a glob, a comma-separated list, or repeated
- * flags. One input → rendered-unified.html; several → one <basename>.html per
- * source plus an index.html. --output names the PM output to render (default web).
+ * flags. Each source gives <basename>.html; several also an index.html. --output names the PM output to render (default web).
  *
  * Usage:   node render-unified.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>] [--output <name>]
  */
@@ -31,7 +30,7 @@ const cssPath      = cli.get("--css")      || "output/edition.css";
 const outDir       = cli.get("--out")      || "output";
 const output       = cli.get("--output")   || "web";
 
-const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-poem.xml");
+const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-*.xml");
 const multi = teiFiles.length > 1;
 
 const teiToHast = await loadHandlers(handlersPath);
@@ -49,7 +48,7 @@ function renderPage(teiFile) {
   const { hast, notes } = teiToHast(tree, { output });
 
   const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-mode="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,7 +102,7 @@ ${editionCss}
 const indexEntries = [];
 for (const teiFile of teiFiles) {
   const { html, notes, title } = renderPage(teiFile);
-  const pageName = multi ? htmlPageName(teiFile) : "rendered-unified.html";
+  const pageName = htmlPageName(teiFile);
   const outFile = writeOut(outDir, pageName, html);
   log(`✓ ${teiFile} → ${outFile} (${notes.length} note(s))`);
   indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s)` });

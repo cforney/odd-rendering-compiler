@@ -3,7 +3,7 @@
 /**
  * Assemble the comparison demo (demo/site/) from outputs both compilers already
  * produce. It copies each compiler's output/ verbatim, measures page weight and
- * client JS per path, reads the artefact snippets, and writes a single index.html
+ * client JS per page, reads the artefact snippets, and writes a single index.html
  * shell driven by demo/manifest.mjs. Build the outputs first:
  *
  *   (compiler-js)   npm run build:all && npm run render:all
@@ -74,22 +74,25 @@ for (const [dir, src] of Object.entries(SOURCES)) {
 for (const asset of ["shell.css", "shell.js"]) copyFileSync(resolve(DEMO, asset), resolve(SITE, asset));
 
 // ---------------------------------------------------------------------------
-// 2 · Resolve each path against the copied site: URL, metrics, artefact snippet.
+// 2 · Resolve each path and document against the copied site: URL and metrics
+//     per page, the artefact snippet per path.
 // ---------------------------------------------------------------------------
 const resolved = paths.flatMap((p) => {
-  const page = resolve(SITE, p.dir, p.file);
-  if (!existsSync(page)) {
-    console.warn(`[build-demo] skipping ${p.id}: ${p.dir}/${p.file} not found`);
+  const pages = {};
+  for (const doc of docs) {
+    const url = `${p.dir}/${p.file.replace("{doc}", doc.id)}`;
+    const page = resolve(SITE, url);
+    if (!existsSync(page)) continue;
+    const js = measureClientJs(page);
+    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), jsKB: kb(js.bytes), jsExternal: [...new Set(js.external)] };
+  }
+  if (!Object.keys(pages).length) {
+    console.warn(`[build-demo] skipping ${p.id}: no ${p.dir}/${p.file} found`);
     return [];
   }
-  const js = measureClientJs(page);
   const artefactFile = resolve(SITE, p.artefact.file);
   return [{
-    id: p.id, label: p.label, hue: p.hue,
-    url: `${p.dir}/${p.file}`,
-    pageKB: kb(sizeOf(page)),
-    jsKB: kb(js.bytes),
-    jsExternal: [...new Set(js.external)],
+    id: p.id, label: p.label, hue: p.hue, pages,
     artefact: {
       label: p.artefact.label,
       url: p.artefact.file,
@@ -101,7 +104,8 @@ if (!resolved.length) { console.error("[build-demo] no paths resolved — nothin
 
 const floorFile = resolve(SITE, floor.file);
 const data = {
-  concept, docs, paths: resolved,
+  concept, paths: resolved,
+  docs: docs.filter((d) => resolved.some((p) => p.pages[d.id])),
   floor: {
     label: floor.label, url: floor.file,
     sizeKB: kb(sizeOf(floorFile)),

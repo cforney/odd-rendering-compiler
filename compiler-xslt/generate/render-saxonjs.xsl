@@ -26,7 +26,7 @@
        the imported default 'false' by import precedence. -->
   <xsl:param name="interactive" select="'true'"/>
   <!-- TEI document to load, relative to the hosting page. -->
-  <xsl:param name="tei-uri" select="'simler-poem.xml'"/>
+  <xsl:param name="tei-uri" select="'simler-psalmen.xml'"/>
 
   <!-- On load: fetch the TEI and render the edition into the page container. -->
   <xsl:template name="main">

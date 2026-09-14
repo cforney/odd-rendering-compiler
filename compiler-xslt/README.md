@@ -6,8 +6,9 @@ artefacts (an `edition.xsl` stylesheet and an `edition.css`) by XSLT itself, whi
 then run over a TEI document to produce static HTML — the same HTML the
 JavaScript implementation renders.
 
-Run with no arguments, it builds the **Simler** edition — Fraktur renditions,
-entities coloured by `@type`, and CSS-grid acrostic layouts.
+Run with no arguments, it builds the **Simler** edition from the project's own
+ODD, over its four excerpts: Fraktur renditions, notes and marginalia, and a
+CSS-grid acrostic layout.
 
 ```
 compiler-xslt/
@@ -35,29 +36,29 @@ The optional **SaxonJS** step (below) also needs **Node.js** (for `npx xslt3`); 
 Node is absent the build prints a notice and skips it — everything else still runs.
 
 ```bash
-bash build.sh                                                                   # default: the Simler edition
-bash build.sh ../examples/tei_simler.odd ../examples/simler-buchstabwechsel.xml # the acrostic poem
+bash build.sh                                                            # the Simler ODD, every example
+bash build.sh ../examples/tei_simler.odd ../examples/simler-psalmen.xml  # one example
 ```
 ```powershell
-./build.ps1                                                                     # Windows / PowerShell
+./build.ps1                                                              # Windows / PowerShell
 ```
 
-Outputs: `edition.xsl`, `edition.css`, `rendered-xslt.html` (Tier 1, zero-JS),
-`rendered-xslt-interactive.html` (Tier 2, progressively enhanced), and — from
-`odd-to-ceteicean.xsl` — `tei-ceteicean-behaviours.js` plus a self-contained
-`rendered-ceteicean.html` that renders the TEI client-side with CETEIcean. The
-build also renders the whole `simler-*.xml` corpus into `edition-interactive/`
-(one self-contained interactive page per source plus a linking `index.html`,
-built by `generate-index.xsl`). When Node is available it additionally emits the
-**SaxonJS** browser path: `edition-saxonjs.sef.json`, `rendered-saxonjs.html`, and
-a self-hosted `SaxonJS2.rt.js` (see below).
+Outputs: `edition.xsl` and `edition.css` (with the design tokens of `TOKENS`,
+relative to the ODD, by default `simler-tokens.css`), then one page per TEI
+file in each of `xslt/` (Tier 1, zero-JS) and `xslt-interactive/` (Tier 2,
+progressively enhanced, with a linking `index.html` from `generate-index.xsl`),
+and `ceteicean/`: from `odd-to-ceteicean.xsl`, `tei-ceteicean-behaviours.js` and
+a self-contained page per TEI file next to the ODD that renders it client-side
+with CETEIcean. When Node is available it additionally emits the **SaxonJS**
+browser path: `edition-saxonjs.sef.json`, a page per TEI file in `saxonjs/`, and a
+self-hosted `SaxonJS2.rt.js` (see below).
 
 ## SaxonJS in the browser (SEF + IXSL)
 
 The build-time stylesheet runs *client-side* too. `render-saxonjs.xsl` imports the
 generated `edition.xsl` (reusing every TEI template) and adds IXSL event templates
 for the note and apparatus toggles; `xslt3` compiles it to a Stylesheet
-Export File (`edition-saxonjs.sef.json`), and `rendered-saxonjs.html` runs that SEF
+Export File (`edition-saxonjs.sef.json`), and the pages in `saxonjs/` run that SEF
 in the browser with the SaxonJS runtime. So the **same** template-matching
 stylesheet has two entry points — **Saxon HE at build time, SaxonJS in the
 browser** — and the client-side interactivity is *interactive XSLT* (IXSL), the
@@ -110,14 +111,16 @@ JS `odd-to-ceteicean.mjs`.
 
 - **Source appearance & layout** ride on `@rendition`: where a model sets
   `@useSourceRendition`, the element's pointer list becomes `r-<id>` classes that
-  `edition.css` (from `<tagsDecl>`) styles. That is how the *Buchstabwechsel* poem reconstructs its
-  interleaved columns and marginal acrostic — pure CSS-grid renditions from the ODD.
+  `edition.css` (from `<tagsDecl>`) styles. The *Buchstabwächsel* reconstructs its
+  interleaved columns so: the `#twocol` rendition makes the CSS grid, and the
+  `l-twocol` model's params (`--acro`, `--fin`, `--indent`) set each line's
+  marginal letters and indent.
 - **The target language shapes the output.** The interactive page does *not* use
   petite-vue: its directives (`@click`, `:aria-checked`) are not valid XML attribute
   names, so a standards XSLT generator cannot emit them. The same result (note and
   apparatus toggles, graceful degradation) is reached with `data`/`class` hooks plus
   ~12 lines of vanilla JS and a `<noscript>` reveal.
-- **Fidelity.** The static `rendered-xslt.html` body is **equivalent** to the
+- **Fidelity.** The body of each static page in `xslt/` is **equivalent** to the
   unified render and to that of the stylesheet from `odd-to-xslt.mjs`: identical
   up to attribute order and whitespace. `compiler-js`'s `npm test` checks this on
   the examples and on the conformance fixtures.

@@ -48,8 +48,25 @@ a model group is styled by `.<ident>-group`, and a model by its first
 Its `<outputRendition>` becomes that rule in `edition.css`, and `@scope`
 becomes `::before`/`::after`.
 
+**Model groups.** A `<modelGrp>` is flattened: its models keep their place in
+document order, and take `@output` and `@useSourceRendition` from the group
+unless they set their own.
+
 **Sequences.** A `<modelSequence>` renders each of its models whose predicate
 holds, and the element's id goes on the first.
+
+**Outputs.** A render renders one output, `web` unless told otherwise
+(`--output`, or the stylesheet param `output`). Each element takes the first
+model of that output whose predicate holds, else the first model without
+`@output`; models of other outputs are skipped. The Simler ODD's views,
+`normalized` (the reading text) and `entities`, are outputs in this sense: the
+renderers render each as a page of its own, not yet as a switch over one page.
+
+**Joined line ends.** The text is rendered as encoded, with one exception that
+lets a `break` model set the hyphen of a word the print divides: at an
+`lb break="no"`, a hyphen that ends the line's text and the spaces around the
+break are dropped. The line's text is found across inline elements, not across
+a block.
 
 **Compound (Boot 2024), an extension.** A `<model>` that holds a
 `<modelSequence>` is not TEI. The PoC renders it as its parts, with a `link` part

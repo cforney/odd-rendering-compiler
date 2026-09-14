@@ -56,7 +56,7 @@ function call(m, first = "true()", inner = []) {
   ].filter(Boolean);
 }
 
-/** A model's rendering: a sequence renders each part whose predicate holds, a compound's link wraps the other parts. */
+/** A model's rendering: a sequence renders each part whose predicate holds, a compound's link (an extension) wraps the other parts. */
 function body(m) {
   if (m.behaviour === "sequence") {
     return m.parts.flatMap((p, k) => {

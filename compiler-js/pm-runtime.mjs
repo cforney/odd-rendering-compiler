@@ -29,9 +29,17 @@ const NUMBERED = ["end", "foot"];
 const FIRST = xpath("*[1]");
 const SECOND = xpath("*[2]");
 
-const children = ({ node, up }) =>
-  (node.children ?? []).filter((c) => isElement(c) || isText(c)).map((c) => ({ node: c, up: [...up, node] }));
+/** A node's element and text children as positions, each with its index; built once per node. */
+const childPositions = new WeakMap();
+function children({ node, up }) {
+  if (!childPositions.has(node)) {
+    const path = [...up, node];
+    childPositions.set(node, (node.children ?? []).filter((c) => isElement(c) || isText(c)).map((c, i) => ({ node: c, up: path, i })));
+  }
+  return childPositions.get(node);
+}
 const parentOf = ({ up }) => ({ node: up.at(-1), up: up.slice(0, -1) });
+const indexOf = (pos) => pos.i ?? children(parentOf(pos)).findIndex((s) => s.node === pos.node);
 
 /** `@rendition="#a #b"` → `r-a r-b`. */
 const renditions = (node) =>
@@ -61,7 +69,7 @@ export function createRenderer(models) {
       const parent = parentOf(pos);
       if (flow(parent) === "inline") return false;
       const siblings = children(parent);
-      const i = siblings.findIndex((s) => s.node === pos.node);
+      const i = indexOf(pos);
       const [before, after] = [siblings[i - 1], siblings[i + 1]];
       return !before || !after || flow(before) === "block" || flow(after) === "block";
     }
@@ -70,7 +78,7 @@ export function createRenderer(models) {
     function atLineStart(pos) {
       if (!pos.up.length) return true;
       const siblings = children(parentOf(pos));
-      for (let i = siblings.findIndex((s) => s.node === pos.node) - 1; i >= 0; i--) {
+      for (let i = indexOf(pos) - 1; i >= 0; i--) {
         const s = siblings[i];
         if (isElement(s.node)) return flow(s) === "block";
         if (!blank(s.node.value)) return false;
@@ -78,12 +86,43 @@ export function createRenderer(models) {
       return true;
     }
 
+    /**
+     * What a walk along the printed line meets from list[i] on (step 1 forward, -1
+     * back): "join" at a joined line end (lb break="no"), "stop" at text, another
+     * line end or a block, "" where it passes whitespace and inline elements.
+     */
+    function along(list, i, step) {
+      for (; i >= 0 && i < list.length; i += step) {
+        const { node } = list[i];
+        const met = isText(node) ? (blank(node.value) ? "" : "stop")
+          : localName(node.name) === "lb" ? (node.attributes.break === "no" ? "join" : "stop")
+          : flow(list[i]) === "block" ? "stop"
+          : along(children(list[i]), step > 0 ? 0 : children(list[i]).length - 1, step);
+        if (met) return met;
+      }
+      return "";
+    }
+
+    /** Whether a text node's line joins the next (step 1) or the previous one (-1); the walk leaves inline elements. */
+    function joined(pos, step) {
+      if (!pos.up.length) return false;
+      const parent = parentOf(pos);
+      const siblings = children(parent);
+      const met = along(siblings, indexOf(pos) + step, step);
+      return met ? met === "join" : flow(parent) !== "block" && joined(parent, step);
+    }
+
     function render(pos, phrasing) {
       const { node, up } = pos;
       if (isText(node)) {
         if (up.some((a) => a.attributes["xml:space"] === "preserve")) return [text(node.value)];
-        if (!blank(node.value)) return [text(collapse(node.value))];
-        return indentation(pos) ? [] : [text(" ")];
+        // At a joined line end the lb's model sets the hyphen: the encoded one goes, and so do the spaces.
+        const [before, after] = [joined(pos, -1), joined(pos, 1)];
+        if (blank(node.value)) return before || after || indentation(pos) ? [] : [text(" ")];
+        let value = collapse(node.value);
+        if (before) value = value.replace(/^ /, "");
+        if (after) value = value.replace(/ ?[-\u00AD¬\u2010\u2011\u2E17]? ?$/, "");
+        return value ? [text(value)] : [];
       }
       const model = modelOf(pos);
       if (!model) return children(pos).flatMap((c) => render(c, phrasing));
@@ -154,7 +193,7 @@ export function createRenderer(models) {
           return [h("a", { ...props, href: str(params.uri ?? "") }, inner ?? content(true))];
         case "graphic":
           return [h("img", { ...props, src: str(params.url ?? ""), alt: "" })];
-        case "compound": {
+        case "compound": { // a <model> holding a <modelSequence> (Boot 2024): an extension
           const link = m.parts.find((p) => p.behaviour === "link");
           const rest = m.parts.filter((p) => p !== link).flatMap((p) => apply(p, pos, phrasing, p === m.parts[0]));
           return link ? apply(link, pos, phrasing, link === m.parts[0], rest) : rest;

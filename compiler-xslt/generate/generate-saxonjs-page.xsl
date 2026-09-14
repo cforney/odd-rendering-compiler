@@ -8,7 +8,7 @@
   hand-written JavaScript is needed. Point -s: at the ODD (only its title is read).
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/generate-saxonjs-page.xsl
-              -o:output/rendered-saxonjs.html  tei="simler-poem.xml"
+              -o:output/saxonjs/simler-psalmen.html  tei=simler-psalmen.xml
 -->
 <xsl:stylesheet version="3.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -18,9 +18,10 @@
 
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
-  <!-- TEI document to render, the compiled SEF, and the page title. -->
-  <xsl:param name="tei" as="xs:string" select="'simler-poem.xml'"/>
+  <!-- TEI document to render, the compiled SEF, edition.css, and the page title; relative to the page. -->
+  <xsl:param name="tei" as="xs:string" select="'simler-psalmen.xml'"/>
   <xsl:param name="sef" as="xs:string" select="'edition-saxonjs.sef.json'"/>
+  <xsl:param name="css" as="xs:string" select="'edition.css'"/>
   <xsl:param name="title" as="xs:string" select="'TEI Edition — SaxonJS (client-side)'"/>
   <!-- The SaxonJS 2 browser runtime. build.sh self-hosts it next to this page
        (output/SaxonJS2.rt.js, gitignored) so the demo works offline and matches
@@ -28,12 +29,12 @@
   <xsl:param name="runtime" as="xs:string" select="'SaxonJS2.rt.js'"/>
 
   <xsl:template match="/">
-    <html lang="en">
+    <html lang="en" data-mode="light">
       <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <title><xsl:value-of select="$title"/></title>
-        <link rel="stylesheet" href="edition.css"/>
+        <link rel="stylesheet" href="{$css}"/>
         <style>
 body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
 /* Preview chrome: the banner naming the pipeline, not part of the edition. */
@@ -56,7 +57,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
         </div>
         <div id="tei-content">
           <p>Rendering with SaxonJS…</p>
-          <noscript>This client-side path needs JavaScript; the build-time pages (<code>rendered-xslt.html</code>) need none.</noscript>
+          <noscript>This client-side path needs JavaScript; the build-time pages (<code>xslt/</code>) need none.</noscript>
         </div>
         <script src="{$runtime}"></script>
         <script>

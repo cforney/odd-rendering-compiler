@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Simler Digital, C 1663: Chriſtenliches Haußweſen, a wedding poem, stanzas 1–4 (pp. 321–322).
+  Source: DHBern/simler_data at 7e02398, webdav/data/sources/tei/C_1663_dok.xml,
+  lines 20207–20327, verbatim. Added around them: this comment, the teiHeader, the
+  start tags of the enclosing elements (from lines 23, 24, 13498) and the closing tags.
+  Valid against the schema of ../tei_simler.odd. Schematron warnings, the source's own:
+  [S-LBC] on the lb after the catchword, which the excerpt is here to show, and [S-LB] on
+  the three lb that end an lg, after its Bible note.
+-->
+<TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Chriſtenliches Haußweſen, stanzas 1–4 (C 1663, pp. 321–322)</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, reused as an example.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <bibl><idno type="URLIIIF">https://www.e-rara.ch/i3f/v20/4049159/manifest</idno></bibl>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div>
+        <div n="1">
+            <fw place="bottom" type="catch">Chriſten-</fw>
+            <lb break="no"/>
+            <pb facs="4049520" n="321"/>
+            <fw place="top" type="pageNum">321</fw>
+            <lb/>
+            <fw place="top" type="header">von Chriſtlichem Haußweſen.</fw>
+            <lb/>
+            
+            <div n="2" xml:id="n66">
+            <head>Chriſtenliches Haußweſen:
+            <lb/>
+            Auf eine Ehrenhochzeit; auß heiliger Schrifft
+            <lb/>
+            zuſamen gezogen.</head>
+            <lb/>
+            <lg type="poem">
+            <lg>
+            <lg n="1">
+            <l rendition="#et"><hi rendition="#in">O</hi> daß ich doch einmal die Davids harf beka&#x364;m/</l>
+            <lb/>
+            <l>und ich/ gleich ihme/ ko&#x364;nt derſelben ſeiten zwingen!</l>
+            <lb/>
+            <l rendition="#et"><hi rendition="#aq">ô</hi> daß dem ſcho&#x364;nen klang auch eine weis bequa&#x364;m</l>
+            <lb/>
+            <l>von ſa&#x364;ngern folgete: Lobopfer Gott zubringen!</l>
+            <lb/>
+            <l rendition="#et">doch weil es nicht kan ſeyn; wiewol mir angena&#x364;m;</l>
+            <lb/>
+            <l>wil ich in anderweg diß Ehrenfeſt beſingen:</l>
+            <lb/>
+            <l rendition="#et">ich wil mit ſtummem mund erzeigen mich ſo klar/</l>
+            <lb/>
+            <l rendition="#et">daß meine ſtim&#x342; ohn ſtim&#x342; ſol werden offenbar.</l>
+            </lg>
+            <lb/>
+            <note place="bottom" type="bibl" rendition="#et #smaller">1Sam.6.v.5.</note>
+            <lb/>
+            </lg>
+            <lg>
+            <head rendition="#b #c">Wie der Eheſtand anzuheben/
+            <lb/>
+            daß er wol gerahte.</head>
+            <lb/>               
+            <lg n="2">
+            <l rendition="#et">O du/ wer du auch ſeyſt/ der du frid/ freud und rhu</l>
+            <lb/>
+            <l>wilſt haben in der Eh/ wo&#x364;llſt kein geſpo&#x364;tte treiben:</l>
+            <lb/>
+            <l rendition="#et">vilmehr in Gottesforcht die ſach anheb/ und tuh</l>
+            <lb/>
+            <l>nach ſeines worts geheiß/ wann du geſinnt zu weiben:</l>
+            <lb/>
+            <l rendition="#et">bitt erſtlich/ daß er dir/ in gnaden/ fu&#x364;hre zu</l>
+            <lb/>
+            <l>ein wolgezogen weib; nach Syrachs heiterm ſchreiben:</l>
+            <lb/>
+            <l rendition="#et">Die gu&#x364;ter/ hauß und hof von eltern erben wir:</l>
+            <lb/>
+            <l rendition="#et">vom Herꝛen aber komt ein frommes weibe dir.</l>
+            </lg>
+            <lb/>
+            <note place="bottom" type="bibl" rendition="#et #smaller">Tob.1. und 8. 1.Tim.4.8. 1.Theſſ.5.<anchor xml:id="a119"/><unclear>17</unclear><note type="annotation" targetEnd="a119"><p>Auch in den Vergleichsexemplaren Wien und Zürich ist ein Punkt zwischen 1 und 7 möglich. In A, B und D steht aber eindeutig 17</p></note>. Eph.5.4. Syr.26.3. und 17.
+            <lb/>
+            Prov.19.14.</note>
+            <lb/>
+            <fw place="bottom" type="pageNum">Y</fw>
+            <lb/>
+            <fw place="bottom" type="catch">Na&#x364;chſt</fw>
+            <lb/>
+            <pb facs="4049521" n="322"/>
+            <fw place="top" type="pageNum">322</fw>
+            <lb/>
+            <fw place="top" type="header">Hochzeitgeticht.</fw>
+            <lb/>
+            <lg n="3">
+            <l rendition="#et">Na&#x364;chſt Gott in diſer ſach zufragen dich nicht ſcha&#x364;m</l>
+            <lb/>
+            <l>die eltern/ und darbey zufolgen ihrem rahte:</l>
+            <lb/>
+            <l rendition="#et">laß wol gefallen dir was ihnen angena&#x364;m/</l>
+            <lb/>
+            <l>ſo wird zu deinem nutz gereichen raht und tahte:</l>
+            <lb/>
+            <l rendition="#et">erwart der rechten zeit/ nicht iede fallt bequa&#x364;m/</l>
+            <lb/>
+            <l>das alter mit verſtand iſt weder zfru&#x364;h noch zſpahte:</l>
+            <lb/>
+            <l rendition="#et">deins gleichen dir erliß: vor kupplerey dich hu&#x364;t:</l>
+            <lb/>
+            <l rendition="#et">wilſt daß gelinge dir/ ſo frey nicht in das blu&#x364;t.</l>
+            </lg>
+            <lb/>
+            <note place="bottom" type="bibl" rendition="#et #smaller">Gen.21. Exod.20/12. De<anchor xml:id="a120"/>u<note type="annotation" targetEnd="a120"><p>In den Vergleichsexemplaren ist das u besser erkennbar</p></note>t 15/16. Coloſſ.3/20. Prov.6/20/ꝛc.
+            <lb/>
+            Syr.7/29. Gen.29. Syr.13. Levit.18. Matth.14.</note>
+            <lb/>
+            </lg>
+            <lg>
+            <head rendition="#b #c">Pflichten eines Ehemanns.</head>
+            <lb/>               
+            <lg n="4">
+            <l rendition="#et">Wie dan im Ehſtand ſelb; damit das glük nicht weich;</l>
+            <lb/>
+            <l>der mann zuhalten ſich: das wil S. Paulus lehren:</l>
+            <lb/>
+            <l rendition="#et">wie Chriſtus ſeine kirch/ wie deinen leib/ zugleich</l>
+            <lb/>
+            <l>ſolſt lieben du dein weib/ in züchten und in ehren.</l>
+            <lb/>
+            <l rendition="#et">Mit Chriſto ſie beſchirm/ für ſie dein blut darꝛeich/</l>
+            <lb/>
+            <l>wie deinen leib ſie auch ſolſt zieren und ernehren:</l>
+            <lb/>
+            <l rendition="#et">ja/ deine liebe ſol/ vernünfftig/ deken zu</l>
+            <lb/>
+            <l rendition="#et">die ma&#x364;ngel deines weibs: das ſchaffet frid und rhu.</l>
+            </lg>
+            <lb/>
+            <note place="bottom" type="bibl" rendition="#et #smaller">Ephe<choice><sic>f</sic><corr>ſ</corr></choice>.5.26/27/28/29/30<supplied>/</supplied>31.32. Prov.10. 1.Pet.4/</note>
+            <lb/>
+            </lg>
+            </lg>
+          </div>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

@@ -93,7 +93,7 @@
     </xsl:for-each>
   </xsl:template>
 
-  <!-- A compound (Boot's nested-model proposal): a link part wraps the other parts. -->
+  <!-- A compound (Boot's nested-model proposal, an extension): a link part wraps the other parts. -->
   <xsl:template match="pm:model[@behaviour = 'compound']" mode="body">
     <xsl:variable name="parts" select="pm:model"/>
     <xsl:variable name="link" select="$parts[@behaviour = 'link'][1]"/>

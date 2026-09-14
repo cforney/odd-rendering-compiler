@@ -51,6 +51,23 @@ fixtures (`compiler-js/test/fixtures/`).
   classes, `r-<id>`) and shares one `edition.css`, so the unified, XSLT, SaxonJS
   and CETEIcean outputs look the same. Only the render-info banner differs.
 
+## Compiled or interpreted
+
+"Static" depends on *when* the Processing Model is resolved, not on *how*. The
+two are independent:
+
+| | **compiled** (artefacts generated from the ODD) | **interpreted** (the ODD read on every run) |
+|---|---|---|
+| **request time (server)** | TEI Publisher: the ODD compiled into XQuery, which eXist-db runs | — |
+| **build time (static)** | this repository: XSLT, unified handlers, CETEIcean behaviours, CSS | Simler Digital's own build (`simler_data/preview`) |
+| **in the browser** | this repository, via SaxonJS or CETEIcean | possible, by bundling an interpreter |
+
+The two meet in the middle. This compiler generates the ODD's models as a table
+over a shared runtime, which chooses the model as it renders; the Simler build
+compiles its XPath and CSS once and interprets only the choice of model. Only
+generated artefacts reach another toolchain, the browser or the CSS floor, and
+that is where compiling pays off.
+
 ## Output tiers
 
 The same ODD feeds three levels, each building on the last:
