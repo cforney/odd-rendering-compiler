@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Saxon HE 12 + xmlresolver, named so build.sh's globs find them.
+      - name: Fetch Saxon HE 12
+        working-directory: compiler-xslt
+        run: |
+          mkdir -p vendor/SaxonHE12-9J/lib
+          base=https://repo1.maven.org/maven2
+          curl -fsSL -o vendor/SaxonHE12-9J/saxon-he-12.5.jar          "$base/net/sf/saxon/Saxon-HE/12.5/Saxon-HE-12.5.jar"
+          curl -fsSL -o vendor/SaxonHE12-9J/lib/xmlresolver-5.2.1.jar      "$base/org/xmlresolver/xmlresolver/5.2.1/xmlresolver-5.2.1.jar"
+          curl -fsSL -o vendor/SaxonHE12-9J/lib/xmlresolver-5.2.1-data.jar "$base/org/xmlresolver/xmlresolver/5.2.1/xmlresolver-5.2.1-data.jar"
+
+      - name: JS — install
+        working-directory: compiler-js
+        run: npm install
+
+      # Every example rendered by the unified handlers and by the JS-generated
+      # stylesheet, two of the three renders the byte-identity gate compares.
+      - name: JS — generate + render
+        working-directory: compiler-js
+        run: |
+          npm run build
+          npm run build:unified
+          npm run render:unified
+          npm run build:xslt
+          npm run render:xslt
+
+      # Build the XSLT reference implementation; this also renders every example
+      # into output/xslt/, the third render of the gate.
+      - name: XSLT — build with Saxon
+        working-directory: compiler-xslt
+        env:
+          SAXON_HOME: vendor/SaxonHE12-9J
+        run: bash build.sh
+
+      # Smoke tests, the conformance fixtures (through both XSLT generators too,
+      # with Saxon) and the byte-identity gate.
+      - name: Test
+        working-directory: compiler-js
+        env:
+          SAXON_HOME: ${{ github.workspace }}/compiler-xslt/vendor/SaxonHE12-9J
+        run: npm test
+
+  # The excerpts are validated against the schema compiled from the Simler ODD.
+  # The nested page-break model is not TEI: it is validated against its own
+  # customisation of the ODD language. Both compile with the TEI Stylesheets.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Fetch Saxon HE 12, jing, SchXslt2, the TEI Stylesheets and tei_odds.rng (TEI 4.12.0)
+        run: |
+          mkdir -p tools/saxon/lib
+          cd tools
+          base=https://repo1.maven.org/maven2
+          curl -fsSL -o saxon/saxon-he-12.5.jar          "$base/net/sf/saxon/Saxon-HE/12.5/Saxon-HE-12.5.jar"
+          curl -fsSL -o saxon/lib/xmlresolver-5.2.1.jar      "$base/org/xmlresolver/xmlresolver/5.2.1/xmlresolver-5.2.1.jar"
+          curl -fsSL -o saxon/lib/xmlresolver-5.2.1-data.jar "$base/org/xmlresolver/xmlresolver/5.2.1/xmlresolver-5.2.1-data.jar"
+          curl -fsSL -o jing.jar "$base/org/relaxng/jing/20241231/jing-20241231.jar"
+          curl -fsSL -o schxslt2.jar "$base/name/dmaus/schxslt/schxslt2/1.11.2/schxslt2-1.11.2.jar"
+          unzip -q schxslt2.jar content/transpile.xsl -d schxslt2
+          curl -fsSL -o tei_odds.rng https://www.tei-c.org/Vault/P5/4.12.0/xml/tei/custom/schema/relaxng/tei_odds.rng
+          curl -fsSL -o tei-xsl.zip https://github.com/TEIC/Stylesheets/releases/download/v7.61.0/tei-xsl-7.61.0.zip
+          unzip -q tei-xsl.zip -d tei-xsl
+
+      - name: Validate the examples and the extension
+        env:
+          SAXON_HOME: ${{ github.workspace }}/tools/saxon
+          JING: ${{ github.workspace }}/tools/jing.jar
+          SCHXSLT: ${{ github.workspace }}/tools/schxslt2/content/transpile.xsl
+          TEI_XSL: ${{ github.workspace }}/tools/tei-xsl/xml/tei/stylesheet
+          TEI_ODDS_RNG: ${{ github.workspace }}/tools/tei_odds.rng
+        run: |
+          bash examples/validate.sh
+          bash examples/extensions/nested-pb/validate.sh

@@ -1,0 +1,82 @@
+name: Demo (GitHub Pages)
+
+# Build both compilers, assemble the demo over their fresh outputs, and publish.
+# Generated files stay out of git; the live site is rebuilt on every push to main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Saxon HE 12 + xmlresolver, named so build.sh's globs find them.
+      - name: Fetch Saxon HE 12
+        working-directory: compiler-xslt
+        run: |
+          mkdir -p vendor/SaxonHE12-9J/lib
+          base=https://repo1.maven.org/maven2
+          curl -fsSL -o vendor/SaxonHE12-9J/saxon-he-12.5.jar               "$base/net/sf/saxon/Saxon-HE/12.5/Saxon-HE-12.5.jar"
+          curl -fsSL -o vendor/SaxonHE12-9J/lib/xmlresolver-5.2.1.jar       "$base/org/xmlresolver/xmlresolver/5.2.1/xmlresolver-5.2.1.jar"
+          curl -fsSL -o vendor/SaxonHE12-9J/lib/xmlresolver-5.2.1-data.jar  "$base/org/xmlresolver/xmlresolver/5.2.1/xmlresolver-5.2.1-data.jar"
+
+      - name: JS — install
+        working-directory: compiler-js
+        run: npm install
+
+      # The unified + CETEIcean pages and their artefacts (edition.css, handlers),
+      # the plain text and the build-time findings.
+      - name: JS — build + render
+        working-directory: compiler-js
+        run: |
+          npm run build:all
+          npm run render:unified
+          npm run render:interactive
+          npm run render:islands
+          npm run render:plain
+          npm run findings
+
+      # The XSLT pages: static, progressively enhanced, and in-browser (SaxonJS).
+      - name: XSLT — build with Saxon
+        working-directory: compiler-xslt
+        env:
+          SAXON_HOME: vendor/SaxonHE12-9J
+        run: bash build.sh
+
+      - name: Assemble the demo
+        run: node demo/build-demo.mjs
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: demo/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

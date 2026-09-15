@@ -71,7 +71,7 @@ for (const [dir, src] of Object.entries(SOURCES)) {
   }
   cpSync(src, resolve(SITE, dir), { recursive: true });
 }
-for (const asset of ["shell.css", "shell.js"]) copyFileSync(resolve(DEMO, asset), resolve(SITE, asset));
+for (const asset of ["shell.css", "shell.js", "robots.txt"]) copyFileSync(resolve(DEMO, asset), resolve(SITE, asset));
 
 // ---------------------------------------------------------------------------
 // 2 · Resolve each path and document against the copied site: URL and metrics
@@ -122,6 +122,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>ODD Rendering Compiler — compare the rendering paths</title>
   <link rel="stylesheet" href="shell.css">
 </head>
