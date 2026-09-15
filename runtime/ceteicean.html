@@ -38,7 +38,7 @@
 {{behaviours}}
   </script>
   <script>
-    teiEdition(new CETEI({ omitDefaultBehaviors: true }), document.getElementById('tei-source').textContent, teiModels,
+    teiEdition(new CETEI({ omitDefaultBehaviors: true }), document.getElementById('tei-source').textContent, teiModels, teiViews,
       function (dom) { document.getElementById('TEI').appendChild(dom); });
 
     // Corrections toggle; event delegation works whenever CETEIcean is done.

@@ -17,7 +17,6 @@ import { execSync } from "child_process";
 import { readFileSync, mkdirSync, copyFileSync, rmSync } from "fs";
 import { resolve, join } from "path";
 import { tmpdir } from "os";
-import { parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
 import {
   parseArgs, createLogger, writeOut,
   resolveInputFiles, htmlPageName, buildIndexPage,
@@ -57,9 +56,11 @@ const indexEntries = [];
 try {
   for (const teiFile of teiFiles) {
     const pageName = htmlPageName(teiFile);
-    const outFile = writeOut(outDir, pageName, transform(teiFile));
+    const html = transform(teiFile);
+    const outFile = writeOut(outDir, pageName, html);
     log(`✓ ${teiFile} → ${outFile}`);
-    const title = extractTeiTitle(parseXmlToXast(readFileSync(resolve(teiFile), "utf-8")));
+    // The page's title, which the ODD's model for output "page" gives.
+    const title = html.match(/<title>([^<]*)<\/title>/)?.[1].replace(/&(amp|lt|gt);/g, (_, e) => ({ amp: "&", lt: "<", gt: ">" })[e]);
     indexEntries.push({ href: pageName, title: title || pageName, meta: "XSLT (SaxonJS)" });
   }
 } catch (e) {

@@ -6,7 +6,7 @@
  * client JS per page, reads the artefact snippets, and writes a single index.html
  * shell driven by demo/manifest.mjs. Build the outputs first:
  *
- *   (compiler-js)   npm run build:all && npm run render:all
+ *   (compiler-js)   npm run build:all && npm run render:all && npm run findings
  *   (compiler-xslt) bash build.sh
  *   node demo/build-demo.mjs
  *

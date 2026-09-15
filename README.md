@@ -30,7 +30,7 @@ and on conformance fixtures.
 |-----------|------------|
 | [`compiler-js/`](compiler-js/) | JavaScript reference implementation (generators, renderers, shared ODD parser, smoke tests) |
 | [`compiler-xslt/`](compiler-xslt/) | XSLT reference implementation (the same chain, built entirely in XSLT + Saxon) |
-| [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `pm-runtime.mjs` + `xpath.mjs` for the unified handlers, `ceteicean.js` (+ page) over those two for the CETEIcean tier, and `notes.js` + `notes.css` for the notes as tooltips on every interactive page |
+| [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `pm-runtime.mjs` + `xpath.mjs` for the unified handlers, `ceteicean.js` (+ page) over those two for the CETEIcean tier, `ui.css` for the renderers' own furniture (the view switches, the notes), and `notes.js` for the notes as tooltips on every interactive page |
 | [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a pinned snapshot) with four verbatim excerpts, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an extension that is not TEI |
 
 ## Quick start — JavaScript
@@ -40,8 +40,9 @@ Requires **Node.js ≥ 20**.
 ```bash
 cd compiler-js
 npm install
-npm run demo    # compile the Simler ODD, then render → static + interactive HTML
-npm test        # smoke tests, conformance fixtures, byte-identity gate
+npm run demo      # compile the Simler ODD, then render → static + interactive HTML
+npm run findings  # what the ODD does not foresee in the examples
+npm test          # smoke tests, conformance fixtures, byte-identity gate
 ```
 
 Generated artefacts and rendered pages land in `compiler-js/output/`. See

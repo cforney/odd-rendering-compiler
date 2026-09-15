@@ -98,6 +98,10 @@
             <param name="default" value="corr"/>
             <param name="alternate" value="sic"/>
           </model>
+          <model output="print" predicate="sic and corr" behaviour="alternate">
+            <param name="default" value="sic"/>
+            <param name="alternate" value="corr"/>
+          </model>
           <model behaviour="inline"/>
         </elementSpec>
         <elementSpec ident="num" mode="change">
@@ -128,16 +132,19 @@
           </model>
           <model behaviour="note"/>
         </elementSpec>
-        <!-- outputs: an output's models take precedence there; models of another output are skipped -->
+        <!-- outputs: an output's models take precedence there; models of another output are skipped.
+             A view (print) is laid over the page: its omit hides, a model of the same behaviour adds its
+             classes, and its readings of an alternate are marked; its switch is labelled by the <desc> -->
         <elementSpec ident="fw" mode="change">
           <model output="plain" behaviour="omit"/>
+          <model output="print" behaviour="block" cssClass="running"/>
           <model behaviour="block"/>
         </elementSpec>
         <elementSpec ident="date" mode="change">
           <model output="web" predicate="@when" behaviour="inline">
             <param name="content" value="@when"/>
           </model>
-          <model output="print" behaviour="omit"/>
+          <model output="print" behaviour="omit"><desc>As printed</desc></model>
           <model behaviour="inline"/>
         </elementSpec>
       </schemaSpec>

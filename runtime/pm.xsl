@@ -2,8 +2,11 @@
 <!--
   pm.xsl — the runtime of a generated edition.xsl. Both XSLT generators
   (compiler-js/odd-to-xslt.mjs, compiler-xslt/generate/odd-to-xsl.xsl) copy its
-  declarations into the stylesheet they generate; theirs is one template per
-  TEI element that chooses the element's model and calls pm:model with it.
+  declarations into the stylesheet they generate. Theirs are the ODD's models:
+  per TEI element a template in mode pm:select, which gives the element's first
+  model of an output ('' the models without @output) whose predicate holds, as
+  a map with its params evaluated there, and $pm:views, the outputs laid over
+  the page.
 
   It renders as pm-runtime.mjs does for the unified/xast handlers,
   so the two produce the same body. The generated stylesheet declares
@@ -27,16 +30,18 @@
 
   <!-- HTML elements whose content must be phrasing: a block inside becomes a span. -->
   <xsl:variable name="pm:phrasing" select="('p', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6')"/>
+  <!-- The page, output "web", has the views laid over it and a switch for each; another output renders alone. -->
+  <xsl:variable name="pm:laid" as="map(*)*" select="if ($output = 'web') then $pm:views else ()"/>
 
-  <xsl:mode name="pm:flow" on-no-match="deep-skip"/>
+  <xsl:mode name="pm:select" on-no-match="deep-skip"/>
   <xsl:mode name="pm:page" on-no-match="shallow-copy"/>
 
-  <!-- The page -->
+  <!-- The page; its title is the one the root's model for output "page" gives. -->
   <xsl:template match="/">
     <html data-mode="light">
       <head>
         <meta charset="UTF-8"/>
-        <title><xsl:value-of select="normalize-space((//title)[1])"/></title>
+        <title><xsl:value-of select="(pm:select(/*, 'page')?params?title ! string(), normalize-space((//title)[1]))[.][1]"/></title>
         <xsl:choose>
           <xsl:when test="$interactive = 'true'">
             <style id="edition-css"><xsl:value-of select="unparsed-text('edition.css')"/></style>
@@ -93,6 +98,15 @@ document.addEventListener('click', function (e) {
     <xsl:param name="doc" select="/"/>
     <xsl:variable name="text"><xsl:apply-templates select="$doc/*"/></xsl:variable>
     <div class="tei-edition">
+      <xsl:attribute name="data-{$output}" select="'on'"/>
+      <!-- A checkbox per view: CSS lays the view over the page while it is checked. -->
+      <xsl:if test="exists($pm:laid)">
+        <form class="tei-views">
+          <xsl:for-each select="$pm:laid">
+            <label><input type="checkbox" id="view-{?output}"/><xsl:value-of select="' ' || ?label"/></label>
+          </xsl:for-each>
+        </form>
+      </xsl:if>
       <xsl:apply-templates select="$text/node()" mode="pm:page"/>
       <xsl:for-each-group select="$text//pm:note" group-by="@place">
         <xsl:choose>
@@ -135,6 +149,45 @@ document.addEventListener('click', function (e) {
   <xsl:template match="*" mode="pm:page">
     <xsl:copy copy-namespaces="no"><xsl:apply-templates select="@*, node()" mode="pm:page"/></xsl:copy>
   </xsl:template>
+
+  <!-- An element renders by its model; with none, its content passes through. A sequence renders
+       each of its parts whose predicate holds; the element's id goes on the first. -->
+  <xsl:template match="*">
+    <xsl:variable name="e" select="."/>
+    <xsl:variable name="m" select="pm:choose(.)"/>
+    <xsl:choose>
+      <xsl:when test="empty($m)"><xsl:apply-templates/></xsl:when>
+      <xsl:when test="$m?behaviour = 'sequence'">
+        <xsl:variable name="live" select="index-of($m?parts ! ?live, true())"/>
+        <xsl:for-each select="$live">
+          <xsl:variable name="k" select="."/>
+          <xsl:for-each select="$e">
+            <xsl:call-template name="pm:model">
+              <xsl:with-param name="m" select="$m?parts[$k]"/>
+              <xsl:with-param name="k" select="$k"/>
+              <xsl:with-param name="first" select="$k = $live[1]"/>
+            </xsl:call-template>
+          </xsl:for-each>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pm:model"><xsl:with-param name="m" select="$m"/></xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- The model an element takes: the first of the output being rendered whose predicate holds, else the first such model without @output. -->
+  <xsl:function name="pm:choose" as="map(*)?">
+    <xsl:param name="e" as="element()"/>
+    <xsl:sequence select="(pm:select($e, $output), pm:select($e, ''))[1]"/>
+  </xsl:function>
+
+  <!-- The first model of exactly $out ('' the models without @output) whose predicate holds. -->
+  <xsl:function name="pm:select" as="map(*)?">
+    <xsl:param name="e" as="element()"/>
+    <xsl:param name="out" as="xs:string"/>
+    <xsl:apply-templates select="$e" mode="pm:select"><xsl:with-param name="output" select="$out"/></xsl:apply-templates>
+  </xsl:function>
 
   <!-- Text: indentation is dropped, other whitespace collapsed. -->
   <!-- At a joined line end the lb's model sets the hyphen: the encoded one goes, and so do the spaces. -->
@@ -193,8 +246,7 @@ document.addEventListener('click', function (e) {
   <!-- Block or inline, by the model an element takes where it stands; '' for anything else. -->
   <xsl:function name="pm:flow" as="xs:string">
     <xsl:param name="n" as="node()"/>
-    <xsl:variable name="flow" as="xs:string*"><xsl:apply-templates select="$n[self::*]" mode="pm:flow"/></xsl:variable>
-    <xsl:sequence select="string-join($flow)"/>
+    <xsl:sequence select="if ($n instance of element()) then string(pm:choose($n)?flow) else ''"/>
   </xsl:function>
 
   <!-- `@rendition="#a #b"` → r-a r-b -->
@@ -220,19 +272,36 @@ document.addEventListener('click', function (e) {
     </xsl:for-each>
   </xsl:template>
 
-  <!-- One model, applied to the context element. -->
+  <!-- An alternate's reading marked, per view laid over it, as that view's default or alternate. -->
+  <xsl:function name="pm:marks" as="xs:string*">
+    <xsl:param name="e" as="element()"/>
+    <xsl:param name="reading" as="item()*"/>
+    <xsl:param name="laid" as="map(*)*"/>
+    <xsl:for-each select="$laid">
+      <xsl:variable name="params" select="(?model?params, map {})[1]"/>
+      <xsl:variable name="default" select="if (map:contains($params, 'default')) then $params?default else $e/*[1]"/>
+      <xsl:sequence select="?output || (if (some $x in $default, $y in $reading satisfies
+        (if ($x instance of node() and $y instance of node()) then $x is $y else deep-equal($x, $y))) then '-default' else '-alternate')"/>
+    </xsl:for-each>
+  </xsl:function>
+
+  <!-- One model, the k-th part of the element's, applied to the context element. -->
   <xsl:template name="pm:model">
-    <xsl:param name="behaviour" as="xs:string"/>
-    <xsl:param name="tag" as="xs:string" select="''"/>
-    <xsl:param name="flow" as="xs:string" select="''"/>
-    <xsl:param name="classes" as="xs:string*" select="()"/>
-    <xsl:param name="source" as="xs:boolean" select="false()"/>
-    <xsl:param name="params" as="map(*)" select="map {}"/>
+    <xsl:param name="m" as="map(*)"/>
+    <xsl:param name="k" as="xs:integer" select="1"/>
     <xsl:param name="first" as="xs:boolean" select="true()"/>
     <xsl:param name="inner" as="node()*" select="()"/>
     <xsl:param name="phrasing" as="xs:boolean" select="false()" tunnel="yes"/>
 
-    <xsl:variable name="class" select="string-join(('tei-' || local-name(), $classes, if ($source) then pm:renditions(.) else ()), ' ')"/>
+    <xsl:variable name="behaviour" select="$m?behaviour"/>
+    <xsl:variable name="params" select="($m?params, map {})[1]"/>
+    <!-- What the views lay over it: a view's omit or, for the same behaviour, its classes and model (a view's sequence overlays part by part). -->
+    <xsl:variable name="over" as="map(*)*" select="for $v in $pm:laid?output, $vm in pm:select(., $v)
+      return map { 'output': $v, 'model': if ($vm?behaviour = 'sequence') then $vm?parts[$k] else $vm }"/>
+    <xsl:variable name="laid" select="$over[?model?behaviour = $behaviour]"/>
+    <xsl:variable name="class" select="string-join(('tei-' || local-name(), $m?classes,
+      $over ! (if (?model?behaviour = 'omit') then ?output || '-omit' else if (?model?behaviour = $behaviour) then ?model?classes else ()),
+      if ($m?source) then pm:renditions(.) else ()), ' ')"/>
     <!-- Params named `data-…` become attributes; params named with a leading double hyphen, CSS custom properties. -->
     <xsl:variable name="attrs" as="attribute()*">
       <xsl:if test="$first and @xml:id"><xsl:attribute name="id" select="@xml:id"/></xsl:if>
@@ -245,7 +314,7 @@ document.addEventListener('click', function (e) {
     </xsl:variable>
     <xsl:variable name="content" select="if (map:contains($params, 'content')) then $params?content else node()"/>
     <xsl:variable name="level" select="number(string(head($params?level)))"/>
-    <xsl:variable name="element" select="if ($behaviour = 'heading') then 'h' || (if ($level ge 1) then min((6, xs:integer(floor($level)))) else 1) else $tag"/>
+    <xsl:variable name="element" select="if ($behaviour = 'heading') then 'h' || (if ($level ge 1) then min((6, xs:integer(floor($level)))) else 1) else string($m?tag)"/>
 
     <xsl:choose>
       <xsl:when test="$behaviour = ('omit', 'metadata')"/>
@@ -256,17 +325,19 @@ document.addEventListener('click', function (e) {
         </xsl:call-template>
       </xsl:when>
       <xsl:when test="$behaviour = 'alternate'">
+        <xsl:variable name="default" select="if (map:contains($params, 'default')) then $params?default else *[1]"/>
+        <xsl:variable name="alternate" select="if (map:contains($params, 'alternate')) then $params?alternate else *[2]"/>
         <span class="{$class} tei-alternate">
           <xsl:sequence select="$attrs"/>
-          <span class="tei-alternate-default">
+          <span class="{string-join(('tei-alternate-default', pm:marks(., $default, $laid)), ' ')}">
             <xsl:call-template name="pm:value">
-              <xsl:with-param name="value" select="if (map:contains($params, 'default')) then $params?default else *[1]"/>
+              <xsl:with-param name="value" select="$default"/>
               <xsl:with-param name="phrasing" select="true()"/>
             </xsl:call-template>
           </span>
-          <span class="tei-alternate-alt" hidden="hidden">
+          <span class="{string-join(('tei-alternate-alt', pm:marks(., $alternate, $laid)), ' ')}" hidden="hidden">
             <xsl:call-template name="pm:value">
-              <xsl:with-param name="value" select="if (map:contains($params, 'alternate')) then $params?alternate else *[2]"/>
+              <xsl:with-param name="value" select="$alternate"/>
               <xsl:with-param name="phrasing" select="true()"/>
             </xsl:call-template>
           </span>
@@ -325,6 +396,33 @@ document.addEventListener('click', function (e) {
       <xsl:when test="$behaviour = 'graphic'">
         <img class="{$class}" src="{string(head($params?url))}" alt=""><xsl:sequence select="$attrs"/></img>
       </xsl:when>
+      <!-- A <model> holding a <modelSequence> (Boot 2024), an extension: a link part wraps the other parts. -->
+      <xsl:when test="$behaviour = 'compound'">
+        <xsl:variable name="e" select="."/>
+        <xsl:variable name="parts" select="$m?parts"/>
+        <xsl:variable name="link" select="index-of($parts ! ?behaviour, 'link')[1]"/>
+        <xsl:variable name="rest" as="node()*">
+          <xsl:for-each select="(1 to count($parts))[not(. = $link)]">
+            <xsl:variable name="j" select="."/>
+            <xsl:for-each select="$e">
+              <xsl:call-template name="pm:model">
+                <xsl:with-param name="m" select="$parts[$j]"/>
+                <xsl:with-param name="first" select="$j = 1"/>
+              </xsl:call-template>
+            </xsl:for-each>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="exists($link)">
+            <xsl:call-template name="pm:model">
+              <xsl:with-param name="m" select="$parts[$link]"/>
+              <xsl:with-param name="first" select="$link = 1"/>
+              <xsl:with-param name="inner" select="$rest"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise><xsl:sequence select="$rest"/></xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
       <!-- A table of contents: the headings within, not nested in one another. -->
       <xsl:when test="$behaviour = 'index'">
         <xsl:variable name="heads" select="descendant::head except descendant::head//head"/>
@@ -332,7 +430,7 @@ document.addEventListener('click', function (e) {
           <nav class="tei-toc"><ul><xsl:for-each select="$heads"><li><xsl:value-of select="normalize-space(.)"/></li></xsl:for-each></ul></nav>
         </xsl:if>
       </xsl:when>
-      <xsl:when test="$flow = 'block' and $phrasing">
+      <xsl:when test="$m?flow = 'block' and $phrasing">
         <span class="{$class} pm-block">
           <xsl:sequence select="$attrs"/>
           <xsl:call-template name="pm:value">

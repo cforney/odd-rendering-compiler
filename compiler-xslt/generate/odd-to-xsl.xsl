@@ -3,10 +3,10 @@
   odd-to-xsl.xsl — the "generate" step, done the XSLT way.
 
   Reads a TEI ODD and generates the rendering stylesheet edition.xsl from its
-  Processing Model: for each TEI element one template that takes the first of
-  its models whose output and predicate fit (an xsl:choose in document order,
-  the output's own models first) and calls pm:model with the model's
-  behaviour, classes and params. The behaviours are the runtime
+  Processing Model: for each TEI element a template in mode pm:select that
+  gives, for an output, the first of its models whose predicate holds (an
+  xsl:choose in document order) as a map of its behaviour, classes and params;
+  and the views laid over the page, as $pm:views. The behaviours are the runtime
   ../../runtime/pm.xsl, copied in. The XSLT counterpart of
   compiler-js/odd-to-xslt.mjs, which generates the same stylesheet.
 
@@ -33,115 +33,47 @@
   <xsl:namespace-alias stylesheet-prefix="axsl" result-prefix="xsl"/>
 
   <xsl:template match="/">
+    <xsl:variable name="odd" select="pm:odd(/)"/>
+    <xsl:variable name="views" select="$odd/pm:view ! ('map { ''output'': ' || pm:q(@output) || ', ''label'': ' || pm:q(@label) || ' }')"/>
     <axsl:stylesheet version="3.0" xpath-default-namespace="http://www.tei-c.org/ns/1.0" exclude-result-prefixes="#all">
       <xsl:namespace name="xs" select="'http://www.w3.org/2001/XMLSchema'"/>
       <xsl:namespace name="map" select="'http://www.w3.org/2005/xpath-functions/map'"/>
       <xsl:namespace name="tei" select="'http://www.tei-c.org/ns/1.0'"/>
       <xsl:namespace name="pm" select="'urn:x-poc:pm'"/>
-      <xsl:comment> The runtime part is runtime/pm.xsl; the templates at the end are the ODD's models. </xsl:comment>
+      <xsl:comment> The runtime part is runtime/pm.xsl; the views and templates at the end are the ODD's models. </xsl:comment>
       <xsl:copy-of select="doc('../../runtime/pm.xsl')/*/node()"/>
-      <xsl:apply-templates select="pm:odd(/)/pm:spec[pm:model]" mode="templates"/>
+      <axsl:variable name="pm:views" as="map(*)*" select="({string-join($views, ', ')})"/>
+      <xsl:apply-templates select="$odd/pm:spec[pm:model]"/>
     </axsl:stylesheet>
   </xsl:template>
 
-  <!-- One element: the template choosing its model, and the one telling its flow. -->
-  <xsl:template match="pm:spec" mode="templates">
-    <xsl:variable name="ordered" select="pm:model[@output], pm:model[not(@output)]"/>
-    <xsl:comment> &lt;<xsl:value-of select="@ident"/>&gt; </xsl:comment>
-    <axsl:template match="{@ident}">
+  <!-- An element's first model of the output asked for ('' the models without @output) whose predicate holds. -->
+  <xsl:template match="pm:spec">
+    <axsl:template match="{@ident}" mode="pm:select">
+      <axsl:param name="output" as="xs:string"/>
       <axsl:choose>
-        <xsl:for-each select="$ordered">
-          <axsl:when test="{pm:test(.)}">
-            <xsl:apply-templates select="." mode="body"/>
+        <xsl:for-each select="pm:model">
+          <axsl:when test="{string-join(('$output = ' || pm:q(@output), @predicate ! ('(' || . || ')')), ' and ')}">
+            <axsl:sequence select="{pm:map(.)}"/>
           </axsl:when>
         </xsl:for-each>
-        <axsl:otherwise><axsl:apply-templates/></axsl:otherwise>
-      </axsl:choose>
-    </axsl:template>
-    <axsl:template match="{@ident}" mode="pm:flow">
-      <axsl:choose>
-        <xsl:for-each select="$ordered">
-          <axsl:when test="{pm:test(.)}"><axsl:sequence select="{pm:q(@flow)}"/></axsl:when>
-        </xsl:for-each>
       </axsl:choose>
     </axsl:template>
   </xsl:template>
 
-  <xsl:function name="pm:test" as="xs:string">
+  <!-- A model as an XPath map, as pm.xsl renders it: its params evaluated where the element stands, a part's predicate as 'live'. -->
+  <xsl:function name="pm:map" as="xs:string">
     <xsl:param name="m" as="element(pm:model)"/>
-    <xsl:variable name="tests" select="($m/@output ! ('$output = ' || pm:q(.)), $m/@predicate ! ('(' || . || ')'))"/>
-    <xsl:sequence select="if (exists($tests)) then string-join($tests, ' and ') else 'true()'"/>
+    <xsl:variable name="entries" select="
+      '''behaviour'': ' || pm:q($m/@behaviour),
+      $m/@tag[. != ''] ! ('''tag'': ' || pm:q(.)),
+      $m/@flow[. != ''] ! ('''flow'': ' || pm:q(.)),
+      $m/@classes[. != ''] ! ('''classes'': (' || string-join(tokenize(.) ! pm:q(.), ', ') || ')'),
+      $m/@source[. = 'true'] ! '''source'': true()',
+      $m[pm:param] ! ('''params'': map { ' || string-join(pm:param ! (pm:q(@name) || ': (' || @value || ')'), ', ') || ' }'),
+      $m[pm:model] ! ('''parts'': (' || string-join(pm:model ! pm:map(.), ', ') || ')'),
+      $m[parent::pm:model] ! ('''live'': ' || (if (@predicate) then 'boolean(' || @predicate || ')' else 'true()'))"/>
+    <xsl:sequence select="'map { ' || string-join($entries, ', ') || ' }'"/>
   </xsl:function>
-
-  <!-- A sequence renders each part whose predicate holds; the element's id goes on the first. -->
-  <xsl:template match="pm:model[@behaviour = 'sequence']" mode="body">
-    <xsl:for-each select="pm:model">
-      <xsl:variable name="earlier" select="preceding-sibling::pm:model"/>
-      <xsl:variable name="first" select="if (empty($earlier)) then 'true()'
-        else if (every $e in $earlier satisfies $e/@predicate) then string-join($earlier ! ('not(' || @predicate || ')'), ' and ')
-        else 'false()'"/>
-      <xsl:choose>
-        <xsl:when test="@predicate">
-          <axsl:if test="{@predicate}">
-            <xsl:call-template name="call"><xsl:with-param name="first" select="$first"/></xsl:call-template>
-          </axsl:if>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:call-template name="call"><xsl:with-param name="first" select="$first"/></xsl:call-template>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:for-each>
-  </xsl:template>
-
-  <!-- A compound (Boot's nested-model proposal, an extension): a link part wraps the other parts. -->
-  <xsl:template match="pm:model[@behaviour = 'compound']" mode="body">
-    <xsl:variable name="parts" select="pm:model"/>
-    <xsl:variable name="link" select="$parts[@behaviour = 'link'][1]"/>
-    <xsl:variable name="rest" as="node()*">
-      <xsl:for-each select="$parts except $link">
-        <xsl:call-template name="call">
-          <xsl:with-param name="first" select="if (. is $parts[1]) then 'true()' else 'false()'"/>
-        </xsl:call-template>
-      </xsl:for-each>
-    </xsl:variable>
-    <xsl:choose>
-      <xsl:when test="$link">
-        <xsl:for-each select="$link">
-          <xsl:call-template name="call">
-            <xsl:with-param name="first" select="if (. is $parts[1]) then 'true()' else 'false()'"/>
-            <xsl:with-param name="inner" select="$rest"/>
-          </xsl:call-template>
-        </xsl:for-each>
-      </xsl:when>
-      <xsl:otherwise><xsl:sequence select="$rest"/></xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <xsl:template match="pm:model" mode="body">
-    <xsl:call-template name="call"/>
-  </xsl:template>
-
-  <!-- The call of pm:model for the context model. -->
-  <xsl:template name="call">
-    <xsl:param name="first" as="xs:string" select="'true()'"/>
-    <xsl:param name="inner" as="node()*" select="()"/>
-    <axsl:call-template name="pm:model">
-      <axsl:with-param name="behaviour" select="{pm:q(@behaviour)}"/>
-      <xsl:if test="@tag != ''"><axsl:with-param name="tag" select="{pm:q(@tag)}"/></xsl:if>
-      <xsl:if test="@flow != ''"><axsl:with-param name="flow" select="{pm:q(@flow)}"/></xsl:if>
-      <xsl:if test="@classes != ''">
-        <axsl:with-param name="classes" select="({string-join(tokenize(@classes) ! pm:q(.), ', ')})"/>
-      </xsl:if>
-      <xsl:if test="@source = 'true'"><axsl:with-param name="source" select="true()"/></xsl:if>
-      <xsl:if test="pm:param">
-        <xsl:variable name="map" select="'map { ' || string-join(pm:param ! (pm:q(@name) || ': (' || @value || ')'), ', ') || ' }'"/>
-        <axsl:with-param name="params" select="{$map}"/>
-      </xsl:if>
-      <xsl:if test="$first != 'true()'"><axsl:with-param name="first" select="{$first}"/></xsl:if>
-      <xsl:if test="exists($inner)">
-        <axsl:with-param name="inner" as="node()*"><xsl:sequence select="$inner"/></axsl:with-param>
-      </xsl:if>
-    </axsl:call-template>
-  </xsl:template>
 
 </xsl:stylesheet>

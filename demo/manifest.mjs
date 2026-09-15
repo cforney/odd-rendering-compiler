@@ -11,7 +11,7 @@ export const concept =
 //   dir       compiler output the page came from (copied to site/<dir>/)
 //   file      the rendered page, relative to that output; {doc} is the document
 //   artefact  the generated file behind the path (its snippet + a full-file link)
-//   hue       tab accent, one per family (unified green, XSLT blue, CETEIcean pink)
+//   hue       tab accent, one per family (unified green, XSLT blue, CETEIcean pink, build grey)
 export const paths = [
   {
     id: "unified", family: "unified/xast", label: "static", hue: "#16a34a",
@@ -47,6 +47,16 @@ export const paths = [
     id: "ceteicean", family: "CETEIcean", label: "in the browser", hue: "#db2777",
     dir: "js", file: "ceteicean/{doc}.html",
     artefact: { label: "tei-ceteicean-behaviours.js", file: "js/ceteicean/tei-ceteicean-behaviours.js" },
+  },
+  {
+    id: "findings", family: "Build", label: "findings", hue: "#6b7280",
+    dir: "js", file: "findings/{doc}.html",
+    artefact: { label: "findings.json", file: "js/findings/findings.json" },
+  },
+  {
+    id: "plain", family: "Build", label: "plain text", hue: "#6b7280",
+    dir: "js", file: "plain/{doc}.txt",
+    artefact: { label: "records.json (Pagefind)", file: "js/plain/records.json" },
   },
 ];
 

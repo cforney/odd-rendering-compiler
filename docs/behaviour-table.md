@@ -60,9 +60,32 @@ holds, and the element's id goes on the first.
 **Outputs.** A render renders one output, `web` unless told otherwise
 (`--output`, or the stylesheet param `output`). Each element takes the first
 model of that output whose predicate holds, else the first model without
-`@output`; models of other outputs are skipped. The Simler ODD's views,
-`normalized` (the reading text) and `entities`, are outputs in this sense: the
-renderers render each as a page of its own, not yet as a switch over one page.
+`@output`; models of other outputs are skipped. The edition's root carries
+`data-<output>="on"`, and the CSS of a model with `@output` applies only where
+that output is on. Three outputs have a fixed meaning:
+
+| Output | What it is |
+|--------|-----------|
+| `web` | the page, with the views laid over it |
+| `page` | what the page shows around the text: the params of the root's model, such as `title`, `manifest` and `pages`, used for the page title and the index |
+| `plain` | the search text, rendered on its own by `render-plain.mjs` |
+
+**Views.** Every other output the ODD declares is a view, laid over the `web`
+page (the Simler ODD's `normalized`, the reading text, and `entities`). For each
+element the renderers ask the view's first model whose predicate holds, for a
+sequence part by part:
+
+- an `omit` adds the class `<view>-omit`;
+- a model of the same behaviour adds its classes;
+- an `alternate`'s two readings are marked `<view>-default` or
+  `<view>-alternate`, as the view's `default` param reads them.
+
+A checkbox per view, `<input id="view-<view>">`, heads the edition, labelled by
+the first `<desc>` of the view's models, else by its name. `edition.css` lays a
+view over the page where it is on, either output or checkbox:
+`:is([data-<view>='on'], :root:has(#view-<view>:checked))`. It hides what the
+view omits and swaps the readings, and the view's model CSS applies. So the
+views work on the CSS floor, without JavaScript.
 
 **Joined line ends.** The text is rendered as encoded, with one exception that
 lets a `break` model set the hyphen of a word the print divides: at an

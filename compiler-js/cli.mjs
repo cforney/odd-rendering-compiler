@@ -149,13 +149,22 @@ export function htmlPageName(teiFile) {
 
 /**
  * Build a small, self-contained index page linking the per-source editions
- * produced in multi-file mode. `entries` is `[{ href, title, meta? }]`.
+ * produced in multi-file mode. `entries` is `[{ href, title, meta?, page? }]`;
+ * `page`, what the ODD's model for output "page" gives, adds the title, the
+ * number of page images and the IIIF manifest.
  */
 export function buildIndexPage({ title = "Edition", subtitle = "", entries = [] }) {
-  const items = entries.map((e) => `      <li>
-        <a href="${escapeXml(e.href)}">${escapeXml(e.title)}</a>${e.meta ? `
-        <span class="meta">${escapeXml(e.meta)}</span>` : ""}
-      </li>`).join("\n");
+  const items = entries.map(({ href, title, meta, page = {} }) => {
+    const line = [
+      meta && escapeXml(meta),
+      page.pages?.length && `${page.pages.length} page image(s)`,
+      page.manifest?.[0] && `<a href="${escapeXml(page.manifest[0])}">IIIF manifest</a>`,
+    ].filter(Boolean).join(" · ");
+    return `      <li>
+        <a href="${escapeXml(href)}">${escapeXml(page.title?.[0] || title)}</a>${line ? `
+        <span class="meta">${line}</span>` : ""}
+      </li>`;
+  }).join("\n");
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -175,6 +184,7 @@ export function buildIndexPage({ title = "Edition", subtitle = "", entries = [] 
     a { color: #2563eb; text-decoration: none; font-size: 1.05em; }
     a:hover { text-decoration: underline; }
     .meta { display: block; color: #888; font-size: 0.8em; font-family: system-ui, sans-serif; }
+    .meta a { font-size: inherit; }
   </style>
 </head>
 <body>

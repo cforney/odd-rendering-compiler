@@ -32,7 +32,8 @@ if (!oddPath) {
 }
 
 log(`Parsing ODD: ${oddPath}`);
-const specs = readOdd(resolve(oddPath)).specs.filter((s) => s.models.length);
+const odd = readOdd(resolve(oddPath));
+const specs = odd.specs.filter((s) => s.models.length);
 
 /** An XPath expression as a call that compiles it when the module loads; checked here first. */
 function xp(expr, where) {
@@ -74,8 +75,8 @@ const source = `/**
  * tei-handlers.mjs — generated from ${basename(oddPath)}${stamp ? `, ${stamp}` : ""}
  *
  * The ODD's Processing Model as unified/xast handlers: for each TEI element its
- * models, in document order. pm-runtime.mjs renders by them; teiToHast(tree,
- * { output }) returns { hast, notes }.
+ * models, in document order, and the views laid over the page. pm-runtime.mjs
+ * renders by them; teiToHast(tree, { output }) returns { hast, notes, page }.
  */
 
 import { xpath as xp } from "./xpath.mjs";
@@ -85,7 +86,9 @@ export const models = {
 ${table.join("\n")}
 };
 
-export const teiToHast = createRenderer(models);
+export const views = ${JSON.stringify(odd.views)};
+
+export const teiToHast = createRenderer(models, views);
 `;
 
 const handlersPath = writeOut(outDir, "tei-handlers.mjs", source);

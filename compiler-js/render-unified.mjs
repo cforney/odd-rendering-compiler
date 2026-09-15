@@ -45,7 +45,7 @@ try {
 /** Render one TEI document → a self-contained HTML page. */
 function renderPage(teiFile) {
   const tree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
-  const { hast, notes } = teiToHast(tree, { output });
+  const { hast, notes, page } = teiToHast(tree, { output });
 
   const html = `<!DOCTYPE html>
 <html lang="en" data-mode="light">
@@ -93,16 +93,16 @@ ${editionCss}
 </body>
 </html>`;
 
-  return { html, notes, title: extractTeiTitle(tree) };
+  return { html, notes, title: extractTeiTitle(tree), page };
 }
 
 const indexEntries = [];
 for (const teiFile of teiFiles) {
-  const { html, notes, title } = renderPage(teiFile);
+  const { html, notes, title, page } = renderPage(teiFile);
   const pageName = htmlPageName(teiFile);
   const outFile = writeOut(outDir, pageName, html);
   log(`✓ ${teiFile} → ${outFile} (${notes.length} note(s))`);
-  indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s)` });
+  indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s)`, page });
 }
 
 if (multi) {

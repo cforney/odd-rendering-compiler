@@ -1,7 +1,8 @@
 /**
  * End-to-end smoke tests for the canonical pipeline (odd-to-css →
- * odd-to-unified → render-unified) on the Simler ODD and its excerpts, using
- * only Node's built-in test runner. Run with `npm test`.
+ * odd-to-unified → render-unified), and the findings and plain text beside it,
+ * on the Simler ODD and its excerpts, using only Node's built-in test runner.
+ * Run with `npm test`.
  *
  * Each test asserts the rendered HTML contains what the ODD asks for, so a pass
  * means the pipeline ran end to end, not just that it exited 0. The behaviours
@@ -51,7 +52,10 @@ test("odd-to-css adds the design tokens and reports custom properties nothing de
   assert.match(css, /^\.r-twocol \{[^}]*display: grid/m, "the two-column grid rendition");
   assert.match(css, /^\.pb-group \{[^}]*display: flex/m, "a model group's rendition on its class");
   assert.match(css, /^\.pb-rule::before \{/m, "a scoped rendition as a pseudo-element");
-  assert.match(css, /^\.tei-tooltip \{/m, "the renderers' notes last");
+  const on = (output) => `:is\\(\\[data-${output}='on'\\], :root:has\\(#view-${output}:checked\\)\\)`;
+  assert.match(css, new RegExp(`^${on("entities")} \\.entity-person \\{`, "m"), "an output's CSS where that output is on");
+  assert.match(css, new RegExp(`^${on("normalized")} \\.normalized-omit \\{ display: none; \\}`, "m"), "a view hides what it omits");
+  assert.match(css, /^\.tei-tooltip \{/m, "the renderers' own furniture last");
 });
 
 test("render-unified renders every example, with an index", () => {
@@ -62,8 +66,8 @@ test("render-unified renders every example, with an index", () => {
   assert.match(psalms, /<span class="tei-pb pb-group pb-rule" data-page="4049203">\[4\]<\/span>/, "a page break as its labelled rule, with its image");
   assert.match(psalms, /<a class="tei-note note-anchored tei-note-ref" href="#note-1" data-range="a23">1<\/a>/, "a range note's marker");
   assert.match(psalms, /<section class="tei-footnotes">/, "the notes collected at the end");
-  assert.match(psalms, /wort be<span class="tei-lb lb-hyphen">-<\/span><br class="tei-lb lb-hyphen">trachtet/,
-    "at a joined line end one hyphen, the line break's");
+  assert.match(psalms, /wort be<span class="tei-lb lb-hyphen normalized-omit">-<\/span><br class="tei-lb lb-hyphen normalized-omit">trachtet/,
+    "at a joined line end one hyphen, the line break's, which the normalized view omits");
 
   const columns = page("unified", "simler-buchstabwechsel");
   assert.match(columns, /<div class="tei-lg lg-outer r-twocol">/, "the two-column grid");
@@ -74,18 +78,35 @@ test("render-unified renders every example, with an index", () => {
   assert.match(notes, /<span class="tei-note note-bibl r-et r-smaller">Tob\.[^<]*<span class="tei-anchor" id="a119"><\/span><span class="tei-unclear">17<\/span><a [^>]*href="#note-1"/,
     "a range note inside a printed Bible note");
 
-  assert.match(page("unified", "simler-regenten-kleinodt"), /<div class="tei-note note-marginalia r-smaller">David bit<span class="tei-lb lb-hyphen">-<\/span>/,
+  assert.match(page("unified", "simler-regenten-kleinodt"), /<div class="tei-note note-marginalia r-smaller">David bit<span class="tei-lb lb-hyphen normalized-omit">-<\/span>/,
     "a marginal gloss, with its joined line ends");
 
   const index = readFileSync(join(outDir, "unified", "index.html"), "utf8");
   for (const name of ["simler-psalmen", "simler-buchstabwechsel", "simler-hausswesen", "simler-regenten-kleinodt"]) {
     assert.match(index, new RegExp(`href="${name}\\.html"`));
   }
+  assert.match(index, /<a href="simler-psalmen\.html">Haubtbegriff des erſten Pſalms, Psalms I–V \(C 1663, pp\. 4–5\)<\/a>/, "the title the page model gives");
+  assert.match(index, /2 page image\(s\) · <a href="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049159\/manifest">IIIF manifest<\/a>/, "its page images and manifest");
 });
 
-test("render-unified renders another output: the entities", () => {
+test("render-unified lays the views over the page, each with a switch", () => {
+  const columns = page("unified", "simler-buchstabwechsel");
+  assert.match(columns, /<div class="tei-edition" data-web="on"><form class="tei-views"><label><input type="checkbox" id="view-entities"> entities<\/label><label><input type="checkbox" id="view-normalized"> normalized<\/label><\/form>/,
+    "a checkbox per view, labelled by the output where its models have no <desc>");
+  assert.match(columns, /<span class="tei-rs entity-person">/, "a view's model of the same behaviour adds its classes");
+
+  const notes = page("unified", "simler-hausswesen");
+  assert.match(notes, /<span class="tei-alternate-default normalized-alternate"><span class="tei-sic">f<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden>/,
+    "an alternate's readings marked as the view reads them");
+  assert.match(notes, /<br class="tei-lb normalized-omit">/, "what a view omits is marked");
+});
+
+test("render-unified renders another output alone: the entities", () => {
   run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--out", join(outDir, "entities"), "--output", "entities"]);
-  assert.match(page("entities", "simler-buchstabwechsel"), /<span class="tei-rs entity-person">/, "the output's model takes precedence");
+  const body = page("entities", "simler-buchstabwechsel").split("<body>")[1];
+  assert.match(body, /<div class="tei-edition" data-entities="on">/, "the output is on");
+  assert.match(body, /<span class="tei-rs entity-person">/, "the output's model takes precedence");
+  assert.doesNotMatch(body, /tei-views|normalized-/, "no views laid over it");
 });
 
 test("odd-to-ceteicean writes a page per example, over the unified runtime", () => {
@@ -94,13 +115,50 @@ test("odd-to-ceteicean writes a page per example, over the unified runtime", () 
 
   const context = vm.createContext({});
   vm.runInContext(`${readFileSync(join(out, "tei-ceteicean-behaviours.js"), "utf8")}
-    this.twocol = teiModels.l[0].predicate; this.compiled = Object.keys(teiCompile(teiModels)).length;`, context);
+    this.twocol = teiModels.l[0].predicate; this.compiled = Object.keys(teiCompile(teiModels)).length; this.views = teiViews;`, context);
   assert.equal(context.twocol, "parent::lg[contains-token(@rendition, '#twocol')]", "the models keep their XPath");
   assert.ok(context.compiled > 40, "the inlined XPath module compiles every model");
+  assert.deepEqual(Array.from(context.views, (v) => v.output), ["entities", "normalized"], "and the views");
 
   const html = readFileSync(join(out, "simler-buchstabwechsel.html"), "utf8");
   assert.match(html, /<script type="application\/xml" id="tei-source"><!--\n  Simler Digital/, "the TEI, in its script");
   assert.equal(html.split("<TEI ").length, 2, "and only there");
+});
+
+test("findings reports what the ODD does not foresee", () => {
+  const tei = join(outDir, "flawed.xml");
+  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><teiHeader><fileDesc><titleStmt><title>Flawed</title></titleStmt></fileDesc></teiHeader>
+    <text><body><p rendition="#nowhere">A <foo>strange</foo> <rs type="alien">name</rs><note targetEnd="#missing">n</note><anchor xml:id="lonely"/><pb facs="1"/></p></body></text></TEI>`);
+  const out = join(outDir, "findings");
+  const log = run("findings.mjs", ["--odd", ODD, "--tei", tei, "--tei", "../examples/simler-psalmen.xml", "--out", out]);
+  assert.match(log, /simler-psalmen\.xml: no findings/, "the excerpts are clean");
+
+  const { odd, documents } = JSON.parse(readFileSync(join(out, "findings.json"), "utf8"));
+  assert.ok(odd.includes("Custom property defined nowhere: var(--c-muted)"), "without the tokens, a custom property defined nowhere");
+  assert.deepEqual(documents["flawed.xml"], [
+    "Rendition not declared in the ODD: #nowhere",
+    "No model in the ODD, rendered as its content: <foo>",
+    `Value not in the ODD's list: <rs> type="alien"`,
+    `Note range without its start: targetEnd="missing"`,
+    "Anchor no note range starts at: lonely",
+    "Page images without a IIIF manifest to resolve them",
+  ]);
+  assert.match(readFileSync(join(out, "flawed.html"), "utf8"), /<li>No model in the ODD, rendered as its content: &lt;foo&gt;<\/li>/, "and a page per document");
+});
+
+test("render-plain writes the plain output as text and as Pagefind records", () => {
+  const out = join(outDir, "plain");
+  run("render-plain.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--lang", "de", "--out", out]);
+  const text = readFileSync(join(out, "simler-hausswesen.txt"), "utf8");
+  assert.doesNotMatch(text, /[<>]/, "no markup");
+  assert.match(text, /Haußweſen/, "the text");
+
+  const [record] = JSON.parse(readFileSync(join(out, "records.json"), "utf8"));
+  assert.deepEqual({ ...record, content: undefined }, {
+    url: "simler-hausswesen.html", content: undefined, language: "de",
+    meta: { title: "Chriſtenliches Haußweſen, stanzas 1–4 (C 1663, pp. 321–322)" },
+  });
+  assert.equal(record.content, text.trim().replace(/\n/g, " "), "the text on one line");
 });
 
 test("odd-to-unified fails on XPath outside the subset, naming the model", () => {

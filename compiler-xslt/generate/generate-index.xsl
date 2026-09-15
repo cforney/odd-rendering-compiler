@@ -2,8 +2,10 @@
 <!--
   generate-index.xsl — a linking index.html for a corpus of rendered editions,
   matching the JS multi-file index (cli.mjs buildIndexPage) so the two builds
-  produce the same page. For each TEI source it reads the <title> and counts the
-  <note>s, and links the rendered <basename>.html.
+  produce the same page. For each TEI source it links the rendered
+  <basename>.html, counts the <note>s, and shows what the ODD's model for
+  output "page" gives: the title, the number of page images and the IIIF
+  manifest. It reads that model through the generated edition.xsl, imported.
 
   Point -s: at a file in the corpus directory, such as its first TEI file: TEI
   names in `files` resolve against that document's base URI, the same trick
@@ -19,7 +21,10 @@
   xmlns:tei="http://www.tei-c.org/ns/1.0"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:local="urn:x-poc:odd"
-  exclude-result-prefixes="tei xs local">
+  xmlns:pm="urn:x-poc:pm"
+  exclude-result-prefixes="tei xs local pm">
+
+  <xsl:import href="../output/edition.xsl"/>
 
   <xsl:output method="text" encoding="UTF-8"/>
 
@@ -62,6 +67,7 @@
     a { color: #2563eb; text-decoration: none; font-size: 1.05em; }
     a:hover { text-decoration: underline; }
     .meta { display: block; color: #888; font-size: 0.8em; font-family: system-ui, sans-serif; }
+    .meta a { font-size: inherit; }
   </style>
 </head>
 <body>
@@ -75,7 +81,9 @@
 ]]></xsl:text>
     <xsl:for-each select="$names">
       <xsl:variable name="doc" select="doc(resolve-uri(., $base))"/>
-      <xsl:variable name="t" select="normalize-space(string(($doc//tei:titleStmt/tei:title)[1]))"/>
+      <xsl:variable name="page" select="pm:select($doc/*, 'page')?params"/>
+      <xsl:variable name="t" select="($page?title ! string(), normalize-space(string(($doc//tei:titleStmt/tei:title)[1])))[.][1]"/>
+      <xsl:variable name="manifest" select="string(head($page?manifest))"/>
       <xsl:variable name="n" select="count($doc//tei:note)"/>
       <xsl:variable name="href" select="replace(., '\.xml$', '.html')"/>
       <xsl:text><![CDATA[      <li>
@@ -85,7 +93,12 @@
       <xsl:value-of select="local:esc($t)"/>
       <xsl:text><![CDATA[</a>
         <span class="meta">]]></xsl:text>
-      <xsl:value-of select="concat($n, ' note(s) · interactive')"/>
+      <xsl:value-of select="string-join(($n || ' note(s) · interactive', $page?pages[1] ! (count($page?pages) || ' page image(s)')), ' · ')"/>
+      <xsl:if test="$manifest">
+        <xsl:text> · &lt;a href="</xsl:text>
+        <xsl:value-of select="local:esc($manifest)"/>
+        <xsl:text>"&gt;IIIF manifest&lt;/a&gt;</xsl:text>
+      </xsl:if>
       <xsl:text><![CDATA[</span>
       </li>
 ]]></xsl:text>

@@ -29,6 +29,10 @@ fixtures (`compiler-js/test/fixtures/`).
   `@output` belongs to that output and takes precedence there. Models of another
   output are skipped. The renderers render the `web` output unless told
   otherwise.
+- **Outputs and views.** `page` holds what the page shows around the text (its
+  title, the IIIF manifest, the page images), `plain` the search text. Every
+  other output is a view laid over the `web` page, with a switch for each. See
+  [behaviour-table.md](behaviour-table.md).
 - **Generated code, shared behaviours.** The generated artefact holds what is
   particular to the ODD: for each element its models, predicates and params.
   The behaviours are a runtime shared by every ODD, as in TEI Publisher's
@@ -74,14 +78,20 @@ that is where compiling pays off.
 
 The same ODD feeds three levels, each building on the last:
 
-1. **CSS floor.** `edition.css` over the semantic HTML, with no JavaScript.
+1. **CSS floor.** `edition.css` over the semantic HTML, with no JavaScript. The
+   view switches are checkboxes, and CSS lays a view over the page while its
+   box is checked.
 2. **Static HTML.** Pages rendered at build time (unified/xast or XSLT), with
    notes and apparatus baked in; readable with JavaScript off.
 3. **Interactive.** The static page, progressively enhanced. A note marker opens
    its note as a tooltip, by one script on every interactive page
-   (`runtime/notes.js`, styled by `runtime/notes.css` in `edition.css`).
+   (`runtime/notes.js`, styled by `runtime/ui.css` in `edition.css`).
    Apparatus readings toggle by petite-vue or islands in the JS path, a few lines
    of vanilla JS in the XSLT path, and IXSL in SaxonJS.
 
 The CETEIcean tier renders in the browser instead: the same body, and the same
 tooltips.
+
+Beside the pages, the same build reports what the ODD does not foresee in the
+encoding (`compiler-js/findings.mjs`), and writes the `plain` output as text and
+as Pagefind records for a search index (`compiler-js/render-plain.mjs`).

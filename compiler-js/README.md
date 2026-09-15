@@ -8,7 +8,7 @@ handlers, and CETEIcean behaviours — with the renderers that turn TEI into HTM
 
 | Module | Output | PM coverage |
 |--------|--------|-------------|
-| `odd-to-css.mjs` | `edition.css`: the design tokens (`--tokens`), the `<tagsDecl>` renditions and each model's `<outputRendition>` | all |
+| `odd-to-css.mjs` | `edition.css`: the design tokens (`--tokens`), the `<tagsDecl>` renditions, each model's `<outputRendition>` and the rules that lay the views over the page | all |
 | `odd-to-unified.mjs` | `tei-handlers.mjs` (ESM), with `../runtime/pm-runtime.mjs` and `xpath.mjs` | all; XPath in a subset |
 | `odd-to-xslt.mjs` | `edition.xsl` (XSLT 3.0) | all; any XPath |
 | `odd-to-ceteicean.mjs` | CETEIcean behaviours + a page per source, rendering in the browser | all, as unified |
@@ -26,10 +26,22 @@ CSS nor a `--…` param defines.
 | `render-unified-interactive.mjs` | `tei-handlers.mjs` + petite-vue | `unified-interactive/` |
 | `render-unified-islands.mjs` | `tei-handlers.mjs` + `islands-runtime.js` | `unified-islands/` |
 | `render-xslt.mjs` | `edition.xsl`, run by SaxonJS (`xslt3`) | `xslt/` |
+| `render-plain.mjs` | `tei-handlers.mjs`, output `plain` | `plain/`: `<basename>.txt` and `records.json`, Pagefind custom records (`render:plain`) |
+| `findings.mjs` | the ODD itself | `findings/`: a page per source and `findings.json` (`findings`) |
 
 CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`, into
 `ceteicean/`). `render-unified.mjs` and `render-xslt.mjs` take `--output <name>`,
-the PM output to render (default `web`).
+the PM output to render (default `web`). The `web` page has the ODD's views laid
+over it, each with a switch, and the index shows each page's title, page images
+and IIIF manifest as the ODD's model for output `page` gives them (see
+[`../docs/behaviour-table.md`](../docs/behaviour-table.md)).
+
+**Findings.** `findings.mjs` reports, and prints in the build log, what the ODD
+does not foresee: in each source's text, attribute values outside the ODD's
+value lists, renditions it does not declare, elements without a model, note
+ranges without their start and anchors no range starts at, and page images
+without a IIIF manifest; in the ODD, custom properties defined nowhere (with
+`--tokens`, as `odd-to-css.mjs` reports them).
 
 > **Islands.** `render-unified-islands.mjs` ships the *same* static body, but wraps
 > each interactive region in a `<tei-island>` custom element that one tiny generic
@@ -53,7 +65,8 @@ npm install
 npm run demo               # the Simler examples → static + interactive pages
 npm test                   # smoke tests, conformance fixtures, byte-identity gate
 npm run build:all          # all four generators from the Simler ODD
-npm run render:all         # every renderer on every example
+npm run render:all         # every renderer on every example, and the plain text
+npm run findings           # what the Simler ODD does not foresee in the examples
 npm run build:extension && npm run render:extension   # the nested page-break extension
 npm run sync:odd -- <commit>   # vendor the Simler ODD and tokens at a commit
 ```
@@ -84,7 +97,8 @@ compiler-js/
 ├── odd-to-unified.mjs    # tei-handlers.mjs
 ├── odd-to-xslt.mjs       # edition.xsl, with ../runtime/pm.xsl copied in
 ├── odd-to-ceteicean.mjs  # CETEIcean behaviours: ../runtime/ceteicean.js over pm-runtime.mjs, xpath.mjs
-├── render-*.mjs          # the renderers
+├── render-*.mjs          # the renderers, and the plain text (render-plain.mjs)
+├── findings.mjs          # build-time findings
 ├── islands-runtime.js    # generic <tei-island> hydration runtime
 ├── byte-identity.mjs     # the equivalence check between renders
 ├── test/                 # smoke tests, fixtures, gate (`npm test`)
@@ -96,9 +110,11 @@ Inputs are in [`../examples/`](../examples/).
 ## Architecture
 
 **Reading the ODD.** `readOdd(path)` in `odd-parser.mjs` returns, for each
-`elementSpec`, its models in document order and the CSS of their
-`<outputRendition>`s. The XSLT generators read the ODD the same way
-(`../compiler-xslt/generate/odd-model.xsl`).
+`elementSpec`, its models in document order, the CSS of their
+`<outputRendition>`s and the values of its value lists, and the views: the
+outputs laid over the page. The XSLT generators read the ODD the same way
+(`../compiler-xslt/generate/odd-model.xsl`). `pageOf(specs, tree)` gives what
+the ODD's model for output `page` says of one source.
 
 - **Model groups** are flattened; a model takes `@output` and
   `@useSourceRendition` from its group or sequence.
@@ -118,6 +134,9 @@ renders by it:
 
 - **Models:** each element takes the first model of the output being rendered
   whose predicate holds, else the first such model without `@output`.
+- **Views:** on the `web` page, each view's model marks the element: an omit,
+  its classes, or which reading of an alternate it reads; a checkbox per view
+  heads the edition, and `edition.css` does the rest.
 - **Params:** they are XPath; `data-…` and `--…` params become attributes and CSS
   custom properties.
 - **Flow:** block or inline decides where TEI indentation is dropped and where a
@@ -127,7 +146,7 @@ renders by it:
   hyphen the print shows.
 - **Notes** are numbered in document order and collected by place. On the
   interactive pages a marker opens its note as a tooltip, by
-  `../runtime/notes.js` (styled by `../runtime/notes.css`, which the CSS
+  `../runtime/notes.js` (styled by `../runtime/ui.css`, which the CSS
   generators append to `edition.css`).
 
 The generated stylesheet does the same with `../runtime/pm.xsl`, so the unified

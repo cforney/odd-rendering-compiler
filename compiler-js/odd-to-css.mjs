@@ -4,10 +4,10 @@
  * Compile a TEI ODD to edition.css: the design tokens given with --tokens, the
  * source renditions of <tagsDecl> as `.r-<id>` rules, each model's
  * <outputRendition> as a rule on the class the renderers give the element for
- * that model (see odd-parser.mjs), then the renderers' notes
- * (../runtime/notes.css). The renderers evaluate the predicates, so
- * the CSS needs none. A custom property the ODD's CSS reads but nothing defines
- * is reported.
+ * that model (see odd-parser.mjs), the rules that lay each view over the page,
+ * then the renderers' own furniture (../runtime/ui.css). The renderers evaluate
+ * the predicates, so the CSS needs none. A custom property the ODD's CSS reads
+ * but nothing defines is reported.
  *
  * Usage:  node odd-to-css.mjs --odd <path> [--tokens <css>] [--out <dir>]
  * Output: <dir>/edition.css
@@ -15,7 +15,8 @@
 
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
-import { readOdd } from "./odd-parser.mjs";
+import { readOdd, on } from "./odd-parser.mjs";
+import { undefinedProperties } from "./findings.mjs";
 import { parseArgs, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -31,33 +32,34 @@ if (!oddPath) {
 }
 
 log(`Parsing ODD: ${oddPath}`);
-const { specs, renditions } = readOdd(resolve(oddPath));
+const odd = readOdd(resolve(oddPath));
+const { specs, renditions, views } = odd;
 const rules = specs.flatMap((s) => s.rules);
-const tokens = tokensPath ? [readFileSync(resolve(tokensPath), "utf8").trim()] : [];
+const tokens = tokensPath ? readFileSync(resolve(tokensPath), "utf8").trim() : "";
 const oddCss = [
   ...renditions.map((r) => `.r-${r.id} { ${r.css} }`),
   ...rules.map((r) => `${r.selector} { ${r.css} }`),
 ];
-
-// Custom properties are defined by the tokens, by the ODD's CSS, and by `--…` params.
-const names = (lines, re) => [...lines.join("\n").matchAll(re)].map((m) => m[1]);
-const models = specs.flatMap((s) => s.models).flatMap((m) => [m, ...(m.parts ?? [])]);
-const defined = new Set([
-  ...names([...tokens, ...oddCss], /(--[\w-]+)\s*:/g),
-  ...models.flatMap((m) => m.params.map((p) => p.name)),
+// A view hides what it omits, and shows its own readings of an alternate.
+const viewCss = views.flatMap(({ output: v }) => [
+  `${on(v)} .${v}-omit { display: none; }`,
+  `${on(v)} .tei-alternate-default.${v}-alternate { display: none; }`,
+  `${on(v)} .tei-alternate-alt.${v}-default { display: inline; }`,
 ]);
-for (const name of new Set(names(oddCss, /var\(\s*(--[\w-]+)/g))) {
-  if (!defined.has(name)) log(`⚠ var(${name}) is defined nowhere${tokensPath ? "" : " (no --tokens)"}`);
+
+for (const name of undefinedProperties(odd, tokens)) {
+  log(`⚠ var(${name}) is defined nowhere${tokensPath ? "" : " (no --tokens)"}`);
 }
 
 const css = [
   `/* edition.css — generated from ${basename(oddPath)}${stamp ? `, ${stamp}` : ""}; edit the ODD, not this file. */`,
-  ...tokens,
+  ...(tokens ? [tokens] : []),
   ".pm-block { display: block; }",
   ...oddCss,
-  readFileSync(new URL("../runtime/notes.css", import.meta.url), "utf8").trim(),
+  ...viewCss,
+  readFileSync(new URL("../runtime/ui.css", import.meta.url), "utf8").trim(),
   "",
 ].join("\n");
 
 const cssPath = writeOut(outDir, "edition.css", css);
-log(`✓ ${cssPath} (${tokens.length ? "tokens, " : ""}${renditions.length} renditions, ${rules.length} model rules)`);
+log(`✓ ${cssPath} (${tokens ? "tokens, " : ""}${renditions.length} renditions, ${rules.length} model rules, ${views.length} views)`);

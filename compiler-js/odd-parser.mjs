@@ -1,8 +1,9 @@
 /**
  * Reads a TEI ODD into the Processing Model every generator works from, and
- * parses TEI for the renderers.
+ * parses TEI for the renderers, with the page metadata the ODD declares.
  *
- * readOdd(path) → { specs: [{ ident, models, rules }], renditions: [{ id, css }] }
+ * readOdd(path) → { specs: [{ ident, models, rules, values }], renditions: [{ id, css }],
+ *                   views: [{ output, label }] }
  *
  * `models` are the element's models in document order, model groups flattened:
  *   { behaviour, tag, flow, predicate, output, params: [{ name, value }],
@@ -15,11 +16,17 @@
  * `rules` are the CSS of the <outputRendition>s. A spec's only model styles
  * `.tei-<ident>`; otherwise a group styles `.<ident>-group`, and a model its
  * first @cssClass, or `<ident>-<n>` (the n-th <model> of the spec) without one.
+ * The CSS of a model with @output applies where that output is on (see `on`).
+ *
+ * `values` are the attribute values the spec's value lists foresee. `views` are
+ * the outputs laid over the page, labelled by a model's <desc>: all but those in
+ * ALONE, which render on their own.
  */
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { parseXml } from "@rgrove/parse-xml";
+import { xpath, bool, seq, str } from "../runtime/xpath.mjs";
 
 const BEHAVIOURS = JSON.parse(readFileSync(new URL("../behaviour-map.json", import.meta.url), "utf8"));
 
@@ -27,6 +34,12 @@ const elements = (el, name) =>
   (el?.children ?? []).filter((c) => c.type === "element" && (!name || c.name === name));
 const textOf = (n) => (n.type === "element" ? n.children.map(textOf).join("") : n.text ?? "");
 const normalize = (s) => s.replace(/\s+/g, " ").trim();
+
+/** Outputs not laid over the page: the page itself, what it shows around the text, the search text. */
+const ALONE = ["web", "page", "plain"];
+
+/** Where an output is on: the edition renders it, or its view switch is checked. */
+export const on = (output) => `:is([data-${output}='on'], :root:has(#view-${output}:checked))`;
 
 /** Descendant elements by name, in document order; examples (egXML) are not the schema. */
 function findAll(el, name, out = []) {
@@ -84,10 +97,10 @@ function readSpec(spec) {
   const numbered = findAll(spec, "model");
   const models = [];
   const rules = [];
-  const style = (el, selector) => {
+  const style = (el, selector, output) => {
     for (const r of elements(el, "outputRendition")) {
       const scope = r.attributes.scope ? `::${r.attributes.scope}` : "";
-      rules.push({ selector: selector + scope, css: normalize(textOf(r)) });
+      rules.push({ selector: (output ? `${on(output)} ` : "") + selector + scope, css: normalize(textOf(r)) });
     }
   };
 
@@ -99,7 +112,7 @@ function readSpec(spec) {
     const styled = m.name === "model" && elements(m, "outputRendition").length > 0;
     const bare = sole && !group && !outer && !predicate && !output;
     const cls = styled && !bare ? own[0] ?? `${ident}-${numbered.indexOf(m) + 1}` : undefined;
-    if (styled) style(m, cls ? `.${cls}` : `.tei-${ident}`);
+    if (styled) style(m, cls ? `.${cls}` : `.tei-${ident}`, output);
 
     const sequence = m.name === "modelSequence" ? m : elements(m, "modelSequence")[0];
     const behaviour = m.name === "modelSequence" ? "sequence" : known(m.attributes.behaviour, ident);
@@ -113,6 +126,7 @@ function readSpec(spec) {
       params: [...new Map(elements(m, "param").map((p) => [p.attributes.name, { name: p.attributes.name, value: p.attributes.value ?? "''" }])).values()],
       classes: [...new Set([groupClass, ...own, cls].filter(Boolean))],
       source: inherited("useSourceRendition") === "true",
+      label: elements(m, "desc").map((d) => normalize(textOf(d)))[0],
       parts,
     };
   }
@@ -125,12 +139,23 @@ function readSpec(spec) {
     }
     groups++;
     const groupClass = sole ? undefined : `${ident}-group${groups > 1 ? groups : ""}`;
-    style(entry, groupClass ? `.${groupClass}` : `.tei-${ident}`);
+    style(entry, groupClass ? `.${groupClass}` : `.tei-${ident}`, entry.attributes.output);
     for (const m of elements(entry).filter((e) => /^model(Sequence)?$/.test(e.name))) {
       models.push(read(m, entry, groupClass));
     }
   }
-  return { ident, mode: spec.attributes.mode ?? "add", models, rules };
+  const values = elements(elements(spec, "attList")[0], "attDef")
+    .map((d) => [d.attributes.ident, findAll(d, "valItem").map((v) => v.attributes.ident)])
+    .filter(([, list]) => list.length);
+  return { ident, mode: spec.attributes.mode ?? "add", models, rules, values: Object.fromEntries(values) };
+}
+
+/** The outputs laid over the page, in document order, each labelled by the first <desc> of its models. */
+function viewsOf(specs) {
+  const models = specs.flatMap((s) => s.models).flatMap((m) => [m, ...(m.parts ?? [])]).filter((m) => m.output);
+  return [...new Set(models.map((m) => m.output))]
+    .filter((output) => !ALONE.includes(output))
+    .map((output) => ({ output, label: models.find((m) => m.output === output && m.label)?.label ?? output }));
 }
 
 /**
@@ -148,7 +173,7 @@ export function readOdd(path) {
     .map((r) => ({ id: r.attributes["xml:id"], css: normalize(textOf(r)) }));
 
   const source = findAll(root, "schemaSpec")[0]?.attributes.source;
-  if (!source) return { specs, renditions };
+  if (!source) return { specs, renditions, views: viewsOf(specs) };
 
   const base = readOdd(resolve(dirname(path), source));
   const own = new Map(specs.map((s) => [s.ident, s]));
@@ -156,7 +181,8 @@ export function readOdd(path) {
     .filter((s) => own.get(s.ident)?.mode !== "delete")
     .map((s) => (own.get(s.ident)?.models.length ? own.get(s.ident) : s));
   const added = specs.filter((s) => s.mode !== "delete" && !base.specs.some((b) => b.ident === s.ident));
-  return { specs: [...chained, ...added], renditions: [...base.renditions, ...renditions] };
+  const all = [...chained, ...added];
+  return { specs: all, renditions: [...base.renditions, ...renditions], views: viewsOf(all) };
 }
 
 /**
@@ -172,6 +198,14 @@ export function parseXmlToXast(xml) {
     return null;
   };
   return { type: "root", children: parseXml(xml).children.map(toXast).filter(Boolean) };
+}
+
+/** What the page shows around the text: the params of the root's first model for output "page" whose predicate holds, as strings. */
+export function pageOf(specs, tree) {
+  const root = { node: tree.children.find((n) => n.type === "element"), up: [] };
+  const models = specs.find((s) => s.ident === root.node.name)?.models ?? [];
+  const page = models.find((m) => m.output === "page" && (!m.predicate || bool(xpath(m.predicate)(root))));
+  return Object.fromEntries((page?.params ?? []).map((p) => [p.name, seq(xpath(p.value)(root)).map((item) => str([item]))]));
 }
 
 /** The text of the first `<title>` in an xast tree, for page titles; "" if none. */

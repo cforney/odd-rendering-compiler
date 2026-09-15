@@ -1,5 +1,12 @@
-/* The renderers' notes: the notes collected at the end, and the tooltip notes.js
-   opens from a note marker. The marker itself is styled by the ODD. */
+/* The renderers' own furniture: the view switches, the notes collected at the
+   end, and the tooltip notes.js opens from a note marker. The marker itself is
+   styled by the ODD. */
+.tei-views {
+  display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin: 0 0 1.5em;
+  font: 0.8rem/1.4 var(--f-ui, system-ui, sans-serif); color: rgb(var(--c-muted, 110 110 110));
+}
+.tei-views label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+.tei-views input { margin: 0; accent-color: rgb(var(--c-accent, 45 87 76)); }
 .tei-footnotes, .tei-notes { margin-top: 2em; padding-top: 1em; border-top: 1px solid rgb(var(--c-line, 221 221 221)); }
 .tei-note-body { display: block; margin: 0.3em 0; font-size: 0.9em; }
 .tei-note-body:target { background-color: rgb(var(--c-accent, 45 87 76) / 0.09); }

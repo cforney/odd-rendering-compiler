@@ -55,16 +55,47 @@ function paramProps(params) {
 
 /**
  * Model choice and the printed line, for one render of one output: the model an
- * element takes, whether it starts a line, and its text as rendered. teiToHast
- * renders by it; the CETEIcean tier chooses models by it in the browser.
+ * element takes, what the views lay over it, whether it starts a line, and its
+ * text as rendered. teiToHast renders by it; the CETEIcean tier chooses models by
+ * it in the browser.
  */
-export function createResolver(models, output) {
-  const select = (ms, pos, out) => ms.find((m) => (m.output ?? null) === out && (!m.predicate || bool(m.predicate(pos))));
-  const modelOf = (pos) => {
-    const ms = models[localName(pos.node.name)] ?? [];
-    return select(ms, pos, output) ?? select(ms, pos, null);
-  };
+export function createResolver(models, output, views = []) {
+  /** The first model of exactly `out` (null: the base models) whose predicate holds. */
+  const select = (pos, out) =>
+    (models[localName(pos.node.name)] ?? []).find((m) => (m.output ?? null) === out && (!m.predicate || bool(m.predicate(pos))));
+  const modelOf = (pos) => select(pos, output) ?? select(pos, null);
   const flow = (pos) => (isElement(pos.node) && modelOf(pos)?.flow) || "";
+
+  /**
+   * What the views lay over the k-th part `m` of an element's model: a view's
+   * omit or, for the same behaviour, its classes and model (a view's sequence
+   * overlays part by part).
+   */
+  function overlay(pos, m, k) {
+    const classes = [];
+    const laid = {};
+    for (const { output: v } of views) {
+      const vm = select(pos, v);
+      const part = vm?.behaviour === "sequence" ? vm.parts[k] : vm;
+      if (part?.behaviour === "omit") classes.push(`${v}-omit`);
+      else if (part?.behaviour === m.behaviour) {
+        classes.push(...part.classes);
+        laid[v] = part;
+      }
+    }
+    return { classes, laid };
+  }
+
+  /** An alternate's two readings, each marked, per view laid over it, as that view's default or alternate. */
+  function readings(pos, params, laid) {
+    const both = ["default" in params ? params.default : FIRST(pos), "alternate" in params ? params.alternate : SECOND(pos)];
+    const same = (a, b) => (isPos(a) && isPos(b) ? a.node === b.node : a === b);
+    const marks = both.map((r) => Object.entries(laid).map(([v, vm]) => {
+      const d = "default" in vm.params ? vm.params.default(pos) : FIRST(pos);
+      return `${v}-${seq(d).some((x) => seq(r).some((y) => same(x, y))) ? "default" : "alternate"}`;
+    }));
+    return { both, marks };
+  }
 
   /** Whitespace-only text at the edge of a block, or next to one, is indentation. */
   function indentation(pos) {
@@ -131,13 +162,22 @@ export function createResolver(models, output) {
     return value;
   }
 
-  return { modelOf, atLineStart, renderedText };
+  return { select, modelOf, overlay, readings, atLineStart, renderedText };
 }
 
-export function createRenderer(models) {
+/** A param's value as strings, one per item. */
+const strings = (v) => seq(v).map((item) => str([item]));
+
+/**
+ * teiToHast(tree, { output }) → { hast, notes, page }. The page, output "web", has
+ * the views laid over it and a switch for each; another output renders alone.
+ * `page` holds the params of the root's model for output "page", as strings.
+ */
+export function createRenderer(models, views = []) {
   return function teiToHast(tree, { output = "web" } = {}) {
     const notes = [];
-    const { modelOf, atLineStart, renderedText } = createResolver(models, output);
+    const laidViews = output === "web" ? views : [];
+    const { select, modelOf, overlay, readings, atLineStart, renderedText } = createResolver(models, output, laidViews);
 
     function render(pos, phrasing) {
       const { node } = pos;
@@ -148,17 +188,19 @@ export function createRenderer(models) {
       const model = modelOf(pos);
       if (!model) return children(pos).flatMap((c) => render(c, phrasing));
       if (model.behaviour === "sequence") {
-        const live = model.parts.filter((p) => !p.predicate || bool(p.predicate(pos)));
-        return live.flatMap((p, k) => apply(p, pos, phrasing, k === 0));
+        let rendered = 0;
+        return model.parts.flatMap((p, k) =>
+          p.predicate && !bool(p.predicate(pos)) ? [] : apply(p, pos, phrasing, rendered++ === 0, undefined, k));
       }
       return apply(model, pos, phrasing, true);
     }
 
-    function apply(m, pos, phrasing, first, inner) {
+    function apply(m, pos, phrasing, first, inner, k = 0) {
       const { node } = pos;
-      const params = Object.fromEntries(Object.entries(m.params).map(([k, f]) => [k, f(pos)]));
+      const params = Object.fromEntries(Object.entries(m.params).map(([name, f]) => [name, f(pos)]));
+      const { classes: viewClasses, laid } = overlay(pos, m, k);
       const props = {
-        className: [`tei-${localName(node.name)}`, ...m.classes, ...(m.source ? renditions(node) : [])],
+        className: [`tei-${localName(node.name)}`, ...m.classes, ...viewClasses, ...(m.source ? renditions(node) : [])],
         id: first ? node.attributes["xml:id"] : undefined,
         lang: node.attributes["xml:lang"],
         ...paramProps(params),
@@ -185,11 +227,13 @@ export function createRenderer(models) {
           const level = Math.min(6, Math.max(1, Math.trunc(Number(str(params.level ?? ""))) || 1));
           return wrap(`h${level}`);
         }
-        case "alternate":
+        case "alternate": {
+          const { both, marks } = readings(pos, params, laid);
           return [h("span", { ...props, className: [...props.className, "tei-alternate"] }, [
-            h("span", { className: ["tei-alternate-default"] }, value("default" in params ? params.default : FIRST(pos), true)),
-            h("span", { className: ["tei-alternate-alt"], hidden: true }, value("alternate" in params ? params.alternate : SECOND(pos), true)),
+            h("span", { className: ["tei-alternate-default", ...marks[0]] }, value(both[0], true)),
+            h("span", { className: ["tei-alternate-alt", ...marks[1]], hidden: true }, value(both[1], true)),
           ])];
+        }
         case "note": {
           const place = "place" in params ? str(params.place) : "end";
           const note = { place: NUMBERED.includes(place) ? "end" : place };
@@ -243,6 +287,15 @@ export function createRenderer(models) {
         : h("section", { className: ["tei-notes"], "data-place": place },
           notes.filter((n) => n.place === place).map((n) => h("aside", { className: ["tei-note-body"] }, n.body))));
 
-    return { hast: h("div", { className: ["tei-edition"] }, [...body, ...sections]), notes: ends };
+    // A checkbox per view: CSS lays the view over the page while it is checked.
+    const switches = laidViews.length
+      ? [h("form", { className: ["tei-views"] }, laidViews.map(({ output: v, label }) =>
+        h("label", {}, [h("input", { type: "checkbox", id: `view-${v}` }), text(` ${label}`)])))]
+      : [];
+    const root = top[0] && { node: top[0], up: [] };
+    const meta = root && select(root, "page");
+    const page = meta ? Object.fromEntries(Object.entries(meta.params).map(([k, f]) => [k, strings(f(root))])) : {};
+
+    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on" }, [...switches, ...body, ...sections]), notes: ends, page };
   };
 }

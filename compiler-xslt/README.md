@@ -18,7 +18,8 @@ compiler-xslt/
 │   ├── odd-to-css.xsl        ODD → edition.css   (XSLT generating CSS)
 │   ├── odd-to-ceteicean.xsl  ODD → CETEIcean behaviours + demo page
 │   ├── render-saxonjs.xsl    edition.xsl + IXSL handlers → client-side SaxonJS driver
-│   └── generate-saxonjs-page.xsl  the SaxonJS host page
+│   ├── generate-saxonjs-page.xsl  the SaxonJS host page
+│   └── generate-index.xsl    the index of the interactive pages, by edition.xsl's page model
 ├── build.sh / build.ps1 drivers (run generate + render with Saxon)
 └── output/              generated artefacts + rendered pages (gitignored)
 ```
@@ -83,25 +84,33 @@ straight through. The design turns on two evaluation times:
 | prefix | runs… | over… |
 |--------|-------|-------|
 | `xsl:`  | now (generate) | the **ODD** — for each element, its models in document order, their classes and params |
-| `axsl:` | later (render) | the **TEI** — an `xsl:choose` taking the first model whose output and predicate fit, and the call of `pm:model` |
+| `axsl:` | later (render) | the **TEI** — an `xsl:choose` taking the first model of an output whose predicate holds, as a map |
 
-So each TEI element gets one `<xsl:template>`. Its predicates and params stay
-XPath, which XSLT evaluates natively, so there is no translation gap. The
-behaviours are not generated: they are the runtime [`../runtime/pm.xsl`](../runtime/pm.xsl),
-copied into `edition.xsl`. JavaScript's `odd-to-xslt.mjs` generates the same
-stylesheet from the same runtime.
+So each TEI element gets one `<xsl:template mode="pm:select">`: given an output
+(`''` for the models without `@output`), it returns the element's model as a map
+of its behaviour, classes and params, the params evaluated where the element
+stands. The ODD's views follow as `$pm:views`. Predicates and params stay XPath,
+which XSLT evaluates natively, so there is no translation gap. The behaviours
+are not generated: they are the runtime [`../runtime/pm.xsl`](../runtime/pm.xsl),
+copied into `edition.xsl`. It asks `pm:select` for the output being rendered and
+for each view, and renders the model. JavaScript's `odd-to-xslt.mjs` generates
+the same stylesheet from the same runtime.
 
 `generate/odd-model.xsl` reads the ODD for all three generators, as
 `compiler-js/odd-parser.mjs` does for the JavaScript ones:
 
 - **Model groups** are flattened, keeping document order.
-- **Classes and CSS:** styled models get their classes and CSS rules.
+- **Classes and CSS:** styled models get their classes and CSS rules; a model's
+  CSS for an output applies where that output is on.
+- **Views:** every output but `web`, `page` and `plain`, labelled by the first
+  `<desc>` of its models.
 - **`<specGrp>`/`<specGrpRef>`** composition is resolved within one document
   (reference order, cycle guard, unreferenced groups skipped); this is not full
   `odd2odd`.
 - **Chaining:** `<schemaSpec source="…">` is followed as an ODD chain.
 
-`generate/odd-to-css.xsl` writes the rules to `edition.css`.
+`generate/odd-to-css.xsl` writes the rules to `edition.css`, with those that lay
+each view over the page.
 `generate/odd-to-ceteicean.xsl` emits a third target: a CETEIcean behaviour map
 (the runtime `../runtime/ceteicean.js` and the models as JSON) and a page
 rendering in the browser, over `pm-runtime.mjs` and `xpath.mjs`: the same file

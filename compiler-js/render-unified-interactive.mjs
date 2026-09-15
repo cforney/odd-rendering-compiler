@@ -61,7 +61,7 @@ try {
 // ---------------------------------------------------------------------------
 function renderPage(teiFile) {
   const xastTree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
-  const { hast, notes } = teiToHast(xastTree);
+  const { hast, notes, page } = teiToHast(xastTree);
 
   // Post-process hast: petite-vue directives on every choice/alternate element.
   function transformForPetiteVue(node) {
@@ -198,7 +198,7 @@ ${notesJs}
 </body>
 </html>`;
 
-  return { html, notes, title };
+  return { html, notes, title, page };
 }
 
 // ---------------------------------------------------------------------------
@@ -206,11 +206,11 @@ ${notesJs}
 // ---------------------------------------------------------------------------
 const indexEntries = [];
 for (const teiFile of teiFiles) {
-  const { html, notes, title } = renderPage(teiFile);
+  const { html, notes, title, page } = renderPage(teiFile);
   const pageName = htmlPageName(teiFile);
   const outFile = writeOut(outDir, pageName, html);
   log(`✓ ${teiFile} → ${outFile}`);
-  indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s) · interactive` });
+  indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s) · interactive`, page });
 }
 
 if (multi) {

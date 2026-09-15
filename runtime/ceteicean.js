@@ -2,14 +2,15 @@
  * ceteicean.js — the runtime of a generated tei-ceteicean-behaviours.js, the
  * CETEIcean tier. Both CETEIcean generators copy it in after xpath.mjs (as
  * `teiXpath`) and pm-runtime.mjs (as `teiPm`), followed by the ODD's models as
- * `teiModels`, with predicates and params as XPath.
+ * `teiModels`, with predicates and params as XPath, and its views as `teiViews`.
  *
  * Before CETEIcean turns the TEI into custom elements, each element's model is
- * chosen as the unified handlers choose it, by the same resolver and XPath, and
- * marked on the element (`data-pm`); each text is set as it renders. The
- * behaviours then reshape every custom element into the HTML the other
- * renderers emit, with the same classes, so edition.css styles it alike; the
- * notes are collected after the text, as they collect them.
+ * chosen as the unified handlers choose it, by the same resolver and XPath,
+ * with what the views lay over it, and marked on the element (`data-pm`); each
+ * text is set as it renders. The behaviours then reshape every custom element
+ * into the HTML the other renderers emit, with the same classes, so edition.css
+ * styles it alike; the notes are collected after the text, as they collect
+ * them, and a switch for each view goes before it.
  */
 
 const TEI_PHRASING = ["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"];
@@ -34,23 +35,19 @@ function teiXast(n) {
   return { type: "element", name: n.nodeName, attributes, children: Array.from(n.childNodes, teiXast).filter(Boolean), dom: n };
 }
 
-/** Render the TEI source with CETEIcean and the models; done(dom) receives the result. */
-function teiEdition(ct, source, models, done) {
-  const { xpath, seq, str, bool, isPos } = teiXpath;
-  const resolver = teiPm.createResolver(teiCompile(models), "web");
+/** Render the TEI source with CETEIcean, the models and the views laid over them; done(dom) receives the result. */
+function teiEdition(ct, source, models, views, done) {
+  const { seq, str, bool, isPos } = teiXpath;
+  const resolver = teiPm.createResolver(teiCompile(models), "web", views);
   const doc = new DOMParser().parseFromString(source, "application/xml");
   const choices = [];      // per element, by its data-pm: its ident, position and evaluated models
   const marks = new Map(); // xast element → its data-pm
-  const [FIRST, SECOND] = [xpath("*[1]"), xpath("*[2]")];
   let notes = 0;
 
-  /** A model at an element: its params evaluated, and what its behaviour needs to know there. */
-  function evaluate(m, pos) {
-    const e = { m, params: Object.fromEntries(Object.entries(m.params).map(([k, f]) => [k, f(pos)])) };
-    if (m.behaviour === "alternate") {
-      if (!("default" in e.params)) e.params.default = FIRST(pos);
-      if (!("alternate" in e.params)) e.params.alternate = SECOND(pos);
-    }
+  /** The k-th part of an element's model at the element: its params evaluated, what the views lay over it, and what its behaviour needs to know there. */
+  function evaluate(m, pos, k = 0) {
+    const e = { m, params: Object.fromEntries(Object.entries(m.params).map(([name, f]) => [name, f(pos)])), ...resolver.overlay(pos, m, k) };
+    if (m.behaviour === "alternate") Object.assign(e, resolver.readings(pos, e.params, e.laid));
     if (m.behaviour === "note" && TEI_NUMBERED.includes("place" in e.params ? str(e.params.place) : "end")) e.n = ++notes;
     if (m.behaviour === "break") e.lineStart = resolver.atLineStart(pos);
     if (m.parts) e.parts = m.parts.map((p) => evaluate(p, pos));
@@ -65,10 +62,10 @@ function teiEdition(ct, source, models, done) {
       return;
     }
     const m = resolver.modelOf(pos);
-    const live = !m ? [] : m.behaviour === "sequence" ? m.parts.filter((p) => !p.predicate || bool(p.predicate(pos))) : [m];
+    const parts = !m ? [] : m.behaviour === "sequence" ? m.parts.map((p, k) => [p, k]).filter(([p]) => !p.predicate || bool(p.predicate(pos))) : [[m, 0]];
     marks.set(node, choices.length);
     node.dom.setAttribute("data-pm", choices.length);
-    choices.push(m && { ident: node.name.replace(/^.*:/, ""), pos, models: live.map((p) => evaluate(p, pos)) });
+    choices.push(m && { ident: node.name.replace(/^.*:/, ""), pos, models: parts.map(([p, k]) => evaluate(p, pos, k)) });
     if (m && ["omit", "metadata"].includes(m.behaviour)) return;
     node.children.forEach((c, i) => walk({ node: c, up: [...pos.up, node], i }));
   })({ node: teiXast(doc.documentElement), up: [] });
@@ -112,7 +109,7 @@ function teiEdition(ct, source, models, done) {
     const { m, params } = e;
     const make = (tag, children, extra = []) => {
       const n = document.createElement(tag);
-      n.className = [`tei-${c.ident}`, ...m.classes, ...(m.source ? teiRenditions(el) : []), ...extra].join(" ");
+      n.className = [`tei-${c.ident}`, ...m.classes, ...e.classes, ...(m.source ? teiRenditions(el) : []), ...extra].join(" ");
       const id = first && el.getAttribute("xml:id");
       if (id) n.id = id;
       if (el.getAttribute("xml:lang")) n.lang = el.getAttribute("xml:lang");
@@ -132,14 +129,14 @@ function teiEdition(ct, source, models, done) {
       case "heading":
         return wrap(`h${Math.min(6, Math.max(1, Math.trunc(Number(str(params.level ?? ""))) || 1))}`);
       case "alternate": {
-        const reading = (cls, v, hidden) => {
+        const reading = (k, cls, hidden) => {
           const s = document.createElement("span");
-          s.className = cls;
+          s.className = [cls, ...e.marks[k]].join(" ");
           s.hidden = hidden;
-          s.append(...value(v, c, content));
+          s.append(...value(e.both[k], c, content));
           return s;
         };
-        return [make("span", [reading("tei-alternate-default", params.default, false), reading("tei-alternate-alt", params.alternate, true)], ["tei-alternate"])];
+        return [make("span", [reading(0, "tei-alternate-default", false), reading(1, "tei-alternate-alt", true)], ["tei-alternate"])];
       }
       case "note": {
         const aside = document.createElement("aside");
@@ -212,7 +209,27 @@ function teiEdition(ct, source, models, done) {
       if (c) apply(el, c);
     }])),
   });
-  ct.domToHTML5(doc, done);
+  ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom)));
+}
+
+/** The edition's root: a checkbox per view, which CSS lays over the page while it is checked, then the text. */
+function teiRoot(views, dom) {
+  const root = document.createElement("div");
+  root.className = "tei-edition";
+  root.dataset.web = "on";
+  if (views.length) {
+    const form = root.appendChild(document.createElement("form"));
+    form.className = "tei-views";
+    for (const { output, label } of views) {
+      const l = form.appendChild(document.createElement("label"));
+      const box = l.appendChild(document.createElement("input"));
+      box.type = "checkbox";
+      box.id = `view-${output}`;
+      l.append(` ${label}`);
+    }
+  }
+  root.append(dom);
+  return root;
 }
 
 /** `@rendition="#a #b"` → r-a r-b */

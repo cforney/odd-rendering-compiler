@@ -2,18 +2,21 @@
 
 One static page that frames the outputs both compilers already build, so a visitor
 can pick an example, switch rendering paths, turn JavaScript off, and see the
-generated artefact and its cost next to each result. Nothing is re-rendered here — the page only frames
-existing files.
+generated artefact and its cost next to each result. The *Build* tabs show what
+else the build writes for the example: its findings, what the ODD does not
+foresee in the encoding, and its plain text, with the Pagefind records beside
+it. Nothing is re-rendered here — the page only frames existing files.
 
 ## Build it
 
 Build each compiler's outputs first, then assemble:
 
 ```bash
-# 1 · the unified + CETEIcean pages and their artefacts
+# 1 · the unified + CETEIcean pages and their artefacts, the plain text, the findings
 cd compiler-js
 npm install
 npm run build:all && npm run render:unified && npm run render:interactive && npm run render:islands
+npm run render:plain && npm run findings
 
 # 2 · the XSLT pages (static, progressively enhanced, in-browser SaxonJS)
 cd ../compiler-xslt

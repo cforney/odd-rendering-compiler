@@ -9,7 +9,8 @@
  * runtime ../runtime/ceteicean.js, which chooses each element's model with the
  * unified handlers' own runtime and XPath (pm-runtime.mjs, xpath.mjs). All
  * three are inlined as classic scripts, so a page also works from file://; the
- * ODD's models follow as JSON, with predicates and params as XPath.
+ * ODD's models follow as JSON, with predicates and params as XPath, then its
+ * views.
  *
  * --tei takes the renderers' inputs: each source gives a page <basename>.html,
  * several also an index.html. The pages link edition.css, which --css copies
@@ -21,7 +22,7 @@
 
 import { readFileSync, copyFileSync, mkdirSync } from "fs";
 import { resolve, basename } from "path";
-import { readOdd, parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
+import { readOdd, parseXmlToXast, extractTeiTitle, pageOf } from "./odd-parser.mjs";
 import {
   parseArgs, createLogger, writeOut, generatedStamp,
   resolveInputFiles, htmlPageName, buildIndexPage,
@@ -41,7 +42,8 @@ if (!oddPath) {
 }
 
 log(`Parsing ODD: ${oddPath}`);
-const specs = readOdd(resolve(oddPath)).specs;
+const odd = readOdd(resolve(oddPath));
+const specs = odd.specs;
 const runtime = (name) => readFileSync(new URL(`../runtime/${name}`, import.meta.url), "utf8");
 
 /** An ES module of the runtime as a classic script, `var <name> = { its exports }`; its import reads `from`. */
@@ -67,6 +69,7 @@ ${script("xpath.mjs", "teiXpath")}
 ${script("pm-runtime.mjs", "teiPm", "teiXpath")}
 ${runtime("ceteicean.js")}
 const teiModels = ${JSON.stringify(models, null, 1)};
+const teiViews = ${JSON.stringify(odd.views)};
 `;
 
 writeOut(outDir, "tei-ceteicean-behaviours.js", behaviours);
@@ -79,7 +82,8 @@ for (const teiFile of teiFiles) {
   const page = runtime("ceteicean.html").split("{{behaviours}}").join(behaviours).split("{{notes}}").join(runtime("notes.js")).split("{{tei}}").join(tei.replace(/^<\?xml[^>]*\?>\s*/, ""));
   const pagePath = writeOut(outDir, htmlPageName(teiFile), page);
   log(`✓ ${pagePath} (${Object.keys(models).length} elements)`);
-  entries.push({ href: htmlPageName(teiFile), title: extractTeiTitle(parseXmlToXast(tei)) || htmlPageName(teiFile), meta: "CETEIcean (in the browser)" });
+  const tree = parseXmlToXast(tei);
+  entries.push({ href: htmlPageName(teiFile), title: extractTeiTitle(tree) || htmlPageName(teiFile), meta: "CETEIcean (in the browser)", page: pageOf(specs, tree) });
 }
 if (entries.length > 1) {
   writeOut(outDir, "index.html", buildIndexPage({ title: "TEI Edition — CETEIcean", subtitle: `${entries.length} documents · rendered in the browser`, entries }));

@@ -9,18 +9,22 @@
         <pm:rendition id css/>…                         the source renditions of <tagsDecl>
         <pm:spec ident mode>
           <pm:rule selector css/>                        a model group's CSS
-          <pm:model behaviour tag flow predicate? output? classes source>
+          <pm:model behaviour tag flow predicate? output? label? classes source>
             <pm:rule selector css/>                      the model's CSS
             <pm:param name value/>…
             <pm:model …/>…                               the parts of a sequence
           </pm:model>…
         </pm:spec>…
+        <pm:view output label/>…                         the outputs laid over the page
       </pm:odd>
 
   Models are in document order, groups flattened; a model takes @output and
   @useSourceRendition from its sequence or group. A spec's only model styles
   .tei-<ident>; otherwise a group styles .<ident>-group, and a model its first
-  @cssClass, or <ident>-<n> (the n-th <model> of the spec) without one.
+  @cssClass, or <ident>-<n> (the n-th <model> of the spec) without one. The CSS
+  of a model with @output applies where that output is on (see pm:on). The
+  views are all outputs but those rendering alone, each labelled by the first
+  <desc> of its models.
 -->
 <xsl:stylesheet version="3.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -45,7 +49,7 @@
       </xsl:for-each>
     </xsl:variable>
     <xsl:variable name="source" select="($doc//tei:schemaSpec)[1]/@source"/>
-    <pm:odd>
+    <xsl:variable name="all" as="element()*">
       <xsl:choose>
         <!-- A chain: the base ODD's specs; this one's replace their models, delete, or add. -->
         <xsl:when test="$source">
@@ -63,7 +67,22 @@
           <xsl:sequence select="$renditions, $specs"/>
         </xsl:otherwise>
       </xsl:choose>
+    </xsl:variable>
+    <pm:odd>
+      <xsl:sequence select="$all"/>
+      <xsl:for-each select="distinct-values($all//pm:model/@output)[not(. = $pm:alone)]">
+        <pm:view output="{.}" label="{($all//pm:model[@output = current()]/@label, .)[1]}"/>
+      </xsl:for-each>
     </pm:odd>
+  </xsl:function>
+
+  <!-- Outputs not laid over the page: the page itself, what it shows around the text, the search text. -->
+  <xsl:variable name="pm:alone" select="('web', 'page', 'plain')"/>
+
+  <!-- Where an output is on: the edition renders it, or its view switch is checked. -->
+  <xsl:function name="pm:on" as="xs:string">
+    <xsl:param name="output" as="xs:string"/>
+    <xsl:sequence select="':is([data-' || $output || '=''on''], :root:has(#view-' || $output || ':checked))'"/>
   </xsl:function>
 
   <!-- Resolve <specGrpRef> within one document: each reference contributes the specs
@@ -97,6 +116,7 @@
             <xsl:call-template name="pm:rules">
               <xsl:with-param name="el" select="."/>
               <xsl:with-param name="selector" select="if ($groupClass) then '.' || $groupClass else '.tei-' || ../@ident"/>
+              <xsl:with-param name="output" select="@output"/>
             </xsl:call-template>
             <xsl:for-each select="tei:model | tei:modelSequence">
               <xsl:call-template name="pm:read">
@@ -114,8 +134,9 @@
   <xsl:template name="pm:rules">
     <xsl:param name="el" as="element()"/>
     <xsl:param name="selector" as="xs:string"/>
+    <xsl:param name="output" as="xs:string?"/>
     <xsl:for-each select="$el/tei:outputRendition">
-      <pm:rule selector="{$selector}{if (@scope) then '::' || @scope else ''}" css="{normalize-space(.)}"/>
+      <pm:rule selector="{$output ! (pm:on(.) || ' ')}{$selector}{if (@scope) then '::' || @scope else ''}" css="{normalize-space(.)}"/>
     </xsl:for-each>
   </xsl:template>
 
@@ -155,10 +176,12 @@
       source="{(@useSourceRendition, $outer/@useSourceRendition, $group/@useSourceRendition)[1] = 'true'}">
       <xsl:if test="@predicate"><xsl:attribute name="predicate" select="@predicate"/></xsl:if>
       <xsl:if test="$output"><xsl:attribute name="output" select="$output"/></xsl:if>
+      <xsl:if test="tei:desc"><xsl:attribute name="label" select="normalize-space(tei:desc[1])"/></xsl:if>
       <xsl:if test="$styled">
         <xsl:call-template name="pm:rules">
           <xsl:with-param name="el" select="."/>
           <xsl:with-param name="selector" select="if ($cls) then '.' || $cls else '.tei-' || $ident"/>
+          <xsl:with-param name="output" select="$output"/>
         </xsl:call-template>
       </xsl:if>
       <!-- A repeated param counts once, with its last value. -->

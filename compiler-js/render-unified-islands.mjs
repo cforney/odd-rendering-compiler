@@ -64,7 +64,7 @@ function markIslands(node) {
 // ---------------------------------------------------------------------------
 function renderPage(teiFile) {
   const xastTree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
-  const { hast, notes } = teiToHast(xastTree);
+  const { hast, notes, page } = teiToHast(xastTree);
   const htmlBody = toHtml(markIslands(hast));
   const title = extractTeiTitle(xastTree);
 
@@ -126,7 +126,7 @@ ${notesJs}
 </body>
 </html>`;
 
-  return { html, notes, title };
+  return { html, notes, title, page };
 }
 
 // ---------------------------------------------------------------------------
@@ -136,11 +136,11 @@ writeOut(outDir, "tei-islands.js", runtime);
 
 const indexEntries = [];
 for (const teiFile of teiFiles) {
-  const { html, notes, title } = renderPage(teiFile);
+  const { html, notes, title, page } = renderPage(teiFile);
   const pageName = htmlPageName(teiFile);
   const outFile = writeOut(outDir, pageName, html);
   log(`✓ ${teiFile} → ${outFile}`);
-  indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s) · islands` });
+  indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s) · islands`, page });
 }
 
 if (multi) {
