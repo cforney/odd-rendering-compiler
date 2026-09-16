@@ -6,8 +6,11 @@
  *                   views: [{ output, label }] }
  *
  * `models` are the element's models in document order, model groups flattened:
- *   { behaviour, tag, flow, predicate, output, params: [{ name, value }],
- *     classes, source, parts }
+ *   { id, behaviour, tag, flow, predicate, output, params: [{ name, value }],
+ *     classes, source, parts, odd, line }
+ * `id` names the model, `<ident>-<n>` by its place among the spec's models, and
+ * `odd`/`line` say where it (and, on each param, where that param) was written —
+ * what the JSON records and the report of degraded XPath name it by.
  * A <modelSequence> is behaviour "sequence" with its models as `parts`; a
  * <model> holding a <modelSequence> (Boot's nested-model proposal) keeps its
  * behaviour and gets `parts` too. A model takes @output and
@@ -24,7 +27,7 @@
  */
 
 import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { parseXml } from "@rgrove/parse-xml";
 import { xpath, bool, seq, str } from "../runtime/xpath.mjs";
 
@@ -41,11 +44,11 @@ const ALONE = ["web", "page", "plain"];
 /** Where an output is on: the edition renders it, or its view switch is checked. */
 export const on = (output) => `:is([data-${output}='on'], :root:has(#view-${output}:checked))`;
 
-/** Descendant elements by name, in document order; examples (egXML) are not the schema. */
+/** Descendant elements by name (or any of several), in document order; examples (egXML) are not the schema. */
 function findAll(el, name, out = []) {
   for (const c of elements(el)) {
     if (c.name === "egXML") continue;
-    if (c.name === name) out.push(c);
+    if (Array.isArray(name) ? name.includes(c.name) : c.name === name) out.push(c);
     findAll(c, name, out);
   }
   return out;
@@ -61,7 +64,7 @@ export function resolveSpecGrpRefs(root, warn = (m) => console.error(m)) {
   const byId = new Map(findAll(root, "specGrp").map((g) => [g.attributes["xml:id"], g]));
   if (!findAll(root, "specGrpRef").length) return root;
 
-  const copy = (el, children) => ({ type: "element", name: el.name, attributes: el.attributes, children });
+  const copy = (el, children) => ({ type: "element", name: el.name, attributes: el.attributes, children, start: el.start });
   const rewrite = (children, seen) =>
     children.flatMap((c) => {
       if (c.type !== "element") return [c];
@@ -90,11 +93,12 @@ function flowOf(behaviour, parts) {
   return flows.includes("block") ? "block" : flows.every((f) => f === "inline") ? "inline" : "";
 }
 
-function readSpec(spec) {
+function readSpec(spec, where) {
   const ident = spec.attributes.ident;
   const entries = elements(spec).filter((e) => /^model(Grp|Sequence)?$/.test(e.name));
   const sole = entries.length === 1;
   const numbered = findAll(spec, "model");
+  const identified = findAll(spec, ["model", "modelSequence"]);
   const models = [];
   const rules = [];
   const style = (el, selector, output) => {
@@ -118,16 +122,18 @@ function readSpec(spec) {
     const behaviour = m.name === "modelSequence" ? "sequence" : known(m.attributes.behaviour, ident);
     const parts = sequence && elements(sequence, "model").map((p) => read(p, group, groupClass, m));
     return {
+      id: `${ident}-${identified.indexOf(m) + 1}`,
       behaviour,
       tag: BEHAVIOURS[behaviour]?.tag,
       flow: flowOf(behaviour, parts),
       predicate,
       output,
-      params: [...new Map(elements(m, "param").map((p) => [p.attributes.name, { name: p.attributes.name, value: p.attributes.value ?? "''" }])).values()],
+      params: [...new Map(elements(m, "param").map((p) => [p.attributes.name, { name: p.attributes.name, value: p.attributes.value ?? "''", ...where.at(p.start) }])).values()],
       classes: [...new Set([groupClass, ...own, cls].filter(Boolean))],
       source: inherited("useSourceRendition") === "true",
       label: elements(m, "desc").map((d) => normalize(textOf(d)))[0],
       parts,
+      ...where.at(m.start),
     };
   }
 
@@ -150,9 +156,15 @@ function readSpec(spec) {
   return { ident, mode: spec.attributes.mode ?? "add", models, rules, values: Object.fromEntries(values) };
 }
 
+/** Every model of the specs, the parts of a sequence included, each with the element it belongs to. */
+export function allModels(specs) {
+  const flatten = (m) => [m, ...(m.parts ?? []).flatMap(flatten)];
+  return specs.flatMap((s) => s.models.flatMap(flatten).map((m) => ({ element: s.ident, ...m })));
+}
+
 /** The outputs laid over the page, in document order, each labelled by the first <desc> of its models. */
 function viewsOf(specs) {
-  const models = specs.flatMap((s) => s.models).flatMap((m) => [m, ...(m.parts ?? [])]).filter((m) => m.output);
+  const models = allModels(specs).filter((m) => m.output);
   return [...new Set(models.map((m) => m.output))]
     .filter((output) => !ALONE.includes(output))
     .map((output) => ({ output, label: models.find((m) => m.output === output && m.label)?.label ?? output }));
@@ -164,9 +176,12 @@ function viewsOf(specs) {
  * spec's models, `mode="delete"` removes a spec, and a new ident is added.
  */
 export function readOdd(path) {
-  const doc = parseXml(readFileSync(path, "utf8"));
+  const xml = readFileSync(path, "utf8");
+  const doc = parseXml(xml, { includeOffsets: true });
   const root = resolveSpecGrpRefs(doc.children.find((n) => n.type === "element"));
-  const specs = findAll(root, "elementSpec").map(readSpec);
+  /** Where a model was written: this ODD, and the line of its offset in it. */
+  const where = { at: (start) => ({ odd: basename(path), line: xml.slice(0, start).split("\n").length }) };
+  const specs = findAll(root, "elementSpec").map((spec) => readSpec(spec, where));
   const renditions = findAll(root, "tagsDecl")
     .flatMap((t) => elements(t, "rendition"))
     .filter((r) => r.attributes["xml:id"])

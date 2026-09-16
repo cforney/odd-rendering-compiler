@@ -40,7 +40,7 @@ before(() => { out = mkdtempSync(join(tmpdir(), "odd-fixtures-")); });
 after(() => rmSync(out, { recursive: true, force: true }));
 
 test("the unified handlers render the fixtures", async () => {
-  execFileSync(process.execPath, ["odd-to-unified.mjs", "--odd", odd, "--out", out], { cwd: pocDir });
+  execFileSync(process.execPath, ["odd-to-unified.mjs", "--odd", odd, "--out", out, "--strict"], { cwd: pocDir });
   const teiToHast = await loadHandlers(join(out, "tei-handlers.mjs"));
   for (const name of cases) {
     const tei = readFileSync(join(fixtures, "tei", `${name}.xml`), "utf8");

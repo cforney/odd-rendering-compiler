@@ -17,14 +17,15 @@
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
 import { pathToFileURL } from "url";
-import { readOdd, parseXmlToXast, pageOf } from "./odd-parser.mjs";
+import { readOdd, parseXmlToXast, pageOf, allModels } from "./odd-parser.mjs";
+import { checkXPath } from "./unsupported.mjs";
 import { parseArgs, createLogger, writeOut, resolveInputFiles, htmlPageName, escapeXml } from "./cli.mjs";
 
 /** Custom properties the ODD's CSS reads that neither the tokens, the ODD's CSS nor a `--…` param defines. */
 export function undefinedProperties({ specs, renditions }, tokens = "") {
   const css = [...renditions, ...specs.flatMap((s) => s.rules)].map((r) => r.css).join("\n");
   const names = (text, re) => [...text.matchAll(re)].map((m) => m[1]);
-  const params = specs.flatMap((s) => s.models).flatMap((m) => [m, ...(m.parts ?? [])]).flatMap((m) => m.params);
+  const params = allModels(specs).flatMap((m) => m.params);
   const defined = new Set([...names(`${tokens}\n${css}`, /(--[\w-]+)\s*:/g), ...params.map((p) => p.name)]);
   return [...new Set(names(css, /var\(\s*(--[\w-]+)/g))].filter((name) => !defined.has(name));
 }
@@ -108,7 +109,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
   }
   const odd = readOdd(resolve(oddPath));
   const tokens = cli.get("--tokens") ? readFileSync(resolve(cli.get("--tokens")), "utf8") : "";
-  const oddFindings = undefinedProperties(odd, tokens).map((name) => `Custom property defined nowhere: var(${name})`);
+  const oddFindings = [
+    ...undefinedProperties(odd, tokens).map((name) => `Custom property defined nowhere: var(${name})`),
+    ...checkXPath(odd.specs).entries.map((e) => `XPath outside the subset, degraded: <${e.element}> ${e.where} "${e.expression}" (${e.odd}:${e.line})`),
+  ];
   for (const f of oddFindings) log(`  ${basename(oddPath)}: ${f}`);
 
   const report = { odd: oddFindings, documents: {} };

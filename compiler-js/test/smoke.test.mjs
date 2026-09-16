@@ -161,14 +161,51 @@ test("render-plain writes the plain output as text and as Pagefind records", () 
   assert.equal(record.content, text.trim().replace(/\n/g, " "), "the text on one line");
 });
 
-test("odd-to-unified fails on XPath outside the subset, naming the model", () => {
+test("odd-to-unified degrades XPath outside the subset, and --strict fails on it", () => {
   const odd = join(outDir, "bad.odd");
   writeFileSync(odd, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="x">
-    <elementSpec ident="p" mode="change"><model behaviour="block"/><model predicate="@a | @b" behaviour="inline"/></elementSpec>
+    <elementSpec ident="p" mode="change">
+      <model predicate="@a | @b" behaviour="inline"><param name="content" value="let $x := . return $x"/></model>
+      <model behaviour="block"/>
+    </elementSpec>
   </schemaSpec></body></text></TEI>`);
-  const result = spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", odd, "--out", join(outDir, "bad")], { cwd: pocDir, encoding: "utf8" });
-  assert.notEqual(result.status, 0, "the build fails");
-  assert.match(result.stderr, /<p>, model 2: XPath "@a \| @b"/, "the error names the element and the model");
+  const out = join(outDir, "bad");
+  run("odd-to-unified.mjs", ["--odd", odd, "--out", out]);
+
+  assert.deepEqual(JSON.parse(readFileSync(join(out, "odd-unsupported.json"), "utf8")), [
+    { element: "p", model: "p-1", where: "predicate", expression: "@a | @b", reason: `unexpected "|"`, odd: "bad.odd", line: 3 },
+    { element: "p", model: "p-1", where: "param content", expression: "let $x := . return $x", reason: `cannot read "$x := . return $x"`, odd: "bad.odd", line: 3 },
+  ], "the table names each expression, where it stands and the line it was written on");
+  const handlers = readFileSync(join(out, "tei-handlers.mjs"), "utf8");
+  assert.match(handlers, /predicate: xp\("false\(\)"\), params: \{ "content": xp\("\(\)"\) \}/,
+    "a predicate degrades to false, a param to nothing — what a failing evaluation returns");
+
+  const result = spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", odd, "--out", out, "--strict"], { cwd: pocDir, encoding: "utf8" });
+  assert.notEqual(result.status, 0, "--strict fails the build");
+  assert.match(result.stderr, /<p> \(p-1, bad\.odd:3\), predicate: XPath "@a \| @b"/, "naming the element, the model and where it was written");
+});
+
+test("render-json writes the ODD's decisions as records, with a table of the models that fired", () => {
+  const out = join(outDir, "json");
+  run("render-json.mjs", ["--odd", ODD, "--tei", "../examples/simler-psalmen.xml", "--out", out, "--strict"]);
+  const { document, output, models, root } = JSON.parse(readFileSync(join(out, "simler-psalmen.json"), "utf8"));
+
+  assert.deepEqual([document, output], ["simler-psalmen.xml", "web"]);
+  assert.equal(root.element, "TEI");
+  assert.deepEqual(root.children[0], { element: "teiHeader", model: "teiHeader-1", behaviour: "metadata", classes: ["tei-teiHeader"], children: [] },
+    "what the ODD omits is recorded, and stops there");
+
+  const find = (node, element) =>
+    node.element === element ? node : node.children.reduce((hit, c) => hit ?? (typeof c === "string" ? null : find(c, element)), null);
+  assert.deepEqual(find(root, "pb"), {
+    element: "pb", model: "pb-2", behaviour: "break", classes: ["tei-pb", "pb-group", "pb-rule"],
+    params: { type: ["page"], "data-page": ["4049203"], label: ["[4]"] }, children: [],
+  }, "a record names the model that won, its classes and its params as evaluated");
+
+  assert.equal(models["pb-2"].odd, "tei_simler.odd", "the side table says which ODD the model came from");
+  assert.match(models["div-1"].predicate, /^preceding-sibling::/, "and its predicate");
+  assert.deepEqual(models["lb-3"].parts, ["lb-4", "lb-5"], "a sequence is described with its parts");
+  assert.ok(!("l-1" in models), "only the models the document made fire");
 });
 
 test("the nested page-break extension renders a facsimile thumbnail", () => {

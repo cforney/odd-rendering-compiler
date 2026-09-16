@@ -7,17 +7,19 @@
  * (../runtime/pm-runtime.mjs for the behaviours, xpath.mjs for the XPath subset), and its
  * hast output plugs into the unified ecosystem (rehype, Astro, Eleventy).
  *
- * Every predicate and param is compiled here once, so XPath outside the subset
- * fails the build with the element and model named.
+ * Every predicate and param is compiled here once. XPath outside the subset is
+ * degraded and listed in odd-unsupported.json beside the handlers; `--strict`
+ * fails the build instead, with the element and model named.
  *
- * Usage:  node odd-to-unified.mjs --odd <path> [--out <dir>]
- * Output: <dir>/tei-handlers.mjs (+ pm-runtime.mjs, xpath.mjs); render it with render-unified.mjs
+ * Usage:  node odd-to-unified.mjs --odd <path> [--out <dir>] [--strict]
+ * Output: <dir>/tei-handlers.mjs (+ pm-runtime.mjs, xpath.mjs, odd-unsupported.json);
+ *         render it with render-unified.mjs
  */
 
 import { copyFileSync } from "fs";
 import { resolve, basename, join } from "path";
 import { readOdd } from "./odd-parser.mjs";
-import { xpath } from "../runtime/xpath.mjs";
+import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import { parseArgs, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -27,47 +29,41 @@ const outDir = cli.get("--out") || "output";
 const stamp = generatedStamp(cli);
 
 if (!oddPath) {
-  console.error("Usage: node odd-to-unified.mjs --odd <path> [--out <dir>]");
+  console.error("Usage: node odd-to-unified.mjs --odd <path> [--out <dir>] [--strict]");
   process.exit(1);
 }
 
 log(`Parsing ODD: ${oddPath}`);
 const odd = readOdd(resolve(oddPath));
 const specs = odd.specs.filter((s) => s.models.length);
+const grammar = checkXPath(odd.specs);
+reportUnsupported(grammar.entries, { scope: "odd-to-unified", strict: cli.has("--strict") });
 
-/** An XPath expression as a call that compiles it when the module loads; checked here first. */
-function xp(expr, where) {
-  try {
-    xpath(expr);
-  } catch (e) {
-    console.error(`[odd-to-unified] ✗ ${where}: ${e.message}`);
-    process.exit(1);
-  }
-  return `xp(${JSON.stringify(expr)})`;
-}
+/** An XPath expression as a call that compiles it when the module loads, degraded where the subset cannot. */
+const xp = (expr, kind) => `xp(${JSON.stringify(grammar[kind](expr))})`;
 
 /** One model as a JS object literal. */
-function modelJs(m, where, pad) {
-  const params = m.params.map((p) => `${JSON.stringify(p.name)}: ${xp(p.value, `${where}, param ${p.name}`)}`);
+function modelJs(m, pad) {
+  const params = m.params.map((p) => `${JSON.stringify(p.name)}: ${xp(p.value, "param")}`);
   const fields = [
     `behaviour: ${JSON.stringify(m.behaviour)}`,
     m.tag && `tag: ${JSON.stringify(m.tag)}`,
     `flow: ${JSON.stringify(m.flow)}`,
     m.output && `output: ${JSON.stringify(m.output)}`,
-    m.predicate && `predicate: ${xp(m.predicate, where)}`,
+    m.predicate && `predicate: ${xp(m.predicate, "predicate")}`,
     `params: {${params.length ? ` ${params.join(", ")} ` : ""}}`,
     `classes: ${JSON.stringify(m.classes)}`,
     `source: ${m.source}`,
   ].filter(Boolean);
   if (m.parts) {
-    const parts = m.parts.map((p, k) => modelJs(p, `${where}, part ${k + 1}`, pad + "  "));
+    const parts = m.parts.map((p) => modelJs(p, pad + "  "));
     fields.push(`parts: [\n${parts.map((p) => `${pad}  ${p},`).join("\n")}\n${pad}]`);
   }
   return `{ ${fields.join(", ")} }`;
 }
 
 const table = specs.map((s) => {
-  const models = s.models.map((m, k) => `    ${modelJs(m, `<${s.ident}>, model ${k + 1}`, "    ")},`);
+  const models = s.models.map((m) => `    ${modelJs(m, "    ")},`);
   return `  ${JSON.stringify(s.ident)}: [\n${models.join("\n")}\n  ],`;
 });
 
@@ -92,6 +88,7 @@ export const teiToHast = createRenderer(models, views);
 `;
 
 const handlersPath = writeOut(outDir, "tei-handlers.mjs", source);
+writeOut(outDir, "odd-unsupported.json", JSON.stringify(grammar.entries, null, 2) + "\n");
 for (const runtime of ["pm-runtime.mjs", "xpath.mjs"]) {
   copyFileSync(new URL(`../runtime/${runtime}`, import.meta.url), join(outDir, runtime));
 }

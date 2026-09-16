@@ -58,6 +58,11 @@ export const paths = [
     dir: "js", file: "plain/{doc}.txt",
     artefact: { label: "records.json (Pagefind)", file: "js/plain/records.json" },
   },
+  {
+    id: "json", family: "Build", label: "records", hue: "#6b7280",
+    dir: "js", file: "json/{doc}.json",
+    artefact: { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" },
+  },
 ];
 
 // The shared visual floor every path renders against — shown beside each tab.

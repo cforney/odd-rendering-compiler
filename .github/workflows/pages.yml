@@ -46,7 +46,7 @@ jobs:
         run: npm install
 
       # The unified + CETEIcean pages and their artefacts (edition.css, handlers),
-      # the plain text and the build-time findings.
+      # the plain text, the JSON records and the build-time findings.
       - name: JS — build + render
         working-directory: compiler-js
         run: |
@@ -55,6 +55,7 @@ jobs:
           npm run render:interactive
           npm run render:islands
           npm run render:plain
+          npm run render:json
           npm run findings
 
       # The XSLT pages: static, progressively enhanced, and in-browser (SaxonJS).

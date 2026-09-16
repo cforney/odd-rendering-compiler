@@ -31,9 +31,31 @@ browser:
   `matches`, `replace`, `translate`, `normalize-space`, `string-length`,
   `local-name`, `true`, `false`.
 
-`odd-to-unified.mjs` compiles every expression once. XPath outside the subset
-fails the build and names the element and the model, e.g. `<p>, model 2: XPath
-"@a | @b": unexpected "|"`. A CETEIcean page compiles them when it loads.
+`odd-to-unified.mjs` and `odd-to-ceteicean.mjs` compile every expression once.
+A CETEIcean page compiles them again when it loads.
+
+### Outside the subset: degrade, don't fail
+
+An expression the subset cannot evaluate — an eXist function, an XQuery `let`
+chain, a union — is compiled to what a failing evaluation would have returned
+anyway: `false()` for a predicate, so the model never fires and the next one
+decides, and the empty sequence for a param. Someone else's ODD therefore runs
+here, degraded where it has to be, instead of being rejected.
+
+What was degraded is recorded, never silent: each generator writes
+`odd-unsupported.json` beside what it generates —
+
+```json
+{ "element": "p", "model": "p-1", "where": "predicate", "expression": "@a | @b",
+  "reason": "unexpected \"|\"", "odd": "bad.odd", "line": 3 }
+```
+
+— prints the count in the build log, and `findings.mjs` lists the entries with
+the rest of what the ODD does not foresee.
+
+`--strict` fails the build instead, naming the element, the model and the line.
+Our own ODDs are compiled with it (see `package.json`), so a regression in them
+stays a build error.
 
 ## CSS
 

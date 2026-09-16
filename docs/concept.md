@@ -93,5 +93,7 @@ The CETEIcean tier renders in the browser instead: the same body, and the same
 tooltips.
 
 Beside the pages, the same build reports what the ODD does not foresee in the
-encoding (`compiler-js/findings.mjs`), and writes the `plain` output as text and
-as Pagefind records for a search index (`compiler-js/render-plain.mjs`).
+encoding (`compiler-js/findings.mjs`), writes the `plain` output as text and as
+Pagefind records for a search index (`compiler-js/render-plain.mjs`), and writes
+the decisions themselves as data — every element naming the model that won
+(`compiler-js/render-json.mjs`), the injection point for other toolchains.

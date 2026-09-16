@@ -4,8 +4,10 @@ One static page that frames the outputs both compilers already build, so a visit
 can pick an example, switch rendering paths, turn JavaScript off, and see the
 generated artefact and its cost next to each result. The *Build* tabs show what
 else the build writes for the example: its findings, what the ODD does not
-foresee in the encoding, and its plain text, with the Pagefind records beside
-it. Nothing is re-rendered here — the page only frames existing files.
+foresee in the encoding (the XPath it degraded included), its plain text with
+the Pagefind records beside it, and its JSON records, every element naming the
+model the ODD chose for it. Nothing is re-rendered here — the page only frames
+existing files.
 
 ## Build it
 
@@ -16,7 +18,7 @@ Build each compiler's outputs first, then assemble:
 cd compiler-js
 npm install
 npm run build:all && npm run render:unified && npm run render:interactive && npm run render:islands
-npm run render:plain && npm run findings
+npm run render:plain && npm run render:json && npm run findings
 
 # 2 · the XSLT pages (static, progressively enhanced, in-browser SaxonJS)
 cd ../compiler-xslt

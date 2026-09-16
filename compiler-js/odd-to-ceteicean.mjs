@@ -16,13 +16,18 @@
  * several also an index.html. The pages link edition.css, which --css copies
  * beside them.
  *
- * Usage:   node odd-to-ceteicean.mjs --odd <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
- * Outputs: <dir>/tei-ceteicean-behaviours.js, <dir>/<basename>.html, <dir>/edition.css
+ * XPath outside the subset is degraded, as it is for the unified handlers, and
+ * listed in odd-unsupported.json beside the pages; `--strict` fails the build.
+ *
+ * Usage:   node odd-to-ceteicean.mjs --odd <path> --tei <path|dir|glob> [--css <path>] [--out <dir>] [--strict]
+ * Outputs: <dir>/tei-ceteicean-behaviours.js, <dir>/<basename>.html, <dir>/edition.css,
+ *          <dir>/odd-unsupported.json
  */
 
 import { readFileSync, copyFileSync, mkdirSync } from "fs";
 import { resolve, basename } from "path";
 import { readOdd, parseXmlToXast, extractTeiTitle, pageOf } from "./odd-parser.mjs";
+import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import {
   parseArgs, createLogger, writeOut, generatedStamp,
   resolveInputFiles, htmlPageName, buildIndexPage,
@@ -44,6 +49,8 @@ if (!oddPath) {
 log(`Parsing ODD: ${oddPath}`);
 const odd = readOdd(resolve(oddPath));
 const specs = odd.specs;
+const grammar = checkXPath(specs);
+reportUnsupported(grammar.entries, { scope: "odd-to-ceteicean", strict: cli.has("--strict") });
 const runtime = (name) => readFileSync(new URL(`../runtime/${name}`, import.meta.url), "utf8");
 
 /** An ES module of the runtime as a classic script, `var <name> = { its exports }`; its import reads `from`. */
@@ -57,8 +64,8 @@ function script(file, name, from) {
 /** A model as JSON: its behaviour, classes and flow, with predicate and params as XPath. */
 const json = (m) => ({
   behaviour: m.behaviour, tag: m.tag, flow: m.flow,
-  predicate: m.predicate ?? undefined, output: m.output ?? undefined,
-  params: Object.fromEntries(m.params.map((p) => [p.name, p.value])),
+  predicate: m.predicate ? grammar.predicate(m.predicate) : undefined, output: m.output ?? undefined,
+  params: Object.fromEntries(m.params.map((p) => [p.name, grammar.param(p.value)])),
   classes: m.classes, source: m.source,
   parts: m.parts?.map(json),
 });
@@ -73,6 +80,7 @@ const teiViews = ${JSON.stringify(odd.views)};
 `;
 
 writeOut(outDir, "tei-ceteicean-behaviours.js", behaviours);
+writeOut(outDir, "odd-unsupported.json", JSON.stringify(grammar.entries, null, 2) + "\n");
 mkdirSync(resolve(outDir), { recursive: true });
 if (resolve(cssPath) !== resolve(outDir, "edition.css")) copyFileSync(resolve(cssPath), resolve(outDir, "edition.css"));
 
