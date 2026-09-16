@@ -5,9 +5,10 @@ can pick an example, switch rendering paths, turn JavaScript off, and see the
 generated artefact and its cost next to each result. The *Build* tabs show what
 else the build writes for the example: its findings, what the ODD does not
 foresee in the encoding (the XPath it degraded included), its plain text with
-the Pagefind records beside it, and its JSON records, every element naming the
-model the ODD chose for it. Nothing is re-rendered here — the page only frames
-existing files.
+the Pagefind records beside it, its JSON records, every element naming the
+model the ODD chose for it, and the corpus coverage those records give — one
+report for all the examples, so the tab shows the same page whichever is picked.
+Nothing is re-rendered here — the page only frames existing files.
 
 ## Build it
 
@@ -18,7 +19,7 @@ Build each compiler's outputs first, then assemble:
 cd compiler-js
 npm install
 npm run build:all && npm run render:unified && npm run render:interactive && npm run render:islands
-npm run render:plain && npm run render:json && npm run findings
+npm run render:plain && npm run render:json && npm run coverage && npm run findings
 
 # 2 · the XSLT pages (static, progressively enhanced, in-browser SaxonJS)
 cd ../compiler-xslt

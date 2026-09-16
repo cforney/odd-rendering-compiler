@@ -96,4 +96,7 @@ Beside the pages, the same build reports what the ODD does not foresee in the
 encoding (`compiler-js/findings.mjs`), writes the `plain` output as text and as
 Pagefind records for a search index (`compiler-js/render-plain.mjs`), and writes
 the decisions themselves as data — every element naming the model that won
-(`compiler-js/render-json.mjs`), the injection point for other toolchains.
+(`compiler-js/render-json.mjs`), the injection point for other toolchains. Read
+those records back against the ODD and they answer the ODD author's two
+questions — what did I write that never runs, and what is in my documents that I
+never handled (`compiler-js/coverage.mjs`).

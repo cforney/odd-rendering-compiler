@@ -42,6 +42,7 @@ cd compiler-js
 npm install
 npm run demo      # compile the Simler ODD, then render → static + interactive HTML
 npm run findings  # what the ODD does not foresee in the examples
+npm run render:json && npm run coverage   # the ODD's decisions as data, read back against the corpus
 npm test          # smoke tests, conformance fixtures, byte-identity gate
 ```
 

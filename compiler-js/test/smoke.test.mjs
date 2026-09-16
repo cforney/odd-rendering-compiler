@@ -12,7 +12,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -206,6 +206,49 @@ test("render-json writes the ODD's decisions as records, with a table of the mod
   assert.match(models["div-1"].predicate, /^preceding-sibling::/, "and its predicate");
   assert.deepEqual(models["lb-3"].parts, ["lb-4", "lb-5"], "a sequence is described with its parts");
   assert.ok(!("l-1" in models), "only the models the document made fire");
+});
+
+test("coverage reads the ODD back against the records of a corpus", () => {
+  const out = join(outDir, "cov");
+  mkdirSync(out, { recursive: true });
+  const odd = (name, body) => {
+    const file = join(out, name);
+    writeFileSync(file, body);
+    return file;
+  };
+  odd("base.odd", `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="base">
+    <elementSpec ident="p" mode="change"><model behaviour="block"/></elementSpec>
+    <elementSpec ident="hi" mode="change"><model behaviour="inline"/></elementSpec>
+  </schemaSpec></body></text></TEI>`);
+  const chained = odd("cov.odd", `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="cov" source="base.odd">
+    <elementSpec ident="TEI" mode="change"><model behaviour="text"/></elementSpec>
+    <elementSpec ident="teiHeader" mode="change"><model behaviour="metadata"/></elementSpec>
+    <elementSpec ident="text" mode="change"><model behaviour="text"/></elementSpec>
+    <elementSpec ident="body" mode="change"><model behaviour="text"/></elementSpec>
+    <elementSpec ident="l" mode="change"><model behaviour="block"/><model predicate="@n" behaviour="inline"/></elementSpec>
+    <elementSpec ident="note" mode="change"><model predicate="@place='foot'" behaviour="note"/></elementSpec>
+    <elementSpec ident="figure" mode="change"><model behaviour="block"/></elementSpec>
+    <elementSpec ident="choice" mode="change"><model behaviour="alternate"><param name="default" value="sic"/><param name="alternate" value="corr"/></model></elementSpec>
+  </schemaSpec></body></text></TEI>`);
+  const tei = join(out, "doc.xml");
+  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><teiHeader><fileDesc><titleStmt><title>T</title></titleStmt></fileDesc></teiHeader>
+    <text><body><p>Hi <foo>x</foo><note>n</note></p><l>line</l><choice><sic>s</sic><corr>c</corr></choice></body></text></TEI>`);
+  run("render-json.mjs", ["--odd", chained, "--tei", tei, "--out", join(out, "records")]);
+  run("coverage.mjs", ["--odd", chained, "--records", join(out, "records"), "--out", join(out, "report")]);
+
+  const { written, encoded, inherited } = JSON.parse(readFileSync(join(out, "report", "coverage.json"), "utf8"));
+  assert.deepEqual(written.never.map((e) => e.model), ["note-1"], "a model no document made fire");
+  assert.deepEqual(written.unreachable.map((e) => [e.model, e.after]), [["l-2", "l-1"]],
+    "and one that can never fire: an earlier model of the same output has no predicate");
+  assert.deepEqual(written.absent.map((e) => e.element), ["figure"], "an element the ODD models but no record names");
+  assert.deepEqual(encoded.unmodelled, [{ element: "foo", count: 1 }],
+    "an element with no model — and nothing from inside the alternate, where an unrendered reading is a decision");
+  assert.deepEqual(encoded.silent, [{ element: "note", count: 1 }], "a spec with models of which none applied: no output, no warning");
+  assert.deepEqual(inherited.absent.map((e) => [e.element, e.odd]), [["hi", "base.odd"]], "what the chained ODD wrote is reported apart");
+  assert.deepEqual(inherited.never, [], "its model for <p> did fire");
+
+  assert.match(readFileSync(join(out, "report", "index.html"), "utf8"),
+    /<li>&lt;l&gt; l-2 \(cov\.odd:6\) — predicate @n — after l-1, which has no predicate<\/li>/, "and a page beside the data");
 });
 
 test("the nested page-break extension renders a facsimile thumbnail", () => {

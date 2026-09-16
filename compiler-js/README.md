@@ -29,6 +29,7 @@ CSS nor a `--…` param defines.
 | `render-plain.mjs` | `tei-handlers.mjs`, output `plain` | `plain/`: `<basename>.txt` and `records.json`, Pagefind custom records (`render:plain`) |
 | `render-json.mjs` | the ODD itself | `json/`: `<basename>.json`, the ODD's decisions as records (`render:json`) |
 | `findings.mjs` | the ODD itself | `findings/`: a page per source and `findings.json` (`findings`) |
+| `coverage.mjs` | the ODD + the JSON records | `coverage/`: `coverage.json` and a page (`coverage`) |
 
 CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`, into
 `ceteicean/`). `render-unified.mjs` and `render-xslt.mjs` take `--output <name>`,
@@ -53,6 +54,18 @@ ranges without their start and anchors no range starts at, and page images
 without a IIIF manifest; in the ODD, custom properties defined nowhere (with
 `--tokens`, as `odd-to-css.mjs` reports them) and the XPath the handlers cannot
 evaluate.
+
+**Coverage.** `coverage.mjs` rolls the records up over the corpus and reads them
+back against the ODD, which answers the two questions an ODD author has. *What
+did I write that never runs?* — models no document made fire, models that can
+never fire because an earlier model of the same output has no predicate, and
+elements the ODD has models for that no record names. *What is in my documents
+that I never handled?* — elements with no model at all, and the silent case:
+elements whose spec has models of which none applied, which render nothing and
+warn about nothing. Models a chained ODD wrote are reported apart, and unhandled
+elements below an `alternate` are not reported, where leaving a reading
+unrendered is a decision. Coverage is per output, and a sequence counts as the
+one model the records name.
 
 **Unrunnable XPath degrades.** A predicate or param outside the XPath subset is
 not a build error: it compiles to what a failing evaluation returns — `false()`
@@ -86,6 +99,7 @@ npm test                   # smoke tests, conformance fixtures, byte-identity ga
 npm run build:all          # all four generators from the Simler ODD
 npm run render:all         # every renderer on every example, the plain text and the records
 npm run findings           # what the Simler ODD does not foresee in the examples
+npm run render:json && npm run coverage   # the decisions as data, read back against the corpus
 npm run build:extension && npm run render:extension   # the nested page-break extension
 npm run sync:odd -- <commit>   # vendor the Simler ODD and tokens at a commit
 ```
@@ -119,6 +133,7 @@ compiler-js/
 ├── render-*.mjs          # the renderers, the plain text (render-plain.mjs) and the records (render-json.mjs)
 ├── unsupported.mjs       # the XPath check: degrade outside the subset, or --strict
 ├── findings.mjs          # build-time findings
+├── coverage.mjs          # the records read back against the ODD
 ├── islands-runtime.js    # generic <tei-island> hydration runtime
 ├── byte-identity.mjs     # the equivalence check between renders
 ├── test/                 # smoke tests, fixtures, gate (`npm test`)

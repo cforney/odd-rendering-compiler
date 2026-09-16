@@ -19,7 +19,7 @@ import { resolve, basename } from "path";
 import { pathToFileURL } from "url";
 import { readOdd, parseXmlToXast, pageOf, allModels } from "./odd-parser.mjs";
 import { checkXPath } from "./unsupported.mjs";
-import { parseArgs, createLogger, writeOut, resolveInputFiles, htmlPageName, escapeXml } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, resolveInputFiles, htmlPageName, buildReportPage } from "./cli.mjs";
 
 /** Custom properties the ODD's CSS reads that neither the tokens, the ODD's CSS nor a `--…` param defines. */
 export function undefinedProperties({ specs, renditions }, tokens = "") {
@@ -71,31 +71,11 @@ export function documentFindings({ specs, renditions }, tree) {
 }
 
 /** A findings page for one document. */
-function page(file, own, odd) {
-  const list = (items) => (items.length ? `<ul>\n${items.map((f) => `  <li>${escapeXml(f)}</li>`).join("\n")}\n</ul>` : `<p class="none">None.</p>`);
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Findings — ${escapeXml(file)}</title>
-  <style>
-    body { max-width: 42em; margin: 2em auto; padding: 0 1em; font: 15px/1.6 system-ui, sans-serif; color: #222; background: #fefefe; }
-    h1 { font-size: 1.2rem; } h2 { font-size: 1rem; margin-top: 1.6em; }
-    li { margin: 0.3em 0; } .none { color: #666; }
-  </style>
-</head>
-<body>
-  <h1>Findings: ${escapeXml(file)}</h1>
-  <p class="none">What the ODD does not foresee, found at build time.</p>
-  <h2>In the document</h2>
-  ${list(own)}
-  <h2>In the ODD</h2>
-  ${list(odd)}
-</body>
-</html>
-`;
-}
+const page = (file, own, odd) => buildReportPage({
+  title: `Findings: ${file}`,
+  lead: "What the ODD does not foresee, found at build time.",
+  sections: [{ heading: "In the document", items: own }, { heading: "In the ODD", items: odd }],
+});
 
 // --- CLI ---
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {

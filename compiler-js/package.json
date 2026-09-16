@@ -18,6 +18,7 @@
     "render:plain": "node render-plain.mjs --handlers output/tei-handlers.mjs --tei \"../examples/simler-*.xml\" --lang de --out output/plain",
     "render:json": "node render-json.mjs --odd ../examples/tei_simler.odd --tei \"../examples/simler-*.xml\" --out output/json --strict",
     "render:all": "npm run render:xslt && npm run render:unified && npm run render:interactive && npm run render:islands && npm run render:plain && npm run render:json",
+    "coverage": "node coverage.mjs --odd ../examples/tei_simler.odd --records output/json --out output/coverage",
     "findings": "node findings.mjs --odd ../examples/tei_simler.odd --tei \"../examples/simler-*.xml\" --tokens ../examples/simler-tokens.css --out output/findings",
     "demo": "npm run build && npm run build:unified && npm run render:unified && npm run render:interactive",
     "build:simpleprint": "node odd-to-css.mjs --odd ../examples/tei_simplePrint.odd --out output/simpleprint",

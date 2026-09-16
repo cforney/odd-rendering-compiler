@@ -63,6 +63,12 @@ export const paths = [
     dir: "js", file: "json/{doc}.json",
     artefact: { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" },
   },
+  {
+    // One report for the whole corpus, so every document shows the same page.
+    id: "coverage", family: "Build", label: "coverage", hue: "#6b7280",
+    dir: "js", file: "coverage/index.html",
+    artefact: { label: "coverage.json", file: "js/coverage/coverage.json" },
+  },
 ];
 
 // The shared visual floor every path renders against — shown beside each tab.

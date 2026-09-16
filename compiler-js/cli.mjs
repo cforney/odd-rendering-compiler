@@ -197,6 +197,36 @@ ${items}
 </html>`;
 }
 
+/**
+ * A small self-contained page for a build report: a lead line, then a list per
+ * section, each `{ heading, note?, items }`. Used by findings.mjs and
+ * coverage.mjs, so the two look alike.
+ */
+export function buildReportPage({ title, lead = "", sections = [] }) {
+  const list = (items) => (items.length ? `<ul>\n${items.map((i) => `  <li>${escapeXml(i)}</li>`).join("\n")}\n</ul>` : `<p class="none">None.</p>`);
+  const body = sections.map(({ heading, note, items }) =>
+    `  <h2>${escapeXml(heading)}</h2>${note ? `\n  <p class="none">${escapeXml(note)}</p>` : ""}\n  ${list(items)}`).join("\n");
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeXml(title)}</title>
+  <style>
+    body { max-width: 42em; margin: 2em auto; padding: 0 1em; font: 15px/1.6 system-ui, sans-serif; color: #222; background: #fefefe; }
+    h1 { font-size: 1.2rem; } h2 { font-size: 1rem; margin-top: 1.6em; }
+    li { margin: 0.3em 0; } .none { color: #666; }
+  </style>
+</head>
+<body>
+  <h1>${escapeXml(title)}</h1>
+  ${lead ? `<p class="none">${escapeXml(lead)}</p>` : ""}
+${body}
+</body>
+</html>
+`;
+}
+
 // ---------------------------------------------------------------------------
 // Logging
 // ---------------------------------------------------------------------------
