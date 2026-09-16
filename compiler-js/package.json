@@ -4,6 +4,7 @@
   "description": "Build-time pipeline: TEI ODD Processing Model → CSS, XSLT, unified/xast handlers, and CETEIcean behaviours — with end-to-end HTML rendering for static editions",
   "type": "module",
   "main": "odd-to-css.mjs",
+  "bin": { "odd-render": "odd-render.mjs" },
   "scripts": {
     "build": "node odd-to-css.mjs --odd ../examples/tei_simler.odd --tokens ../examples/simler-tokens.css --out output",
     "build:xslt": "node odd-to-xslt.mjs --odd ../examples/tei_simler.odd --out output",

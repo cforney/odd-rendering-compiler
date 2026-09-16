@@ -12,7 +12,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -276,6 +276,25 @@ test("render-unified-islands wraps the readings as islands and opens notes as to
 
   const runtime = readFileSync(join(out, "tei-islands.js"), "utf8");
   assert.match(runtime, /customElements\.define\("tei-island"/, "runtime defines the island custom element");
+});
+
+test("odd-render compiles and renders an edition in one command", () => {
+  const out = join(outDir, "cli");
+  const log = run("odd-render.mjs", [ODD, "../examples/simler-psalmen.xml", "--tokens", TOKENS, "--out", out, "--strict", "--reports", "--lang", "de"]);
+
+  assert.match(readFileSync(join(out, "simler-psalmen.html"), "utf8"), /<h5 class="tei-head head-first r-b r-c">/, "the edition, rendered by the ODD");
+  assert.match(readFileSync(join(out, "artefacts", "edition.css"), "utf8"), /--c-muted: 106 102 95;/, "the artefacts beside it, with the tokens");
+  for (const report of ["plain", "json", "coverage", "findings"]) {
+    assert.ok(readdirSync(join(out, "reports", report)).length, `the ${report} report`);
+  }
+  assert.match(log, /1 page\(s\) in .+ — the static tier of tei_simler\.odd/, "and one summary line");
+
+  run("odd-render.mjs", [ODD, "../examples/simler-psalmen.xml", "--out", join(outDir, "cli-islands"), "--tier", "islands"]);
+  assert.ok(existsSync(join(outDir, "cli-islands", "tei-islands.js")), "another tier brings its own runtime");
+
+  const bad = spawnSync(process.execPath, ["odd-render.mjs", ODD, "nope.xml", "--out", out], { cwd: pocDir, encoding: "utf8" });
+  assert.equal(bad.status, 1, "a source that is not there is an error, not an empty build");
+  assert.match(bad.stderr, /TEI source not found: nope\.xml/);
 });
 
 test("readOdd resolves <specGrpRef> indirection (tei_simplePrint)", () => {

@@ -4,6 +4,28 @@ Build-time pipelines that compile a TEI ODD Processing Model (PM) into rendering
 artefacts for static scholarly editions — CSS, an XSLT stylesheet, unified/xast
 handlers, and CETEIcean behaviours — with the renderers that turn TEI into HTML.
 
+## One command
+
+Everything below, composed in the order the steps depend on each other:
+
+```bash
+node odd-render.mjs <odd> <tei...> [options]          # --help lists them all
+node odd-render.mjs ../examples/tei_simler.odd "../examples/simler-*.xml"   --tokens ../examples/simler-tokens.css --out build --reports
+```
+
+The pages land in `--out` (default `build/`), what the compiler generated in
+`<out>/artefacts/`, and with `--reports` the plain text, the JSON records, the
+coverage and the findings in `<out>/reports/`. `--tier static | interactive |
+islands | ceteicean` picks the rendering tier, `--output` the Processing-Model
+output, `--strict` fails on XPath outside the subset instead of degrading it. A
+missing ODD, a missing source or a glob that matches nothing is an error before
+anything is written.
+
+Each step is the script below, run as its own process, so the command adds no
+second implementation of anything. `package.json` declares it as the
+`odd-render` bin: `npm link` puts it on the path as `odd-render`. It is not
+published to npm.
+
 ## Generators (ODD → artefacts)
 
 | Module | Output | PM coverage |
@@ -125,6 +147,7 @@ are not on disk.
 ```
 compiler-js/
 ├── odd-parser.mjs        # reads the ODD into models and CSS rules; parses TEI
+├── odd-render.mjs        # the one command: every step below, in order
 ├── cli.mjs               # CLI, file output, escaping, the hast serialiser, multi-file input
 ├── odd-to-css.mjs        # edition.css
 ├── odd-to-unified.mjs    # tei-handlers.mjs

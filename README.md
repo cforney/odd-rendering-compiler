@@ -49,6 +49,16 @@ npm test          # smoke tests, conformance fixtures, byte-identity gate
 Generated artefacts and rendered pages land in `compiler-js/output/`. See
 [`compiler-js/README.md`](compiler-js/README.md) for every generator and renderer.
 
+**Your own ODD.** One command does the whole pipeline:
+
+```bash
+node odd-render.mjs <odd> <tei...> [--out dir] [--tier name] [--reports]
+```
+
+It compiles `edition.css` and the handlers, renders every source with them, and
+tells you what it could not evaluate rather than refusing to build. See
+[`compiler-js/README.md`](compiler-js/README.md#one-command).
+
 ## Quick start — XSLT
 
 Requires **Java** and **Saxon HE 12**. Point `SAXON_HOME` at your unpacked Saxon

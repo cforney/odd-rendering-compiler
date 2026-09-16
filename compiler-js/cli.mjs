@@ -77,8 +77,10 @@ function allSubdirs(dir) {
  * matched *files* only.
  */
 function globFiles(pattern) {
-  const segs = pattern.replace(/\\/g, "/").split("/").filter(Boolean);
-  let dirs = ["."];
+  const path = pattern.replace(/\\/g, "/");
+  const root = path.match(/^(\/|[A-Za-z]:\/)/)?.[1];          // an absolute pattern walks from its root
+  const segs = path.slice(root?.length ?? 0).split("/").filter(Boolean);
+  let dirs = [root ?? "."];
   const results = [];
   for (let i = 0; i < segs.length; i++) {
     const seg = segs[i];

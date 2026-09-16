@@ -6,6 +6,9 @@ _deprecated/
 # Assembled demo site
 demo/site/
 
+# The default output of odd-render
+build/
+
 # Logs
 npm-debug.log*
 *.log
