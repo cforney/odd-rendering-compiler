@@ -146,6 +146,14 @@
               [[content]] ([[type]])</pb:template>
           </model>
         </elementSpec>
+        <!-- models for one engine: opm- is OPM's, never rendered here; orc- is this compiler's, so here
+             it wins over the web model that TEI Publisher and OPM take, and orc-print is the print view -->
+        <elementSpec ident="emph" mode="change">
+          <model output="opm-web" behaviour="block" cssClass="emph-opm"/>
+          <model output="orc-web" behaviour="inline" cssClass="emph-orc"/>
+          <model output="orc-print" behaviour="inline" cssClass="emph-print"/>
+          <model output="web" behaviour="block"/>
+        </elementSpec>
         <elementSpec ident="anchor" mode="change">
           <model behaviour="anchor"/>
         </elementSpec>

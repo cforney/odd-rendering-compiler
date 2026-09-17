@@ -32,7 +32,8 @@ fixtures (`compiler-js/test/fixtures/`).
 - **Outputs and views.** `page` holds what the page shows around the text (its
   title, the IIIF manifest, the page images), `plain` the search text. Every
   other output is a view laid over the `web` page, with a switch for each. See
-  [behaviour-table.md](behaviour-table.md).
+  [behaviour-table.md](behaviour-table.md), and [conventions.md](conventions.md)
+  for these and the other conventions, declared for other tools.
 - **Generated code, shared behaviours.** The generated artefact holds what is
   particular to the ODD: for each element its models, predicates and params.
   The behaviours are a runtime shared by every ODD, as in TEI Publisher's

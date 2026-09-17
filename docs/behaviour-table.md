@@ -65,7 +65,9 @@ holds, and the element's id goes on the first.
 model of that output whose predicate holds, else the first model without
 `@output`; models of other outputs are skipped. The edition's root carries
 `data-<output>="on"`, and the CSS of a model with `@output` applies only where
-that output is on. Three outputs have a fixed meaning:
+that output is on. An `@output` prefixed `orc-` names this compiler's own output,
+and one prefixed `opm-`, OPM's, is never rendered ([conventions.md](conventions.md)).
+Three outputs have a fixed meaning:
 
 | Output | What it is |
 |--------|-----------|

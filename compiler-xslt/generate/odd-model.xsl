@@ -24,8 +24,10 @@
   @cssClass, or <ident>-<n> (the n-th <model> of the spec) without one. The CSS
   of a model with @output applies where that output is on (see pm:on). A
   model's <pb:template>, a TEI Publisher extension, is kept as XML (see
-  pm:template). The views are all outputs but those rendering alone, each
-  labelled by the first <desc> of its models.
+  pm:template). The views are all outputs but those rendering alone and another
+  engine's, each labelled by the first <desc> of its models. An @output prefixed
+  orc-, this compiler's own, names the output itself; one prefixed opm-, OPM's,
+  is never rendered here (docs/conventions.md).
 
   An ODD it cannot read raises the error pm:odd, naming each problem as
   odd-parser.mjs names it, but without the line (see pm:problems).
@@ -107,10 +109,16 @@
     </xsl:variable>
     <pm:odd>
       <xsl:sequence select="$all"/>
-      <xsl:for-each select="distinct-values($all//pm:model/@output)[not(. = $pm:alone)]">
+      <xsl:for-each select="distinct-values($all//pm:model/@output)[not(. = $pm:alone or starts-with(., 'opm-'))]">
         <pm:view output="{.}" label="{($all//pm:model[@output = current()]/@label, .)[1]}"/>
       </xsl:for-each>
     </pm:odd>
+  </xsl:function>
+
+  <!-- An @output with this compiler's prefix names the output itself. -->
+  <xsl:function name="pm:output" as="xs:string?">
+    <xsl:param name="output" as="attribute()?"/>
+    <xsl:sequence select="$output ! replace(., '^orc-', '')"/>
   </xsl:function>
 
   <!-- Outputs not laid over the page: the page itself, what it shows around the text, the search text. -->
@@ -153,7 +161,7 @@
             <xsl:call-template name="pm:rules">
               <xsl:with-param name="el" select="."/>
               <xsl:with-param name="selector" select="if ($groupClass) then '.' || $groupClass else '.tei-' || ../@ident"/>
-              <xsl:with-param name="output" select="@output"/>
+              <xsl:with-param name="output" select="pm:output(@output)"/>
             </xsl:call-template>
             <xsl:for-each select="tei:model | tei:modelSequence">
               <xsl:call-template name="pm:read">
@@ -184,7 +192,7 @@
     <xsl:param name="outer" as="element()?" select="()"/>
     <xsl:variable name="spec" select="ancestor::tei:elementSpec[1]"/>
     <xsl:variable name="ident" select="string($spec/@ident)"/>
-    <xsl:variable name="output" select="(@output, $outer/@output, $group/@output)[1]"/>
+    <xsl:variable name="output" select="pm:output((@output, $outer/@output, $group/@output)[1])"/>
     <xsl:variable name="own" select="tokenize(normalize-space(@cssClass))"/>
     <xsl:variable name="styled" select="exists(self::tei:model/tei:outputRendition)"/>
     <xsl:variable name="bare" select="count($spec/(tei:model | tei:modelGrp | tei:modelSequence)) = 1

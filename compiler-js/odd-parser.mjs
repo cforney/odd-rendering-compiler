@@ -24,7 +24,11 @@
  *
  * `values` are the attribute values the spec's value lists foresee. `views` are
  * the outputs laid over the page, labelled by a model's <desc>: all but those in
- * ALONE, which render on their own.
+ * ALONE, which render on their own, and another engine's.
+ *
+ * An @output may carry an engine's prefix (docs/conventions.md): `orc-` names
+ * this compiler's own output, so `orc-web` is `web` here and unknown elsewhere;
+ * `opm-` is OPM's, an output never rendered here.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -63,6 +67,8 @@ const escape = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/
 
 /** Outputs not laid over the page: the page itself, what it shows around the text, the search text. */
 const ALONE = ["web", "page", "plain"];
+/** An @output with this compiler's prefix names the output itself. */
+const outputName = (output) => output?.replace(/^orc-/, "") ?? null;
 
 /** Where an output is on: the edition renders it, or its view switch is checked. */
 export const on = (output) => `:is([data-${output}='on'], :root:has(#view-${output}:checked))`;
@@ -153,7 +159,7 @@ function readSpec(spec, file) {
   function read(m, group, groupClass, outer) {
     const inherited = (name) => m.attributes[name] ?? outer?.attributes[name] ?? group?.attributes[name];
     const predicate = m.attributes.predicate ?? null;
-    const output = inherited("output") ?? null;
+    const output = outputName(inherited("output"));
     const own = (m.attributes.cssClass ?? "").split(/\s+/).filter(Boolean);
     const styled = m.name === "model" && elements(m, "outputRendition").length > 0;
     const bare = sole && !group && !outer && !predicate && !output;
@@ -190,7 +196,7 @@ function readSpec(spec, file) {
     }
     groups++;
     const groupClass = sole ? undefined : `${ident}-group${groups > 1 ? groups : ""}`;
-    style(entry, groupClass ? `.${groupClass}` : `.tei-${ident}`, entry.attributes.output);
+    style(entry, groupClass ? `.${groupClass}` : `.tei-${ident}`, outputName(entry.attributes.output));
     for (const m of elements(entry).filter((e) => /^model(Sequence)?$/.test(e.name))) {
       models.push(read(m, entry, groupClass));
     }
@@ -211,7 +217,7 @@ export function allModels(specs) {
 function viewsOf(specs) {
   const models = allModels(specs).filter((m) => m.output);
   return [...new Set(models.map((m) => m.output))]
-    .filter((output) => !ALONE.includes(output))
+    .filter((output) => !ALONE.includes(output) && !output.startsWith("opm-"))
     .map((output) => ({ output, label: models.find((m) => m.output === output && m.label)?.label ?? output }));
 }
 

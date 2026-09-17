@@ -12,7 +12,7 @@
       <figure><graphic url="bare.png"/></figure>
       <p>A <figure><graphic url="small.png"/><head>small</head></figure> in a paragraph.</p>
       <p>By <persName ref="#simler">Josias <hi>Simler</hi></persName>, <name>passed <hi>through</hi></name>,
-        in <rs type="place">Zürich</rs>.</p>
+        in <rs type="place">Zürich</rs>, with <emph>emphasis</emph>.</p>
     </body>
   </text>
 </TEI>

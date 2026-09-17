@@ -52,6 +52,7 @@ CSS nor a `--…` param defines.
 | `render-json.mjs` | the ODD itself | `json/`: `<basename>.json`, the ODD's decisions as records (`render:json`) |
 | `findings.mjs` | the ODD itself | `findings/`: a page per source and `findings.json` (`findings`) |
 | `coverage.mjs` | the ODD + the JSON records | `coverage/`: `coverage.json` and a page (`coverage`) |
+| `conformance.mjs` | a suite (default `test/fixtures/`) + a command that renders a case | a line per case, ✓ or ✗ ([conformance suite](../docs/conformance-suite.md)) |
 
 CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`, into
 `ceteicean/`). `render-unified.mjs` and `render-xslt.mjs` take `--output <name>`,
@@ -158,6 +159,7 @@ compiler-js/
 ├── unsupported.mjs       # the XPath check: degrade outside the subset, or --strict
 ├── findings.mjs          # build-time findings
 ├── coverage.mjs          # the records read back against the ODD
+├── conformance.mjs       # the conformance suite, run against any implementation
 ├── islands-runtime.js    # generic <tei-island> hydration runtime
 ├── byte-identity.mjs     # the equivalence check between renders
 ├── test/                 # smoke tests, fixtures, gate (`npm test`)

@@ -51,6 +51,19 @@ test("the unified handlers render the fixtures", async () => {
   }
 });
 
+test("conformance.mjs runs the suite against a command, here the unified handlers", () => {
+  const conformance = (...args) => spawnSync(process.execPath, ["conformance.mjs", ...args], { cwd: pocDir, encoding: "utf8" });
+  const render = `node odd-to-unified.mjs --odd "{odd}" --out "{out}" && node render-unified.mjs --handlers "{out}/tei-handlers.mjs" --tei "{tei}" --output {output} --out "{out}"`;
+  for (const level of ["strict", "structure"]) {
+    const run = conformance("--run", render, "--level", level);
+    assert.equal(run.status, 0, run.stdout);
+    assert.match(run.stdout, /✓ params \(plain\)/, "an output other than web, where the suite expects one");
+  }
+  const none = conformance("--run", "exit 0");
+  assert.equal(none.status, 1);
+  assert.match(none.stdout, /✗ notes \(web\): the command wrote no notes\.html/);
+});
+
 /** What both compilers name in fixtures/invalid.odd, each with its line. @type {[number, string][]} */
 const PROBLEMS = [
   [6, `<schemaSpec source="missing.odd">: not found`],
