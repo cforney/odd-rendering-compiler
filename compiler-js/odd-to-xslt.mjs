@@ -9,15 +9,15 @@
  * evaluates them natively. The behaviours are the runtime ../runtime/pm.xsl,
  * copied in, as compiler-xslt's odd-to-xsl.xsl does too.
  *
- * Usage:  node odd-to-xslt.mjs --odd <path> [--out <dir>]
- * Output: <dir>/edition.xsl (stylesheet params: output, interactive), with
- *         notes.js, which the interactive page inlines
+ * Usage:   node odd-to-xslt.mjs --odd <path> [--out <dir>]
+ * Output:  <dir>/edition.xsl (stylesheet params: output, interactive), with
+ *          notes.js, which the interactive page inlines
+ * Read by: render-xslt.mjs (--xsl), or any XSLT 3.0 processor
  */
 
 import { readFileSync, copyFileSync } from "fs";
-import { resolve, basename, join } from "path";
-import { readOdd } from "./odd-parser.mjs";
-import { parseArgs, createLogger, writeOut, escapeXml, generatedStamp } from "./cli.mjs";
+import { basename, join } from "path";
+import { parseArgs, loadOdd, createLogger, writeOut, escapeXml, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("odd-to-xslt");
@@ -31,7 +31,7 @@ if (!oddPath) {
 }
 
 log(`Parsing ODD: ${oddPath}`);
-const odd = readOdd(resolve(oddPath));
+const odd = loadOdd(oddPath, "odd-to-xslt");
 const specs = odd.specs.filter((s) => s.models.length);
 const runtime = readFileSync(new URL("../runtime/pm.xsl", import.meta.url), "utf8")
   .match(/<xsl:stylesheet[^>]*>([\s\S]*)<\/xsl:stylesheet>/)[1];

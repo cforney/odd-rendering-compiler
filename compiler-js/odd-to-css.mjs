@@ -9,15 +9,16 @@
  * the predicates, so the CSS needs none. A custom property the ODD's CSS reads
  * but nothing defines is reported.
  *
- * Usage:  node odd-to-css.mjs --odd <path> [--tokens <css>] [--out <dir>]
- * Output: <dir>/edition.css
+ * Usage:   node odd-to-css.mjs --odd <path> [--tokens <css>] [--out <dir>]
+ * Output:  <dir>/edition.css
+ * Read by: every renderer (--css), and the CETEIcean pages
  */
 
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
-import { readOdd, on } from "./odd-parser.mjs";
+import { on } from "./odd-parser.mjs";
 import { undefinedProperties } from "./findings.mjs";
-import { parseArgs, createLogger, writeOut, generatedStamp } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("odd-to-css");
@@ -32,7 +33,7 @@ if (!oddPath) {
 }
 
 log(`Parsing ODD: ${oddPath}`);
-const odd = readOdd(resolve(oddPath));
+const odd = loadOdd(oddPath, "odd-to-css");
 const { specs, renditions, views } = odd;
 const rules = specs.flatMap((s) => s.rules);
 const tokens = tokensPath ? readFileSync(resolve(tokensPath), "utf8").trim() : "";

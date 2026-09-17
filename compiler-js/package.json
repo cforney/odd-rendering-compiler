@@ -27,13 +27,18 @@
     "render:extension": "node render-unified.mjs --handlers output/nested-pb/tei-handlers.mjs --tei ../examples/simler-psalmen.xml --css output/nested-pb/edition.css --out output/nested-pb",
     "build:demo": "node ../demo/build-demo.mjs",
     "sync:odd": "node ../examples/sync-odd.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "typecheck": "tsc"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@rgrove/parse-xml": "4.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "typescript": "5.9.3"
   },
   "license": "BSD-2-Clause",
   "author": "Christian Forney"

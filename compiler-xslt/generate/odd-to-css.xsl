@@ -14,6 +14,8 @@
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/odd-to-css.xsl
               -o:output/edition.css tokens=simler-tokens.css
   The `tokens` parameter is a CSS file, resolved next to the ODD.
+  Output:  edition.css
+  Read by: every rendered page, which links it
 -->
 <xsl:stylesheet version="3.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"

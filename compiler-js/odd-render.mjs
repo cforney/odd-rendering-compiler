@@ -10,7 +10,10 @@
  * build reports. Every step is the same script the repository tests, run as its
  * own process, so the command adds no second implementation of anything.
  *
- * Usage:  odd-render <odd> <tei…> [options]      (odd-render --help for the options)
+ * Usage:   odd-render <odd> <tei…> [options]      (odd-render --help for the options)
+ * Output:  the pages, what the compiler generated in artefacts/, and with --reports
+ *          the build reports in reports/
+ * Read by: a browser
  */
 
 import { spawnSync } from "child_process";

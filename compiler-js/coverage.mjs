@@ -19,14 +19,14 @@
  * another are left out of this run. A sequence counts as the one model the
  * records name; which of its parts fired is not in them.
  *
- * Usage:  node coverage.mjs --odd <path> [--records <path|dir|glob>] [--out <dir>]
- * Output: <dir>/coverage.json and <dir>/index.html
+ * Usage:   node coverage.mjs --odd <path> [--records <path|dir|glob>] [--out <dir>]
+ * Output:  <dir>/coverage.json, <dir>/index.html
+ * Read by: the ODD's author
  */
 
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
-import { readOdd } from "./odd-parser.mjs";
-import { parseArgs, createLogger, writeOut, resolveInputFiles, buildReportPage } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveInputFiles, buildReportPage } from "./cli.mjs";
 
 /** The models that fired, every element the records name, and the elements no model took. */
 function rollUp(records) {
@@ -150,7 +150,7 @@ if (new Set(records.map((r) => r.output)).size > 1) {
   process.exit(1);
 }
 
-const report = coverage(readOdd(resolve(oddPath)), records, basename(oddPath));
+const report = coverage(loadOdd(oddPath, "coverage"), records, basename(oddPath));
 const { written, encoded, inherited } = report;
 log(`${report.documents.length} document(s), output ${report.output}`);
 log(`  the ODD: ${written.never.length} model(s) never run, ${written.unreachable.length} unreachable, ${written.absent.length} element(s) not exercised`);

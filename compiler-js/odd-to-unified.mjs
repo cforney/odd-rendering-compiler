@@ -11,17 +11,16 @@
  * degraded and listed in odd-unsupported.json beside the handlers; `--strict`
  * fails the build instead, with the element and model named.
  *
- * Usage:  node odd-to-unified.mjs --odd <path> [--out <dir>] [--strict]
- * Output: <dir>/tei-handlers.mjs (+ pm-runtime.mjs, xpath.mjs, odd-unsupported.json);
- *         render it with render-unified.mjs
+ * Usage:   node odd-to-unified.mjs --odd <path> [--out <dir>] [--strict]
+ * Output:  <dir>/tei-handlers.mjs, with pm-runtime.mjs, xpath.mjs and odd-unsupported.json
+ * Read by: render-unified*.mjs and render-plain.mjs (--handlers)
  */
 
 import { copyFileSync } from "fs";
-import { resolve, basename, join } from "path";
+import { basename, join } from "path";
 import { parseXml } from "@rgrove/parse-xml";
-import { readOdd } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
-import { parseArgs, createLogger, writeOut, generatedStamp } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("odd-to-unified");
@@ -35,7 +34,7 @@ if (!oddPath) {
 }
 
 log(`Parsing ODD: ${oddPath}`);
-const odd = readOdd(resolve(oddPath));
+const odd = loadOdd(oddPath, "odd-to-unified");
 const specs = odd.specs.filter((s) => s.models.length);
 const grammar = checkXPath(odd.specs);
 reportUnsupported(grammar.entries, { scope: "odd-to-unified", strict: cli.has("--strict") });

@@ -33,6 +33,11 @@ jobs:
         working-directory: compiler-js
         run: npm install
 
+      # The JSDoc types of the shared shapes, checked by tsc over every module.
+      - name: JS — typecheck
+        working-directory: compiler-js
+        run: npm run typecheck
+
       # Every example rendered by the unified handlers and by the JS-generated
       # stylesheet, two of the three renders the byte-identity gate compares.
       - name: JS — generate + render

@@ -12,7 +12,30 @@
 
 import { xpath, bool, str, seq, isPos } from "./xpath.mjs";
 
+/**
+ * @typedef {import("./xpath.mjs").XastNode} XastNode
+ * @typedef {import("./xpath.mjs").Expression} Expression
+ */
+/**
+ * HTML as hast, what the handlers render.
+ * @typedef {{ type: "element", tagName: string, properties: Record<string, any>, children: HastNode[] }} HastElement
+ * @typedef {{ type: "text", value: string }} HastText
+ * @typedef {HastElement | HastText} HastNode
+ */
+/**
+ * A model as the handlers hold it, its XPath compiled: a behaviour with the HTML
+ * element and flow behaviour-map.json gives it; a sequence, or a compound, with
+ * its parts. A template's text is a string, its elements { name, attributes, children }.
+ * @typedef {{ behaviour: string, tag?: string, flow: string, output?: string, predicate?: Expression,
+ *   params: Record<string, Expression>, classes: string[], source: boolean,
+ *   template?: TemplateNode[], parts?: Model[] }} Model
+ * @typedef {string | { name: string, attributes: Record<string, string>, children: TemplateNode[] }} TemplateNode
+ * @typedef {{ output: string, label: string }} View  an output laid over the page
+ */
+
+/** @type {(tagName: string, properties?: Record<string, any>, children?: HastNode[]) => HastElement} */
 export const h = (tagName, properties = {}, children = []) => ({ type: "element", tagName, properties, children });
+/** @type {(value: string) => HastText} */
 export const text = (value) => ({ type: "text", value });
 
 const isElement = (n) => n?.type === "element";
@@ -60,6 +83,10 @@ function paramProps(params) {
  * element takes, what the views lay over it, whether it starts a line, and its
  * text as rendered. teiToHast renders by it; the CETEIcean tier chooses models by
  * it in the browser.
+ * @template {Model} M
+ * @param {Record<string, M[]>} models  by element name
+ * @param {string} output
+ * @param {View[]} [views]
  */
 export function createResolver(models, output, views = []) {
   /** The first model of exactly `out` (null: the base models) whose predicate holds. */
@@ -174,8 +201,15 @@ const strings = (v) => seq(v).map((item) => str([item]));
  * teiToHast(tree, { output }) → { hast, notes, page }. The page, output "web", has
  * the views laid over it and a switch for each; another output renders alone.
  * `page` holds the params of the root's model for output "page", as strings.
+ * @param {Record<string, Model[]>} models  by element name
+ * @param {View[]} [views]
  */
 export function createRenderer(models, views = []) {
+  /**
+   * @param {XastNode} tree
+   * @param {{ output?: string }} [options]
+   * @returns {{ hast: HastElement, notes: HastElement[], page: Record<string, string[]> }}
+   */
   return function teiToHast(tree, { output = "web" } = {}) {
     const notes = [];
     const laidViews = output === "web" ? views : [];

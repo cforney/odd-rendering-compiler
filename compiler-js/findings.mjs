@@ -11,15 +11,17 @@
  * defines. Each finding is printed; each document gets a page,
  * <dir>/<basename>.html, and all of them <dir>/findings.json.
  *
- * Usage:  node findings.mjs --odd <path> --tei <path|dir|glob> [--tokens <css>] [--out <dir>]
+ * Usage:   node findings.mjs --odd <path> --tei <path|dir|glob> [--tokens <css>] [--out <dir>]
+ * Output:  <dir>/<basename>.html, <dir>/findings.json
+ * Read by: the ODD's author
  */
 
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
 import { pathToFileURL } from "url";
-import { readOdd, parseXmlToXast, pageOf, allModels } from "./odd-parser.mjs";
+import { parseXmlToXast, pageOf, allModels } from "./odd-parser.mjs";
 import { checkXPath } from "./unsupported.mjs";
-import { parseArgs, createLogger, writeOut, resolveInputFiles, htmlPageName, buildReportPage } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveInputFiles, htmlPageName, buildReportPage } from "./cli.mjs";
 
 /** Custom properties the ODD's CSS reads that neither the tokens, the ODD's CSS nor a `--…` param defines. */
 export function undefinedProperties({ specs, renditions }, tokens = "") {
@@ -87,7 +89,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
     console.error("Usage: node findings.mjs --odd <path> --tei <path|dir|glob> [--tokens <css>] [--out <dir>]");
     process.exit(1);
   }
-  const odd = readOdd(resolve(oddPath));
+  const odd = loadOdd(oddPath, "findings");
   const tokens = cli.get("--tokens") ? readFileSync(resolve(cli.get("--tokens")), "utf8") : "";
   const oddFindings = [
     ...undefinedProperties(odd, tokens).map((name) => `Custom property defined nowhere: var(${name})`),

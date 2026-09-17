@@ -13,20 +13,43 @@
  * first. Attributes evaluate to their string values.
  */
 
+/**
+ * TEI as xast, the tree every renderer reads.
+ * @typedef {{ type: "element", name: string, attributes: Record<string, string>, children: XastNode[] }} XastElement
+ * @typedef {{ type: "text", value: string }} XastText
+ * @typedef {{ type: "root", children: XastNode[] }} XastRoot
+ * @typedef {XastElement | XastText | XastRoot} XastNode
+ */
+/**
+ * A node where it stands; `i`, where known, is its index among its parent's element and text children.
+ * @typedef {{ node: XastNode, up: XastElement[], i?: number }} Position
+ */
+/**
+ * What an expression evaluates to: an item, or a sequence of them.
+ * @typedef {Position | string | number | boolean} Item
+ * @typedef {Item | Item[]} Value
+ * @typedef {(pos: Position) => Value} Expression
+ */
+
+/** @type {(n: any) => n is XastElement} */
 const isElement = (n) => n?.type === "element";
+/** @type {(n: any) => n is XastText} */
 const isText = (n) => n?.type === "text";
 const localName = (qname = "") => qname.slice(qname.indexOf(":") + 1);
 const textOf = (n) => (isText(n) ? n.value : (n?.children ?? []).map(textOf).join(""));
 
+/** @type {(item: unknown) => item is Position} */
 export const isPos = (item) => typeof item === "object" && item !== null && "node" in item;
 const atom = (item) => (isPos(item) ? textOf(item.node) : item);
+/** @type {(v: Value) => Item[]} */
 export const seq = (v) => (Array.isArray(v) ? v : [v]);
 const normalizeSpace = (s) => s.replace(/[ \t\n\r]+/g, " ").replace(/^ | $/g, "");
 const num = (v) => (typeof v === "number" ? v : Number(str(v)));
 
+/** @type {(v: Value) => boolean} */
 export const bool = (v) =>
   Array.isArray(v) ? v.length > 0 : typeof v === "number" ? v !== 0 && !Number.isNaN(v) : Boolean(v);
-/** The string value of the first item. */
+/** The string value of the first item. @type {(v: Value) => string} */
 export const str = (v) => (Array.isArray(v) ? (v.length ? String(atom(v[0])) : "") : String(v));
 
 const COMPARE = {
@@ -127,7 +150,11 @@ const FUNCTIONS = {
 
 const TOKEN = /\s*(?:'([^']*)'|"([^"]*)"|(\d+(?:\.\d+)?)|(::|\.\.|!=|<=|>=|[=<>()[\],@/.*+|-])|([A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?))/y;
 
-/** Compile an expression to a function of a position; throws on anything outside the subset. */
+/**
+ * Compile an expression to a function of a position; throws on anything outside the subset.
+ * @param {string} expr
+ * @returns {Expression}
+ */
 export function xpath(expr) {
   const fail = (why) => {
     throw new Error(`XPath "${expr}": ${why}`);
@@ -280,7 +307,8 @@ export function xpath(expr) {
       i++;
     }
     const move = AXES[axis] ?? fail(`unsupported axis ${axis}`);
-    let test = (q) => isElement(q);
+    /** @type {(q: XastNode) => boolean} */
+    let test = isElement;
     if (!eat("*")) {
       const n = name();
       if ((n === "node" || n === "text") && eat("(")) {

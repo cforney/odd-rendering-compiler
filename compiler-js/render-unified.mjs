@@ -11,6 +11,8 @@
  * flags. Each source gives <basename>.html; several also an index.html. --output names the PM output to render (default web).
  *
  * Usage:   node render-unified.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>] [--output <name>]
+ * Output:  <dir>/<basename>.html, and for several sources <dir>/index.html
+ * Read by: a browser
  */
 
 import { readFileSync } from "fs";

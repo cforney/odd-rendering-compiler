@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An ODD the compilers cannot read: each problem they name, once. -->
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <text>
+    <body>
+      <schemaSpec ident="invalid" source="missing.odd">
+        <elementSpec ident="p" mode="change">
+          <model>
+            <param value="'text'"/>
+          </model>
+          <modelSequence/>
+        </elementSpec>
+        <elementSpec mode="change">
+          <model behaviour="inline"/>
+        </elementSpec>
+      </schemaSpec>
+    </body>
+  </text>
+</TEI>

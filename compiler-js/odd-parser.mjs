@@ -2,12 +2,12 @@
  * Reads a TEI ODD into the Processing Model every generator works from, and
  * parses TEI for the renderers, with the page metadata the ODD declares.
  *
- * readOdd(path) → { specs: [{ ident, models, rules, values }], renditions: [{ id, css }],
- *                   views: [{ output, label }] }
+ * readOdd(path) → Odd, the shapes in the typedefs below. An ODD it cannot read
+ * throws an OddError naming each problem and its line: XML that is not
+ * well-formed, a base ODD not found, no <model> at all, a missing @ident,
+ * @behaviour or param @name, or a <modelSequence> with no <model>.
  *
- * `models` are the element's models in document order, model groups flattened:
- *   { id, behaviour, tag, flow, predicate, output, params: [{ name, value }],
- *     classes, source, template, parts, odd, line }
+ * `models` are the element's models in document order, model groups flattened.
  * `id` names the model, `<ident>-<n>` by its place among the spec's models, and
  * `odd`/`line` say where it (and, on each param, where that param) was written —
  * what the JSON records and the report of degraded XPath name it by.
@@ -27,11 +27,31 @@
  * ALONE, which render on their own.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
-import { parseXml } from "@rgrove/parse-xml";
+import { parseXml, XmlError } from "@rgrove/parse-xml";
 import { xpath, bool, seq, str } from "../runtime/xpath.mjs";
 
+/**
+ * An entry of behaviour-map.json: the HTML element of a behaviour that does no
+ * more than wrap its content, and whether it renders as a block or inline.
+ * @typedef {{ tag?: string, flow?: "block" | "inline" }} Behaviour
+ */
+/**
+ * The ODD as every generator reads it; `odd` and `line` say where a model or param was written.
+ * @typedef {{ name: string, value: string, odd: string, line: number }} Param
+ * @typedef {{ id: string, behaviour: string, tag?: string, flow: string, predicate: string | null,
+ *   output: string | null, params: Param[], classes: string[], source: boolean, template?: string,
+ *   label?: string, parts?: OddModel[], odd: string, line: number }} OddModel
+ * @typedef {{ selector: string, css: string }} Rule
+ * @typedef {{ ident: string, mode: string, models: OddModel[], rules: Rule[], values: Record<string, string[]> }} Spec
+ * @typedef {{ specs: Spec[], renditions: { id: string, css: string }[], views: import("../runtime/pm-runtime.mjs").View[] }} Odd
+ */
+
+/** An ODD the compiler cannot read; its message has a line per problem. */
+export class OddError extends Error {}
+
+/** @type {Record<string, Behaviour>} */
 const BEHAVIOURS = JSON.parse(readFileSync(new URL("../behaviour-map.json", import.meta.url), "utf8"));
 
 const elements = (el, name) =>
@@ -99,9 +119,11 @@ function templateOf(m) {
   return elements(t).length ? elements(t).map(xml).join("") : escape(textOf(t).replace(/^\s+/gm, ""));
 }
 
-function known(behaviour, ident) {
+function known(m, ident, file) {
+  const { behaviour } = m.attributes;
   if (behaviour in BEHAVIOURS) return behaviour;
-  console.warn(`[odd-parser] ⚠ <${ident}>: unknown behaviour "${behaviour}", rendered inline`);
+  if (!behaviour) file.problem(m, `<model> in <elementSpec ident="${ident}"> has no @behaviour`);
+  else console.warn(`[odd-parser] ⚠ <${ident}>: unknown behaviour "${behaviour}", rendered inline`);
   return "inline";
 }
 
@@ -112,8 +134,9 @@ function flowOf(behaviour, parts) {
   return flows.includes("block") ? "block" : flows.every((f) => f === "inline") ? "inline" : "";
 }
 
-function readSpec(spec, where) {
+function readSpec(spec, file) {
   const ident = spec.attributes.ident;
+  if (!ident) file.problem(spec, "<elementSpec> has no @ident");
   const entries = elements(spec).filter((e) => /^model(Grp|Sequence)?$/.test(e.name));
   const sole = entries.length === 1;
   const numbered = findAll(spec, "model");
@@ -138,7 +161,9 @@ function readSpec(spec, where) {
     if (styled) style(m, cls ? `.${cls}` : `.tei-${ident}`, output);
 
     const sequence = m.name === "modelSequence" ? m : elements(m, "modelSequence")[0];
-    const behaviour = m.name === "modelSequence" ? "sequence" : known(m.attributes.behaviour, ident);
+    const behaviour = m.name === "modelSequence" ? "sequence" : known(m, ident, file);
+    if (sequence && !elements(sequence, "model").length) file.problem(sequence, `<modelSequence> in <elementSpec ident="${ident}"> holds no <model>`);
+    for (const p of elements(m, "param").filter((p) => !p.attributes.name)) file.problem(p, `<param> in <elementSpec ident="${ident}"> has no @name`);
     const parts = sequence && elements(sequence, "model").map((p) => read(p, group, groupClass, m));
     return {
       id: `${ident}-${identified.indexOf(m) + 1}`,
@@ -147,13 +172,13 @@ function readSpec(spec, where) {
       flow: flowOf(behaviour, parts),
       predicate,
       output,
-      params: [...new Map(elements(m, "param").map((p) => [p.attributes.name, { name: p.attributes.name, value: p.attributes.value ?? "''", ...where.at(p.start) }])).values()],
+      params: [...new Map(elements(m, "param").map((p) => [p.attributes.name, { name: p.attributes.name, value: p.attributes.value ?? "''", ...file.at(p.start) }])).values()],
       classes: [...new Set([groupClass, ...own, cls].filter(Boolean))],
       source: inherited("useSourceRendition") === "true",
       template: templateOf(m),
       label: elements(m, "desc").map((d) => normalize(textOf(d)))[0],
       parts,
-      ...where.at(m.start),
+      ...file.at(m.start),
     };
   }
 
@@ -191,26 +216,51 @@ function viewsOf(specs) {
 }
 
 /**
- * Read an ODD. A `<schemaSpec source="…">` naming another ODD is read as a chain:
- * the base ODD's specs, where this one's specs with models replace the base
- * spec's models, `mode="delete"` removes a spec, and a new ident is added.
+ * Read an ODD, or throw an OddError. A `<schemaSpec source="…">` naming another
+ * ODD is read as a chain: the base ODD's specs, where this one's specs with
+ * models replace the base spec's models, `mode="delete"` removes a spec, and a
+ * new ident is added.
+ * @param {string} path
+ * @returns {Odd}
  */
 export function readOdd(path) {
+  const odd = readChain(path);
+  if (!allModels(odd.specs).length) throw new OddError(`${basename(path)}: holds no <model>, so there is no Processing Model to compile`);
+  return odd;
+}
+
+/** One ODD of a chain, with its base. @returns {Odd} */
+function readChain(path) {
+  const name = basename(path);
+  if (!existsSync(path)) throw new OddError(`${name}: not found (${path})`);
   const xml = readFileSync(path, "utf8");
-  const doc = parseXml(xml, { includeOffsets: true });
+  let doc;
+  try {
+    doc = parseXml(xml, { includeOffsets: true });
+  } catch (e) {
+    if (!(e instanceof XmlError)) throw e;
+    throw new OddError(`${name}:${e.line}: not well-formed XML: ${e.message.replace(/ \(line [\s\S]*/, "")}`);
+  }
   const root = resolveSpecGrpRefs(doc.children.find((n) => n.type === "element"));
-  /** Where a model was written: this ODD, and the line of its offset in it. */
-  const where = { at: (start) => ({ odd: basename(path), line: xml.slice(0, start).split("\n").length }) };
-  const specs = findAll(root, "elementSpec").map((spec) => readSpec(spec, where));
+  /** Where something was written, this ODD and the line of its offset; and the problems found, with their offsets. */
+  const problems = [];
+  const file = {
+    at: (start) => ({ odd: name, line: xml.slice(0, start).split("\n").length }),
+    problem: (el, message) => problems.push({ start: el.start, text: `${name}:${file.at(el.start).line}: ${message}` }),
+  };
+  const specs = findAll(root, "elementSpec").map((spec) => readSpec(spec, file));
   const renditions = findAll(root, "tagsDecl")
     .flatMap((t) => elements(t, "rendition"))
     .filter((r) => r.attributes["xml:id"])
     .map((r) => ({ id: r.attributes["xml:id"], css: normalize(textOf(r)) }));
 
-  const source = findAll(root, "schemaSpec")[0]?.attributes.source;
+  const schema = findAll(root, "schemaSpec")[0];
+  const source = schema?.attributes.source;
+  if (source && !existsSync(resolve(dirname(path), source))) file.problem(schema, `<schemaSpec source="${source}">: not found`);
+  if (problems.length) throw new OddError(problems.sort((a, b) => a.start - b.start).map((p) => p.text).join("\n"));
   if (!source) return { specs, renditions, views: viewsOf(specs) };
 
-  const base = readOdd(resolve(dirname(path), source));
+  const base = readChain(resolve(dirname(path), source));
   const own = new Map(specs.map((s) => [s.ident, s]));
   const chained = base.specs
     .filter((s) => own.get(s.ident)?.mode !== "delete")

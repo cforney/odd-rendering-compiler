@@ -14,6 +14,8 @@
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/odd-to-ceteicean.xsl \
               -o:output/ceteicean/tei-ceteicean-behaviours.js "tei=simler-psalmen.xml simler-hausswesen.xml"
   The `tei` parameter names the TEI files, separated by spaces, resolved next to the ODD.
+  Output:  tei-ceteicean-behaviours.js, and <basename>.html beside it per TEI file
+  Read by: a browser, which renders the pages
 -->
 <xsl:stylesheet version="3.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"

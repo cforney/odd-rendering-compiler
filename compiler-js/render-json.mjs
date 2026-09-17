@@ -13,17 +13,18 @@
  * Predicates and params the XPath subset cannot evaluate are degraded as in the
  * other generators, and listed under `unsupported`.
  *
- * Usage:  node render-json.mjs --odd <path> --tei <path|dir|glob> [--output <name>] [--out <dir>] [--strict]
- * Output: <dir>/<basename>.json
+ * Usage:   node render-json.mjs --odd <path> --tei <path|dir|glob> [--output <name>] [--out <dir>] [--strict]
+ * Output:  <dir>/<basename>.json
+ * Read by: coverage.mjs (--records), and any tool that wants the decisions as data
  */
 
 import { readFileSync } from "fs";
 import { resolve, basename, extname } from "path";
-import { readOdd, parseXmlToXast, allModels } from "./odd-parser.mjs";
+import { parseXmlToXast, allModels } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import { createResolver } from "../runtime/pm-runtime.mjs";
 import { xpath, seq, str } from "../runtime/xpath.mjs";
-import { parseArgs, createLogger, writeOut, resolveInputFiles } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveInputFiles } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("render-json");
@@ -36,7 +37,7 @@ if (!oddPath) {
   process.exit(1);
 }
 
-const odd = readOdd(resolve(oddPath));
+const odd = loadOdd(oddPath, "render-json");
 const grammar = checkXPath(odd.specs);
 reportUnsupported(grammar.entries, { scope: "render-json", strict: cli.has("--strict") });
 

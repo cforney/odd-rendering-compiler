@@ -20,16 +20,17 @@
  * listed in odd-unsupported.json beside the pages; `--strict` fails the build.
  *
  * Usage:   node odd-to-ceteicean.mjs --odd <path> --tei <path|dir|glob> [--css <path>] [--out <dir>] [--strict]
- * Outputs: <dir>/tei-ceteicean-behaviours.js, <dir>/<basename>.html, <dir>/edition.css,
+ * Output:  <dir>/tei-ceteicean-behaviours.js, <dir>/<basename>.html, <dir>/edition.css,
  *          <dir>/odd-unsupported.json
+ * Read by: a browser, which renders the pages
  */
 
 import { readFileSync, copyFileSync, mkdirSync } from "fs";
 import { resolve, basename } from "path";
-import { readOdd, parseXmlToXast, extractTeiTitle, pageOf } from "./odd-parser.mjs";
+import { parseXmlToXast, extractTeiTitle, pageOf } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import {
-  parseArgs, createLogger, writeOut, generatedStamp,
+  parseArgs, loadOdd, createLogger, writeOut, generatedStamp,
   resolveInputFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
@@ -47,7 +48,7 @@ if (!oddPath) {
 }
 
 log(`Parsing ODD: ${oddPath}`);
-const odd = readOdd(resolve(oddPath));
+const odd = loadOdd(oddPath, "odd-to-ceteicean");
 const specs = odd.specs;
 const grammar = checkXPath(specs);
 reportUnsupported(grammar.entries, { scope: "odd-to-ceteicean", strict: cli.has("--strict") });

@@ -12,7 +12,9 @@
  *
  * --tei accepts the same inputs as the other renderers, with the same pages.
  *
- * Usage: node render-unified-islands.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
+ * Usage:   node render-unified-islands.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
+ * Output:  <dir>/<basename>.html, <dir>/tei-islands.js, and for several sources <dir>/index.html
+ * Read by: a browser
  */
 
 import { readFileSync } from "fs";

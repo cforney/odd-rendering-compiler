@@ -8,7 +8,9 @@
  * only the line breaks are decided: a block, or any element but a span or a
  * link, stands on lines of its own.
  *
- * Usage:  node render-plain.mjs --handlers <path> --tei <path|dir|glob> [--lang <code>] [--out <dir>]
+ * Usage:   node render-plain.mjs --handlers <path> --tei <path|dir|glob> [--lang <code>] [--out <dir>]
+ * Output:  <dir>/<basename>.txt, <dir>/records.json
+ * Read by: Pagefind, as custom records
  */
 
 import { readFileSync } from "fs";

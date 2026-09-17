@@ -10,7 +10,9 @@
  * pages link edition.css, which --css copies beside them. --output names the
  * PM output to render (default web).
  *
- * Usage:  node render-xslt.mjs --xsl <path> --tei <path|dir|glob> [--css <path>] [--out <dir>] [--output <name>]
+ * Usage:   node render-xslt.mjs --xsl <path> --tei <path|dir|glob> [--css <path>] [--out <dir>] [--output <name>]
+ * Output:  <dir>/<basename>.html, <dir>/edition.css, and for several sources <dir>/index.html
+ * Read by: a browser
  */
 
 import { execSync } from "child_process";

@@ -13,15 +13,15 @@ import {
   resolve, join, basename, extname,
 } from "path";
 import { pathToFileURL } from "url";
+import { readOdd, OddError } from "./odd-parser.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI arguments
 // ---------------------------------------------------------------------------
 
 /**
- * Parse `--flag value` style arguments.
- * @param {string[]} [argv] — defaults to the current process arguments.
- * @returns {{ get(name, fallback?): string|null, has(name): boolean, raw: string[] }}
+ * Parse `--flag value` style arguments, by default the current process's.
+ * @param {string[]} [argv]
  */
 export function parseArgs(argv = process.argv.slice(2)) {
   return {
@@ -227,6 +227,26 @@ ${body}
 </body>
 </html>
 `;
+}
+
+// ---------------------------------------------------------------------------
+// Reading the ODD
+// ---------------------------------------------------------------------------
+
+/**
+ * Read the ODD at `path` for a script; one it cannot read ends the process, with
+ * a line for each problem, prefixed `[scope]`.
+ * @param {string} path
+ * @param {string} scope
+ */
+export function loadOdd(path, scope) {
+  try {
+    return readOdd(resolve(path));
+  } catch (e) {
+    if (!(e instanceof OddError)) throw e;
+    for (const line of e.message.split("\n")) console.error(`[${scope}] ✗ ${line}`);
+    process.exit(1);
+  }
 }
 
 // ---------------------------------------------------------------------------

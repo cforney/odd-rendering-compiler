@@ -4,12 +4,15 @@
  * where one exists, compared as byte-identity.mjs compares renders. Every case
  * goes through the unified handlers; with Saxon HE 12 at $SAXON_HOME also
  * through the stylesheets of both XSLT generators.
+ *
+ * fixtures/invalid.odd is an ODD neither compiler can read: both must refuse it,
+ * naming each problem.
  */
 
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve, basename, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,6 +51,27 @@ test("the unified handlers render the fixtures", async () => {
   }
 });
 
+/** What both compilers name in fixtures/invalid.odd, each with its line. @type {[number, string][]} */
+const PROBLEMS = [
+  [6, `<schemaSpec source="missing.odd">: not found`],
+  [8, `<model> in <elementSpec ident="p"> has no @behaviour`],
+  [9, `<param> in <elementSpec ident="p"> has no @name`],
+  [11, `<modelSequence> in <elementSpec ident="p"> holds no <model>`],
+  [13, `<elementSpec> has no @ident`],
+];
+
+test("the JS compiler refuses an ODD it cannot read, naming each problem and its line", () => {
+  const refuse = (file) => spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", file, "--out", out], { cwd: pocDir, encoding: "utf8" });
+  const invalid = refuse(join(fixtures, "invalid.odd"));
+  assert.equal(invalid.status, 1);
+  assert.deepEqual(invalid.stderr.trim().split("\n"), PROBLEMS.map(([line, p]) => `[odd-to-unified] ✗ invalid.odd:${line}: ${p}`));
+
+  writeFileSync(join(out, "empty.odd"), `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><p/></body></text></TEI>`);
+  assert.match(refuse(join(out, "empty.odd")).stderr, /✗ empty\.odd: holds no <model>, so there is no Processing Model to compile/);
+  writeFileSync(join(out, "broken.odd"), `<TEI>\n  <model>\n</TEI>`);
+  assert.match(refuse(join(out, "broken.odd")).stderr, /✗ broken\.odd:3: not well-formed XML: Missing end tag for element model/);
+});
+
 // Saxon HE 12 as build.sh finds it: the jar and its xmlresolver libraries.
 const saxonHome = process.env.SAXON_HOME;
 function saxon(...args) {
@@ -62,6 +86,14 @@ const GENERATORS = {
   "odd-to-xsl.xsl": (dir) =>
     saxon(`-s:${odd}`, `-xsl:${resolve(pocDir, "../compiler-xslt/generate/odd-to-xsl.xsl")}`, `-o:${join(dir, "edition.xsl")}`),
 };
+
+test("the XSLT compiler refuses an ODD it cannot read, naming each problem", { skip: !saxonHome && "needs Saxon HE 12 at $SAXON_HOME" }, () => {
+  const xsl = resolve(pocDir, "../compiler-xslt/generate/odd-to-xsl.xsl");
+  assert.throws(() => saxon(`-s:${join(fixtures, "invalid.odd")}`, `-xsl:${xsl}`, `-o:${join(out, "invalid.xsl")}`), (/** @type {any} */ e) => {
+    for (const [, p] of PROBLEMS) assert.ok(e.stderr.toString().includes(`invalid.odd: ${p}`), p);
+    return true;
+  });
+});
 
 for (const [generator, generate] of Object.entries(GENERATORS)) {
   test(`the stylesheet from ${generator} renders the fixtures`, { skip: !saxonHome && "needs Saxon HE 12 at $SAXON_HOME" }, () => {

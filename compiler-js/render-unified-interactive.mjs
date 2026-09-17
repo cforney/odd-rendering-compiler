@@ -13,7 +13,9 @@
  * page chrome and interactive scaffolding. --tei accepts the same inputs, with
  * the same pages.
  *
- * Usage:  node render-unified-interactive.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
+ * Usage:   node render-unified-interactive.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
+ * Output:  <dir>/<basename>.html, and for several sources <dir>/index.html
+ * Read by: a browser
  */
 
 import { readFileSync } from "fs";

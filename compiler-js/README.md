@@ -118,6 +118,7 @@ repeated flag. Each source gives `<basename>.html`; several also a linking
 npm install
 npm run demo               # the Simler examples → static + interactive pages
 npm test                   # smoke tests, conformance fixtures, byte-identity gate
+npm run typecheck          # tsc over the JSDoc types, no emit
 npm run build:all          # all four generators from the Simler ODD
 npm run render:all         # every renderer on every example, the plain text and the records
 npm run findings           # what the Simler ODD does not foresee in the examples
@@ -160,6 +161,7 @@ compiler-js/
 ├── islands-runtime.js    # generic <tei-island> hydration runtime
 ├── byte-identity.mjs     # the equivalence check between renders
 ├── test/                 # smoke tests, fixtures, gate (`npm test`)
+├── tsconfig.json         # `npm run typecheck`: tsc over the JSDoc types
 └── output/               # generated artefacts (gitignored)
 ```
 
@@ -174,6 +176,16 @@ outputs laid over the page. Each model carries the id the JSON records name it
 by, `<ident>-<n>`, and where it was written. The XSLT generators read the ODD the same way
 (`../compiler-xslt/generate/odd-model.xsl`). `pageOf(specs, tree)` gives what
 the ODD's model for output `page` says of one source.
+
+An ODD it cannot read, `readOdd` refuses with an `OddError`, and every script
+stops with a line per problem and where it stands (`loadOdd` in `cli.mjs`):
+XML that is not well-formed, a base ODD not found, no `<model>` at all, an
+`elementSpec` without `@ident`, a `<model>` without `@behaviour`, a `<param>`
+without `@name`, or a `<modelSequence>` with no `<model>`.
+
+```
+[odd-to-unified] ✗ my.odd:8: <model> in <elementSpec ident="p"> has no @behaviour
+```
 
 - **Model groups** are flattened; a model takes `@output` and
   `@useSourceRendition` from its group or sequence.

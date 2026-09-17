@@ -18,6 +18,8 @@
 
   Run:  saxon  -s:../examples/tei_simler.odd  -xsl:generate/odd-to-xsl.xsl
                -o:output/edition.xsl
+  Output:  edition.xsl (stylesheet params: output, interactive)
+  Read by: build.sh, which renders every TEI file with it, and xslt3 for SaxonJS
 -->
 <xsl:stylesheet version="3.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"

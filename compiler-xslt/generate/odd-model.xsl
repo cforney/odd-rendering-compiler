@@ -24,9 +24,11 @@
   @cssClass, or <ident>-<n> (the n-th <model> of the spec) without one. The CSS
   of a model with @output applies where that output is on (see pm:on). A
   model's <pb:template>, a TEI Publisher extension, is kept as XML (see
-  pm:template). The
-  views are all outputs but those rendering alone, each labelled by the first
-  <desc> of its models.
+  pm:template). The views are all outputs but those rendering alone, each
+  labelled by the first <desc> of its models.
+
+  An ODD it cannot read raises the error pm:odd, naming each problem as
+  odd-parser.mjs names it, but without the line (see pm:problems).
 -->
 <xsl:stylesheet version="3.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -39,8 +41,41 @@
   <!-- The shared behaviour contract, the same file compiler-js reads. -->
   <xsl:variable name="pm:behaviours" select="json-doc('../../behaviour-map.json')"/>
 
+  <!-- The ODD, or the error pm:odd naming each problem that keeps it from being read. -->
   <xsl:function name="pm:odd" as="element(pm:odd)">
     <xsl:param name="doc" as="document-node()"/>
+    <xsl:variable name="odd" select="pm:chain($doc)"/>
+    <xsl:sequence select="if (empty($odd//pm:model))
+      then error(xs:QName('pm:odd'), pm:name($doc) || ': holds no &lt;model&gt;, so there is no Processing Model to compile')
+      else $odd"/>
+  </xsl:function>
+
+  <!-- The problems of one ODD, in document order. -->
+  <xsl:function name="pm:problems" as="xs:string*">
+    <xsl:param name="doc" as="document-node()"/>
+    <xsl:variable name="source" select="($doc//tei:schemaSpec)[1]/@source"/>
+    <xsl:for-each select="$source[not(doc-available(resolve-uri(., base-uri($doc))))]/.. | $doc//tei:elementSpec[not(@ident)]
+      | $doc//tei:elementSpec//(tei:model[not(@behaviour)] | tei:modelSequence[not(tei:model)] | tei:param[not(@name)])">
+      <xsl:variable name="in" select="' in &lt;elementSpec ident=&quot;' || ancestor::tei:elementSpec/@ident || '&quot;&gt;'"/>
+      <xsl:sequence select="pm:name($doc) || ': ' || (
+        if (self::tei:schemaSpec) then '&lt;schemaSpec source=&quot;' || $source || '&quot;&gt;: not found'
+        else if (self::tei:elementSpec) then '&lt;elementSpec&gt; has no @ident'
+        else if (self::tei:model) then '&lt;model&gt;' || $in || ' has no @behaviour'
+        else if (self::tei:modelSequence) then '&lt;modelSequence&gt;' || $in || ' holds no &lt;model&gt;'
+        else '&lt;param&gt;' || $in || ' has no @name')"/>
+    </xsl:for-each>
+  </xsl:function>
+
+  <xsl:function name="pm:name" as="xs:string">
+    <xsl:param name="doc" as="document-node()"/>
+    <xsl:sequence select="tokenize(base-uri($doc), '/')[last()]"/>
+  </xsl:function>
+
+  <!-- One ODD of a chain, with its base. -->
+  <xsl:function name="pm:chain" as="element(pm:odd)">
+    <xsl:param name="doc" as="document-node()"/>
+    <xsl:variable name="problems" select="pm:problems($doc)"/>
+    <xsl:sequence select="if (exists($problems)) then error(xs:QName('pm:odd'), string-join($problems, '&#10;')) else ()"/>
     <xsl:variable name="specs" as="element(pm:spec)*">
       <xsl:apply-templates mode="pm:spec"
         select="if (exists($doc//tei:specGrpRef)) then pm:schema-specs($doc//tei:schemaSpec/node(), ()) else $doc//tei:elementSpec"/>
@@ -55,7 +90,7 @@
       <xsl:choose>
         <!-- A chain: the base ODD's specs; this one's replace their models, delete, or add. -->
         <xsl:when test="$source">
-          <xsl:variable name="base" select="pm:odd(doc(resolve-uri($source, base-uri($doc))))"/>
+          <xsl:variable name="base" select="pm:chain(doc(resolve-uri($source, base-uri($doc))))"/>
           <xsl:sequence select="$base/pm:rendition, $renditions"/>
           <xsl:for-each select="$base/pm:spec">
             <xsl:variable name="own" select="$specs[@ident = current()/@ident][last()]"/>
