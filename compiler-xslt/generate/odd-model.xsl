@@ -9,7 +9,7 @@
         <pm:rendition id css/>…                         the source renditions of <tagsDecl>
         <pm:spec ident mode>
           <pm:rule selector css/>                        a model group's CSS
-          <pm:model behaviour tag flow predicate? output? label? classes source>
+          <pm:model behaviour tag flow predicate? output? label? template? classes source>
             <pm:rule selector css/>                      the model's CSS
             <pm:param name value/>…
             <pm:model …/>…                               the parts of a sequence
@@ -22,7 +22,9 @@
   @useSourceRendition from its sequence or group. A spec's only model styles
   .tei-<ident>; otherwise a group styles .<ident>-group, and a model its first
   @cssClass, or <ident>-<n> (the n-th <model> of the spec) without one. The CSS
-  of a model with @output applies where that output is on (see pm:on). The
+  of a model with @output applies where that output is on (see pm:on). A
+  model's <pb:template>, a TEI Publisher extension, is kept as XML (see
+  pm:template). The
   views are all outputs but those rendering alone, each labelled by the first
   <desc> of its models.
 -->
@@ -177,6 +179,7 @@
       <xsl:if test="@predicate"><xsl:attribute name="predicate" select="@predicate"/></xsl:if>
       <xsl:if test="$output"><xsl:attribute name="output" select="$output"/></xsl:if>
       <xsl:if test="tei:desc"><xsl:attribute name="label" select="normalize-space(tei:desc[1])"/></xsl:if>
+      <xsl:if test="*:template"><xsl:attribute name="template" select="pm:template(*:template[1])"/></xsl:if>
       <xsl:if test="$styled">
         <xsl:call-template name="pm:rules">
           <xsl:with-param name="el" select="."/>
@@ -190,6 +193,22 @@
       </xsl:for-each-group>
       <xsl:sequence select="$parts"/>
     </pm:model>
+  </xsl:template>
+
+  <!-- A <pb:template> as XML without namespaces, as TEI Publisher reads it:
+       its elements, or with none its text, each line's leading whitespace dropped. -->
+  <xsl:function name="pm:template" as="xs:string">
+    <xsl:param name="t" as="element()"/>
+    <xsl:variable name="local" as="element()*"><xsl:apply-templates select="$t/*" mode="pm:local"/></xsl:variable>
+    <xsl:sequence select="if ($t/*) then string-join($local ! serialize(.)) else serialize(replace(string($t), '^\s+', '', 'm'))"/>
+  </xsl:function>
+
+  <xsl:mode name="pm:local" on-no-match="shallow-copy"/>
+  <xsl:template match="*" mode="pm:local">
+    <xsl:element name="{local-name()}">
+      <xsl:for-each select="@*"><xsl:attribute name="{local-name()}" select="."/></xsl:for-each>
+      <xsl:apply-templates mode="pm:local"/>
+    </xsl:element>
   </xsl:template>
 
   <xsl:function name="pm:known" as="xs:string">

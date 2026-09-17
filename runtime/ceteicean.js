@@ -15,6 +15,7 @@
 
 const TEI_PHRASING = ["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"];
 const TEI_NUMBERED = ["end", "foot"];
+const TEI_PLACEHOLDER = /\[\[([^[\]]*)\]\]/g;
 
 /** The models with their XPath compiled. */
 function teiCompile(models) {
@@ -117,7 +118,19 @@ function teiEdition(ct, source, models, views, done) {
       n.append(...children);
       return n;
     };
-    const own = () => ("content" in params ? value(params.content, c, content) : content());
+    /** A template filled in: each `[[name]]` the value of that param, in an attribute its strings. */
+    const fill = (nodes) => Array.from(nodes).flatMap((n) => {
+      if (n.nodeType === Node.TEXT_NODE) {
+        return n.nodeValue.split(TEI_PLACEHOLDER).flatMap((s, i) => (i % 2 ? (s in params ? value(params[s], c, content) : []) : s ? [s] : []));
+      }
+      const out = document.createElement(n.localName);
+      for (const a of n.attributes) out.setAttribute(a.localName, a.value.replace(TEI_PLACEHOLDER, (_, s) => seq(params[s] ?? []).map((x) => str([x])).join(" ")));
+      out.append(...fill(n.childNodes));
+      return [out];
+    });
+    const own = () =>
+      m.template ? fill(new DOMParser().parseFromString(`<t>${m.template}</t>`, "application/xml").documentElement.childNodes)
+      : "content" in params ? value(params.content, c, content) : content();
     const wrap = (tag) => (m.flow === "block" && teiPhrasing(el) ? [make("span", own(), ["pm-block"])] : [make(tag, own())]);
 
     switch (m.behaviour) {
@@ -125,9 +138,19 @@ function teiEdition(ct, source, models, views, done) {
       case "metadata":
         return [];
       case "text":
+      case "pass-through": // a TEI Publisher extension
         return own();
       case "heading":
         return wrap(`h${Math.min(6, Math.max(1, Math.trunc(Number(str(params.level ?? ""))) || 1))}`);
+      case "figure": {
+        const [figure] = wrap("figure");
+        const title = "title" in params ? value(params.title, c, content) : [];
+        if (title.length) {
+          const caption = figure.appendChild(document.createElement(figure.localName === "span" ? "span" : "figcaption"));
+          caption.append(...title);
+        }
+        return [figure];
+      }
       case "alternate": {
         const reading = (k, cls, hidden) => {
           const s = document.createElement("span");

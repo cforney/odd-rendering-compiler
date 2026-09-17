@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc><titleStmt><title>Figures and TEI Publisher extensions</title></titleStmt></fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <figure xml:id="plate">
+        <graphic url="plate.png"/>
+        <head>A plate</head>
+      </figure>
+      <figure><graphic url="bare.png"/></figure>
+      <p>A <figure><graphic url="small.png"/><head>small</head></figure> in a paragraph.</p>
+      <p>By <persName ref="#simler">Josias <hi>Simler</hi></persName>, <name>passed <hi>through</hi></name>,
+        in <rs type="place">Zürich</rs>.</p>
+    </body>
+  </text>
+</TEI>

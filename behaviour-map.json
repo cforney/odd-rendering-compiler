@@ -17,6 +17,7 @@
   "glyph":     { "tag": "span",       "flow": "inline" },
 
   "heading":   { "flow": "block" },
+  "figure":    { "flow": "block" },
   "text":      { "flow": "block" },
   "index":     { "flow": "block" },
   "note":      { "flow": "inline" },
@@ -27,5 +28,6 @@
   "graphic":   { "flow": "inline" },
   "metadata":  {},
   "omit":      {},
+  "pass-through": {},
   "compound":  {}
 }

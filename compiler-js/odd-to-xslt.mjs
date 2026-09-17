@@ -48,6 +48,7 @@ function map(m, part = false) {
     m.flow && `'flow': ${q(m.flow)}`,
     m.classes.length && `'classes': (${m.classes.map(q).join(", ")})`,
     m.source && `'source': true()`,
+    m.template && `'template': ${q(m.template)}`,
     params.length && `'params': map { ${params.join(", ")} }`,
     m.parts && `'parts': (${m.parts.map((p) => map(p, true)).join(", ")})`,
     part && `'live': ${m.predicate ? `boolean(${m.predicate})` : "true()"}`,

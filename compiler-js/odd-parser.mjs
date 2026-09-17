@@ -7,14 +7,15 @@
  *
  * `models` are the element's models in document order, model groups flattened:
  *   { id, behaviour, tag, flow, predicate, output, params: [{ name, value }],
- *     classes, source, parts, odd, line }
+ *     classes, source, template, parts, odd, line }
  * `id` names the model, `<ident>-<n>` by its place among the spec's models, and
  * `odd`/`line` say where it (and, on each param, where that param) was written —
  * what the JSON records and the report of degraded XPath name it by.
  * A <modelSequence> is behaviour "sequence" with its models as `parts`; a
  * <model> holding a <modelSequence> (Boot's nested-model proposal) keeps its
  * behaviour and gets `parts` too. A model takes @output and
- * @useSourceRendition (`source`) from its sequence or group.
+ * @useSourceRendition (`source`) from its sequence or group. `template` is its
+ * <pb:template>, a TEI Publisher extension, as XML (see templateOf).
  *
  * `rules` are the CSS of the <outputRendition>s. A spec's only model styles
  * `.tei-<ident>`; otherwise a group styles `.<ident>-group`, and a model its
@@ -37,6 +38,8 @@ const elements = (el, name) =>
   (el?.children ?? []).filter((c) => c.type === "element" && (!name || c.name === name));
 const textOf = (n) => (n.type === "element" ? n.children.map(textOf).join("") : n.text ?? "");
 const normalize = (s) => s.replace(/\s+/g, " ").trim();
+const localName = (qname) => qname.slice(qname.indexOf(":") + 1);
+const escape = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 /** Outputs not laid over the page: the page itself, what it shows around the text, the search text. */
 const ALONE = ["web", "page", "plain"];
@@ -78,6 +81,22 @@ export function resolveSpecGrpRefs(root, warn = (m) => console.error(m)) {
       return rewrite(byId.get(id).children, new Set(seen).add(id));
     });
   return copy(root, rewrite(root.children, new Set()));
+}
+
+/**
+ * A model's <pb:template> as XML without namespaces, as TEI Publisher reads it:
+ * its elements, or with none its text, each line's leading whitespace dropped.
+ */
+function templateOf(m) {
+  const t = elements(m).find((e) => localName(e.name) === "template");
+  if (!t) return undefined;
+  const xml = (n) => {
+    if (n.type !== "element") return escape(n.text ?? "");
+    const name = localName(n.name);
+    const attrs = Object.entries(n.attributes).filter(([k]) => !/^xmlns(:|$)/.test(k)).map(([k, v]) => ` ${localName(k)}="${escape(v)}"`);
+    return `<${name}${attrs.join("")}>${n.children.map(xml).join("")}</${name}>`;
+  };
+  return elements(t).length ? elements(t).map(xml).join("") : escape(textOf(t).replace(/^\s+/gm, ""));
 }
 
 function known(behaviour, ident) {
@@ -131,6 +150,7 @@ function readSpec(spec, where) {
       params: [...new Map(elements(m, "param").map((p) => [p.attributes.name, { name: p.attributes.name, value: p.attributes.value ?? "''", ...where.at(p.start) }])).values()],
       classes: [...new Set([groupClass, ...own, cls].filter(Boolean))],
       source: inherited("useSourceRendition") === "true",
+      template: templateOf(m),
       label: elements(m, "desc").map((d) => normalize(textOf(d)))[0],
       parts,
       ...where.at(m.start),

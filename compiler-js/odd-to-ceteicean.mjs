@@ -66,7 +66,7 @@ const json = (m) => ({
   behaviour: m.behaviour, tag: m.tag, flow: m.flow,
   predicate: m.predicate ? grammar.predicate(m.predicate) : undefined, output: m.output ?? undefined,
   params: Object.fromEntries(m.params.map((p) => [p.name, grammar.param(p.value)])),
-  classes: m.classes, source: m.source,
+  classes: m.classes, source: m.source, template: m.template,
   parts: m.parts?.map(json),
 });
 const models = Object.fromEntries(specs.filter((s) => s.models.length).map((s) => [s.ident, s.models.map(json)]));

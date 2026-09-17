@@ -22,6 +22,7 @@ with [`runtime/ceteicean.js`](../runtime/ceteicean.js).
 | table / row / cell | `<table>` / `<tr>` / `<td>` | block | |
 | inline, title, glyph | `<span>` | inline | |
 | text | the content, no element | block | |
+| figure | `<figure>`, its title a `<figcaption>` after the content | block | `title` |
 | alternate | `<span>` holding both readings, the second hidden | inline | `default`, `alternate` (else the first and second child element) |
 | note | a numbered marker; the body collected at the end | inline | `place` (`end` or `foot` numbered, any other collected without a marker), `range` |
 | break | `<br>`, or its label then `<br>` | inline | `type` (a `line` break where a line starts is dropped), `label` |
@@ -31,13 +32,15 @@ with [`runtime/ceteicean.js`](../runtime/ceteicean.js).
 | index | a table of contents of the headings within | block | |
 | metadata, omit | nothing | — | |
 | compound | its parts, a `link` part wrapping the others | from the parts | an extension, see below |
+| pass-through | the content, no element | — | a TEI Publisher extension |
 
 **For every behaviour:**
 
 - **Classes:** the element's HTML carries `tei-<ident>`, the model's classes (see
   below), and `r-<id>` for each `@rendition` pointer where the model sets
   `@useSourceRendition`.
-- **Params:** `content` replaces the element's content. A param's nodes are
+- **Params:** `content` replaces the element's content, and a `pb:template`
+  replaces `content` (see below). A param's nodes are
   rendered by their own models (the element itself by its content), anything
   else as text. Params named `data-…` become attributes, and params named with a
   leading `--` become CSS custom properties.
@@ -97,3 +100,26 @@ a block.
 `<modelSequence>` is not TEI. The PoC renders it as its parts, with a `link` part
 wrapping the others, for the example in
 [`examples/extensions/nested-pb/`](../examples/extensions/nested-pb/).
+
+**TEI Publisher extensions.** Two things TEI Publisher adds to the Processing
+Model, which real ODDs use, run here with its semantics but for one difference
+named below; neither is TEI.
+
+- **`pass-through`** renders the content alone, like `text`, but has no flow of
+  its own: the element is transparent, as one without a model is.
+- **`<pb:template>`** (`xmlns:pb="http://teipublisher.com/1.0"`) in a `<model>`
+  is filled in with the model's params and becomes its content. `[[name]]`
+  stands for the param of that name, rendered as any param is, and in an
+  attribute for its strings, joined by spaces; a param the model does not
+  declare fills in nothing. A template of elements keeps only its elements,
+  their names without a namespace; a template of text drops the whitespace at
+  the start of each line. One difference: in a template of text, TEI Publisher
+  fills in a param's string, and here its rendered nodes.
+
+```xml
+<model behaviour="inline">
+  <param name="ref" value="@ref"/>
+  <param name="name" value="."/>
+  <pb:template><a href="[[ref]]"><b>[[name]]</b></a></pb:template>
+</model>
+```

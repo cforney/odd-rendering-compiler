@@ -18,6 +18,7 @@
 
 import { copyFileSync } from "fs";
 import { resolve, basename, join } from "path";
+import { parseXml } from "@rgrove/parse-xml";
 import { readOdd } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import { parseArgs, createLogger, writeOut, generatedStamp } from "./cli.mjs";
@@ -42,6 +43,12 @@ reportUnsupported(grammar.entries, { scope: "odd-to-unified", strict: cli.has("-
 /** An XPath expression as a call that compiles it when the module loads, degraded where the subset cannot. */
 const xp = (expr, kind) => `xp(${JSON.stringify(grammar[kind](expr))})`;
 
+/** A template as the runtime fills it in: its text as strings, its elements as { name, attributes, children }. */
+const tree = (xml) => {
+  const node = (n) => (n.type === "element" ? { name: n.name, attributes: n.attributes, children: n.children.map(node) } : n.text);
+  return parseXml(`<t>${xml}</t>`).root.children.map(node);
+};
+
 /** One model as a JS object literal. */
 function modelJs(m, pad) {
   const params = m.params.map((p) => `${JSON.stringify(p.name)}: ${xp(p.value, "param")}`);
@@ -54,6 +61,7 @@ function modelJs(m, pad) {
     `params: {${params.length ? ` ${params.join(", ")} ` : ""}}`,
     `classes: ${JSON.stringify(m.classes)}`,
     `source: ${m.source}`,
+    m.template && `template: ${JSON.stringify(tree(m.template))}`,
   ].filter(Boolean);
   if (m.parts) {
     const parts = m.parts.map((p) => modelJs(p, pad + "  "));

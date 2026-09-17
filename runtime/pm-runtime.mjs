@@ -27,6 +27,8 @@ const collapse = (s) => s.replace(/[ \t\n\r]+/g, " ");
 const PHRASING = new Set(["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"]);
 /** Note places that get a numbered marker in the text and go to the footnotes. */
 const NUMBERED = ["end", "foot"];
+/** A param named in a template, `[[name]]`. */
+const PLACEHOLDER = /\[\[([^[\]]*)\]\]/g;
 const FIRST = xpath("*[1]");
 const SECOND = xpath("*[2]");
 
@@ -211,7 +213,15 @@ export function createRenderer(models, views = []) {
         seq(v).flatMap((item) =>
           !isPos(item) ? (String(item) ? [text(String(item))] : []) : item.node === node ? kids(ph) : render(item, ph),
         );
-      const content = (ph) => ("content" in params ? value(params.content, ph) : kids(ph));
+      /** A template filled in: each `[[name]]` the value of that param, in an attribute its strings. */
+      const fill = (nodes, ph) =>
+        nodes.flatMap((n) => typeof n === "string"
+          ? n.split(PLACEHOLDER).flatMap((s, i) => (i % 2 ? (s in params ? value(params[s], ph) : []) : s ? [text(s)] : []))
+          : [h(n.name,
+            Object.fromEntries(Object.entries(n.attributes).map(([k, v]) =>
+              [k === "class" ? "className" : k, v.replace(PLACEHOLDER, (_, s) => strings(params[s] ?? []).join(" "))])),
+            fill(n.children, ph || PHRASING.has(n.name)))]);
+      const content = (ph) => (m.template ? fill(m.template, ph) : "content" in params ? value(params.content, ph) : kids(ph));
       const wrap = (tag) =>
         m.flow === "block" && phrasing
           ? [h("span", { ...props, className: [...props.className, "pm-block"] }, content(true))]
@@ -222,10 +232,17 @@ export function createRenderer(models, views = []) {
         case "metadata":
           return [];
         case "text":
+        case "pass-through": // a TEI Publisher extension
           return content(phrasing);
         case "heading": {
           const level = Math.min(6, Math.max(1, Math.trunc(Number(str(params.level ?? ""))) || 1));
           return wrap(`h${level}`);
+        }
+        case "figure": {
+          const [figure] = wrap("figure");
+          const title = "title" in params ? value(params.title, phrasing) : [];
+          if (title.length) figure.children.push(h(phrasing ? "span" : "figcaption", {}, title));
+          return [figure];
         }
         case "alternate": {
           const { both, marks } = readings(pos, params, laid);

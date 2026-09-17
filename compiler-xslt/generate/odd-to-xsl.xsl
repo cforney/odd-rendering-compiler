@@ -70,6 +70,7 @@
       $m/@flow[. != ''] ! ('''flow'': ' || pm:q(.)),
       $m/@classes[. != ''] ! ('''classes'': (' || string-join(tokenize(.) ! pm:q(.), ', ') || ')'),
       $m/@source[. = 'true'] ! '''source'': true()',
+      $m/@template ! ('''template'': ' || pm:q(.)),
       $m[pm:param] ! ('''params'': map { ' || string-join(pm:param ! (pm:q(@name) || ': (' || @value || ')'), ', ') || ' }'),
       $m[pm:model] ! ('''parts'': (' || string-join(pm:model ! pm:map(.), ', ') || ')'),
       $m[parent::pm:model] ! ('''live'': ' || (if (@predicate) then 'boolean(' || @predicate || ')' else 'true()'))"/>

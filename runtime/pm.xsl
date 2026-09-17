@@ -272,6 +272,60 @@ document.addEventListener('click', function (e) {
     </xsl:for-each>
   </xsl:template>
 
+  <!-- A model's content: its template filled in, else its content param, else the element's content. -->
+  <xsl:template name="pm:content">
+    <xsl:param name="m" as="map(*)"/>
+    <xsl:param name="params" as="map(*)"/>
+    <xsl:param name="phrasing" as="xs:boolean"/>
+    <xsl:choose>
+      <xsl:when test="exists($m?template)">
+        <xsl:apply-templates select="parse-xml-fragment($m?template)/node()" mode="pm:template">
+          <xsl:with-param name="pm:element" select="." tunnel="yes"/>
+          <xsl:with-param name="pm:params" select="$params" tunnel="yes"/>
+          <xsl:with-param name="phrasing" select="$phrasing" tunnel="yes"/>
+        </xsl:apply-templates>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pm:value">
+          <xsl:with-param name="value" select="if (map:contains($params, 'content')) then $params?content else node()"/>
+          <xsl:with-param name="phrasing" select="$phrasing"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- A template filled in: each [[name]] the value of that param, in an attribute its strings. -->
+  <xsl:template match="text()" mode="pm:template">
+    <xsl:param name="pm:element" as="element()" tunnel="yes"/>
+    <xsl:param name="pm:params" as="map(*)" tunnel="yes"/>
+    <xsl:param name="phrasing" as="xs:boolean" tunnel="yes"/>
+    <xsl:analyze-string select="." regex="\[\[([^\[\]]*)\]\]">
+      <xsl:matching-substring>
+        <xsl:variable name="value" select="$pm:params(regex-group(1))"/>
+        <xsl:for-each select="$pm:element">
+          <xsl:call-template name="pm:value">
+            <xsl:with-param name="value" select="$value"/>
+            <xsl:with-param name="phrasing" select="$phrasing"/>
+          </xsl:call-template>
+        </xsl:for-each>
+      </xsl:matching-substring>
+      <xsl:non-matching-substring><xsl:value-of select="."/></xsl:non-matching-substring>
+    </xsl:analyze-string>
+  </xsl:template>
+  <xsl:template match="*" mode="pm:template">
+    <xsl:param name="pm:params" as="map(*)" tunnel="yes"/>
+    <xsl:param name="phrasing" as="xs:boolean" tunnel="yes"/>
+    <xsl:element name="{local-name()}">
+      <xsl:for-each select="@*">
+        <xsl:attribute name="{local-name()}" select="string-join(analyze-string(., '\[\[([^\[\]]*)\]\]')/*
+          ! (if (self::*:match) then string-join($pm:params(string(*:group)) ! string(), ' ') else string()))"/>
+      </xsl:for-each>
+      <xsl:apply-templates mode="pm:template">
+        <xsl:with-param name="phrasing" select="$phrasing or local-name() = $pm:phrasing" tunnel="yes"/>
+      </xsl:apply-templates>
+    </xsl:element>
+  </xsl:template>
+
   <!-- An alternate's reading marked, per view laid over it, as that view's default or alternate. -->
   <xsl:function name="pm:marks" as="xs:string*">
     <xsl:param name="e" as="element()"/>
@@ -312,15 +366,16 @@ document.addEventListener('click', function (e) {
       <xsl:variable name="style" select="string-join(for $k in sort(map:keys($params)[starts-with(., '--')]) return $k || ': ' || string(head($params($k))), '; ')"/>
       <xsl:if test="$style"><xsl:attribute name="style" select="$style"/></xsl:if>
     </xsl:variable>
-    <xsl:variable name="content" select="if (map:contains($params, 'content')) then $params?content else node()"/>
     <xsl:variable name="level" select="number(string(head($params?level)))"/>
     <xsl:variable name="element" select="if ($behaviour = 'heading') then 'h' || (if ($level ge 1) then min((6, xs:integer(floor($level)))) else 1) else string($m?tag)"/>
 
     <xsl:choose>
       <xsl:when test="$behaviour = ('omit', 'metadata')"/>
-      <xsl:when test="$behaviour = 'text'">
-        <xsl:call-template name="pm:value">
-          <xsl:with-param name="value" select="$content"/>
+      <!-- pass-through is a TEI Publisher extension. -->
+      <xsl:when test="$behaviour = ('text', 'pass-through')">
+        <xsl:call-template name="pm:content">
+          <xsl:with-param name="m" select="$m"/>
+          <xsl:with-param name="params" select="$params"/>
           <xsl:with-param name="phrasing" select="$phrasing"/>
         </xsl:call-template>
       </xsl:when>
@@ -354,8 +409,9 @@ document.addEventListener('click', function (e) {
             </xsl:if>
           </a>
           <pm:body>
-            <xsl:call-template name="pm:value">
-              <xsl:with-param name="value" select="$content"/>
+            <xsl:call-template name="pm:content">
+              <xsl:with-param name="m" select="$m"/>
+              <xsl:with-param name="params" select="$params"/>
               <xsl:with-param name="phrasing" select="false()"/>
             </xsl:call-template>
           </pm:body>
@@ -385,8 +441,9 @@ document.addEventListener('click', function (e) {
           <xsl:choose>
             <xsl:when test="exists($inner)"><xsl:sequence select="$inner"/></xsl:when>
             <xsl:otherwise>
-              <xsl:call-template name="pm:value">
-                <xsl:with-param name="value" select="$content"/>
+              <xsl:call-template name="pm:content">
+                <xsl:with-param name="m" select="$m"/>
+                <xsl:with-param name="params" select="$params"/>
                 <xsl:with-param name="phrasing" select="true()"/>
               </xsl:call-template>
             </xsl:otherwise>
@@ -423,6 +480,27 @@ document.addEventListener('click', function (e) {
           <xsl:otherwise><xsl:sequence select="$rest"/></xsl:otherwise>
         </xsl:choose>
       </xsl:when>
+      <!-- A figure: its content, then its title as the caption. -->
+      <xsl:when test="$behaviour = 'figure'">
+        <xsl:variable name="caption">
+          <xsl:call-template name="pm:value">
+            <xsl:with-param name="value" select="$params?title"/>
+            <xsl:with-param name="phrasing" select="$phrasing"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:element name="{if ($phrasing) then 'span' else 'figure'}">
+          <xsl:attribute name="class" select="if ($phrasing) then $class || ' pm-block' else $class"/>
+          <xsl:sequence select="$attrs"/>
+          <xsl:call-template name="pm:content">
+            <xsl:with-param name="m" select="$m"/>
+            <xsl:with-param name="params" select="$params"/>
+            <xsl:with-param name="phrasing" select="$phrasing"/>
+          </xsl:call-template>
+          <xsl:if test="$caption/node()">
+            <xsl:element name="{if ($phrasing) then 'span' else 'figcaption'}"><xsl:sequence select="$caption/node()"/></xsl:element>
+          </xsl:if>
+        </xsl:element>
+      </xsl:when>
       <!-- A table of contents: the headings within, not nested in one another. -->
       <xsl:when test="$behaviour = 'index'">
         <xsl:variable name="heads" select="descendant::head except descendant::head//head"/>
@@ -433,8 +511,9 @@ document.addEventListener('click', function (e) {
       <xsl:when test="$m?flow = 'block' and $phrasing">
         <span class="{$class} pm-block">
           <xsl:sequence select="$attrs"/>
-          <xsl:call-template name="pm:value">
-            <xsl:with-param name="value" select="$content"/>
+          <xsl:call-template name="pm:content">
+            <xsl:with-param name="m" select="$m"/>
+            <xsl:with-param name="params" select="$params"/>
             <xsl:with-param name="phrasing" select="true()"/>
           </xsl:call-template>
         </span>
@@ -443,8 +522,9 @@ document.addEventListener('click', function (e) {
         <xsl:element name="{$element}">
           <xsl:attribute name="class" select="$class"/>
           <xsl:sequence select="$attrs"/>
-          <xsl:call-template name="pm:value">
-            <xsl:with-param name="value" select="$content"/>
+          <xsl:call-template name="pm:content">
+            <xsl:with-param name="m" select="$m"/>
+            <xsl:with-param name="params" select="$params"/>
             <xsl:with-param name="phrasing" select="$element = $pm:phrasing"/>
           </xsl:call-template>
         </xsl:element>

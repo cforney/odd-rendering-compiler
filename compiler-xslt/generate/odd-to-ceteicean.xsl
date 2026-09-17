@@ -51,6 +51,7 @@
       $m/@tag[. != ''] ! map { 'tag': string(.) },
       $m/@predicate ! map { 'predicate': string(.) },
       $m/@output ! map { 'output': string(.) },
+      $m/@template ! map { 'template': string(.) },
       $m/pm:model[1] ! map { 'parts': array { $m/pm:model ! pm:json(.) } }))"/>
   </xsl:function>
 

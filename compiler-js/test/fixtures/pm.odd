@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- The ODD of the conformance fixtures: one or two elements per Processing-Model feature. -->
-<TEI xmlns="http://www.tei-c.org/ns/1.0">
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:pb="http://teipublisher.com/1.0">
   <teiHeader>
     <fileDesc>
       <titleStmt><title>Processing-Model fixtures</title></titleStmt>
@@ -117,6 +117,33 @@
         <elementSpec ident="graphic" mode="change">
           <model behaviour="graphic">
             <param name="url" value="@url"/>
+          </model>
+        </elementSpec>
+        <!-- a figure: its content, then its title as the caption; in a paragraph a span -->
+        <elementSpec ident="figure" mode="change">
+          <model behaviour="figure">
+            <param name="content" value="graphic"/>
+            <param name="title" value="head"/>
+          </model>
+        </elementSpec>
+        <!-- TEI Publisher extensions: pass-through renders the content alone; a template, of elements
+             or of text, is filled in with the params and becomes the content -->
+        <elementSpec ident="name" mode="change">
+          <model behaviour="pass-through"/>
+        </elementSpec>
+        <elementSpec ident="persName" mode="change">
+          <model behaviour="inline">
+            <param name="ref" value="@ref"/>
+            <param name="name" value="."/>
+            <pb:template><a href="[[ref]]" title="See [[ref]]"><b>[[name]]</b></a> [[missing]]</pb:template>
+          </model>
+        </elementSpec>
+        <elementSpec ident="rs" mode="change">
+          <model behaviour="inline">
+            <param name="content" value="."/>
+            <param name="type" value="@type"/>
+            <pb:template xml:space="preserve">
+              [[content]] ([[type]])</pb:template>
           </model>
         </elementSpec>
         <elementSpec ident="anchor" mode="change">
