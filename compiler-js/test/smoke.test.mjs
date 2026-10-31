@@ -17,7 +17,8 @@ import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
-import { readOdd } from "../odd-parser.mjs";
+import { readOdd, parseXmlToXast } from "../odd-parser.mjs";
+import { loadHandlers } from "../cli.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ODD = "../examples/tei_simler.odd";
@@ -128,8 +129,10 @@ test("odd-to-ceteicean writes a page per example, over the unified runtime", () 
   assert.deepEqual(Array.from(context.views, (v) => v.output), ["entities", "normalized"], "and the views");
 
   const html = readFileSync(join(out, "simler-buchstabwechsel.html"), "utf8");
-  assert.match(html, /<script type="application\/xml" id="tei-source"><!--\n  Simler Digital/, "the TEI, in its script");
-  assert.equal(html.split("<TEI ").length, 2, "and only there");
+  const source = html.match(/<script type="application\/json" id="tei-source">(.*)<\/script>/)[1];
+  assert.match(JSON.parse(source), /^<!--\n  Simler Digital[\s\S]*<TEI [\s\S]*<\/TEI>\s*$/, "the TEI, in its script, whole");
+  assert.ok(!source.includes("<"), "with no markup a tool that rewrites pages could take for the page's");
+  assert.equal(html.split("</body>").length, 2, "so the page has one </body>");
 });
 
 test("findings reports what the ODD does not foresee", () => {
@@ -268,6 +271,25 @@ test("the nested page-break extension renders a facsimile thumbnail", () => {
     /<a class="tei-pb pb-link" href="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/full\/0\/default\.jpg"><img class="tei-pb pb-thumbnail" src="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/pct:25\/0\/default\.jpg" alt=""><\/a>/,
     "the link wraps the thumbnail; both IIIF URLs come from @facs and the manifest");
   assert.match(html, /<h5 class="tei-head head-first r-b r-c">/, "the rest of the Simler ODD, through the chain");
+});
+
+test("the handlers can say which model gave each element they rendered", async () => {
+  const teiToHast = await loadHandlers(join(outDir, "tei-handlers.mjs"));
+  const tree = parseXmlToXast(readFileSync(resolve(pocDir, "../examples/simler-psalmen.xml"), "utf8"));
+  const { sources } = teiToHast(tree, { trace: true });
+  const models = [...sources.values()].map((s) => s.model.id);
+  assert.ok(models.includes("pb-2"), "the model of a page break");
+  assert.ok([...sources.values()].some((s) => s.pos.node.name === "pb"), "and where it stands");
+  assert.equal(teiToHast(tree).sources.size, 0, "only when asked");
+});
+
+test("render-unified-interactive leaves the alternate reading hidden, without JS and for the views' CSS", () => {
+  const out = join(outDir, "interactive");
+  run("render-unified-interactive.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
+  const html = readFileSync(join(out, "simler-hausswesen.html"), "utf8");
+  assert.match(html, /<span class="tei-alternate-alt normalized-default" hidden :hidden="!alt">/);
+  assert.match(html, /<span class="tei-alternate-default normalized-alternate" :hidden="alt">/);
+  assert.doesNotMatch(html, /v-show/, "an inline display would beat the view that chooses this reading");
 });
 
 test("render-unified-islands wraps the readings as islands and opens notes as tooltips", () => {

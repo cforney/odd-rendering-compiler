@@ -2,13 +2,20 @@
 
 One static page that frames the outputs both compilers already build, so a visitor
 can pick an example, switch rendering paths, turn JavaScript off, and see the
-generated artefact and its cost next to each result. The *Build* tabs show what
+generated artefact and its cost next to each result. The frame shows the edition
+alone: `build-demo` moves the banner each renderer puts on its page into *How it
+works* in the side panel, under a line saying what the path is for. *Inspect the
+text* picks any rendered element, on any path, and shows its TEI, the ODD's model
+that produced it, its params and the models it was chosen among. The build records
+this from the handlers' own trace (`inspect/<example>.json`); the renderings have
+the same elements in the same order, which is how a record is found, and the
+element's class must agree. The reports in the second row show what
 else the build writes for the example: its findings, what the ODD does not
 foresee in the encoding (the XPath it degraded included), its plain text with
 the Pagefind records beside it, its JSON records, every element naming the
 model the ODD chose for it, and the corpus coverage those records give — one
 report for all the examples, so the tab shows the same page whichever is picked.
-Nothing is re-rendered here — the page only frames existing files.
+Nothing is re-rendered here: apart from the banner, the page only frames existing files.
 
 ## Build it
 
@@ -43,13 +50,36 @@ npx http-server demo/site      # then open the printed URL
 Serve over HTTP, not `file://` — the in-browser SaxonJS tab fetches its stylesheet
 and source at view time.
 
+## Check it
+
+```bash
+cd compiler-js
+npm run check:demo       # needs Chrome (CHROME names it) and network for the CDN scripts
+```
+
+`check-demo.mjs` opens every rendering of every example in headless Chrome, as it
+opens, with the views on, and without JavaScript. The visible text and each text
+run's place, font and colour must equal the first rendering's, and the pixels
+nearly so. It also holds the manifest's claims to the pages (`interactive`,
+`needsJs`) and the inspector's records to the elements rendered. It writes
+`site/verified.json`, which the badge and the comparison table read, and exits 1 on
+a difference. CI runs it; a demo built without it shows no badge.
+
+## Using it
+
+The URL holds the document, rendering, views, JavaScript setting and picked element,
+so a state can be shared. The views are switched from the panel for every rendering
+at once: the pages' own switches are hidden here, and work as ever elsewhere.
+
 ## Files
 
 | File | Role |
 |------|------|
 | `manifest.mjs` | the rendering paths and the examples the demo frames — the source of truth |
 | `build-demo.mjs` | copies both outputs, measures metrics, writes `site/index.html` |
+| `check-demo.mjs` | checks in a browser that the renderings show the same edition |
 | `shell.css` · `shell.js` | the static, framework-free demo chrome |
+| `site/inspect/` | what decided each element, per example, for the inspector |
 | `site/` | the assembled site (gitignored; published by CI) |
 
 Add a path or an example to `manifest.mjs` and rebuild — a new tab or a new

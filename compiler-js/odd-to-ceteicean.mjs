@@ -91,7 +91,7 @@ if (resolve(cssPath) !== resolve(outDir, "edition.css")) copyFileSync(resolve(cs
 const entries = [];
 for (const teiFile of teiFiles) {
   const tei = readFileSync(resolve(teiFile), "utf-8");
-  const page = runtime("ceteicean.html").split("{{behaviours}}").join(behaviours).split("{{notes}}").join(runtime("notes.js")).split("{{tei}}").join(tei.replace(/^<\?xml[^>]*\?>\s*/, ""));
+  const page = runtime("ceteicean.html").split("{{behaviours}}").join(behaviours).split("{{notes}}").join(runtime("notes.js")).split("{{tei}}").join(JSON.stringify(tei.replace(/^<\?xml[^>]*\?>\s*/, "")).replace(/</g, "\\u003c"));
   const pagePath = writeOut(outDir, htmlPageName(teiFile), page);
   log(`✓ ${pagePath} (${Object.keys(models).length} elements)`);
   const tree = parseXmlToXast(tei);

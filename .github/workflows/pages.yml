@@ -69,6 +69,10 @@ jobs:
       - name: Assemble the demo
         run: node demo/build-demo.mjs
 
+      # The badge and the comparison read what this finds; a difference stops the deployment.
+      - name: Check the renderings in Chrome
+        run: node --experimental-websocket demo/check-demo.mjs
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: demo/site

@@ -53,8 +53,9 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
           <p>The <em>same</em> XSLT 3.0 stylesheet Saxon runs at build time, here compiled to a Stylesheet Export File (SEF) and executed client-side by SaxonJS. Apparatus readings swap by IXSL (interactive XSLT); notes open as tooltips, by the same small script as on every interactive page. Needs JavaScript and an HTTP server, since it fetches the SEF and the TEI; the build-time pages need neither.</p>
         </div>
         <div id="tei-content">
-          <p>Rendering with SaxonJS…</p>
-          <noscript>This client-side path needs JavaScript; the build-time pages (<code>xslt/</code>) need none.</noscript>
+          <p id="tei-rendering" hidden="hidden">Rendering with SaxonJS…</p>
+          <script>document.getElementById('tei-rendering').hidden = false;</script>
+          <noscript><p>This page renders in the browser, so it needs JavaScript. The prebuilt pages need none.</p></noscript>
         </div>
         <script src="{$runtime}"></script>
         <script src="{$notes}"></script>

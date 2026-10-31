@@ -30,15 +30,17 @@
       toggle readings.</p>
   </div>
 
-  <div id="TEI"></div>
+  <div id="TEI"><noscript><p>This page renders in the browser, so it needs JavaScript. The prebuilt pages need none.</p></noscript></div>
 
-  <script type="application/xml" id="tei-source">{{tei}}</script>
+  <!-- The TEI as a JSON string without a "<": as markup, a closing script tag in it would end this
+       element, and a tool that rewrites pages would take its closing body tag for the page's. -->
+  <script type="application/json" id="tei-source">{{tei}}</script>
   <script src="https://github.com/TEIC/CETEIcean/releases/download/v1.9.5/CETEI.js"></script>
   <script>
 {{behaviours}}
   </script>
   <script>
-    teiEdition(new CETEI({ omitDefaultBehaviors: true }), document.getElementById('tei-source').textContent, teiModels, teiViews,
+    teiEdition(new CETEI({ omitDefaultBehaviors: true }), JSON.parse(document.getElementById('tei-source').textContent), teiModels, teiViews,
       function (dom) { document.getElementById('TEI').appendChild(dom); });
 
     // Corrections toggle; event delegation works whenever CETEIcean is done.

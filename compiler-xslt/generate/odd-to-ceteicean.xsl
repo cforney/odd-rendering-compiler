@@ -83,7 +83,7 @@
       <xsl:result-document href="{replace(tokenize(., '/')[last()], '\.xml$', '')}.html" method="text">
         <xsl:value-of select="unparsed-text('../../runtime/ceteicean.html')
           => replace('{{behaviours}}', $behaviours, 'q') => replace('{{notes}}', unparsed-text('../../runtime/notes.js'), 'q')
-          => replace('{{tei}}', $teiText, 'q')"/>
+          => replace('{{tei}}', serialize($teiText, map { 'method': 'json' }) => replace('&lt;', '\\u003c'), 'q')"/>
       </xsl:result-document>
     </xsl:for-each>
   </xsl:template>

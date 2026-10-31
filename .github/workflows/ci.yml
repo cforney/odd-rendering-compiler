@@ -57,6 +57,20 @@ jobs:
           SAXON_HOME: vendor/SaxonHE12-9J
         run: bash build.sh
 
+      # The demo's claim, in a browser: every rendering shows the same edition.
+      - name: Demo — assemble and check
+        working-directory: compiler-js
+        run: |
+          npm run render:interactive
+          npm run render:islands
+          npm run render:plain
+          npm run render:json
+          npm run coverage
+          npm run findings
+          npm run build:ceteicean
+          npm run build:demo
+          npm run check:demo
+
       # Smoke tests, the conformance fixtures (through both XSLT generators too,
       # with Saxon) and the byte-identity gate.
       - name: Test

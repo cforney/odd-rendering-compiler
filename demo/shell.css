@@ -29,12 +29,34 @@ a { color: var(--link); }
 }
 .controls input { margin: 0 0.3rem 0 0; vertical-align: -1px; }
 
-/* The rendering paths, one tab each, grouped by family. */
-.paths { display: flex; flex-wrap: wrap; gap: 0 2.5rem; padding: 0 1.5rem; border-bottom: 1px solid var(--line); }
+/* The rendering paths, one tab each, grouped by family; below them the reports, which are not renderings. */
+.navs { border-bottom: 1px solid var(--line); }
+.paths { display: flex; align-items: baseline; gap: 0 1.25rem; padding: 0 1.5rem; }
+.reports { padding-block: 0.1rem; background: var(--soft); border-top: 1px solid var(--line); font-size: 0.86rem; }
+.reports .tab { padding-block: 0.3rem; }
+.nav-title { flex: 0 0 9.5rem; white-space: nowrap; font-size: 0.78rem; color: var(--muted); }
+.nav-tabs { display: flex; flex-wrap: wrap; gap: 0 1rem; }
+.compare-open {
+  padding: 0.25rem 0.65rem; font: inherit; color: var(--ink); cursor: pointer;
+  background: #fff; border: 1px solid var(--line); border-radius: 6px;
+}
+
+/* Which rendering, side by side. */
+dialog { width: min(68rem, calc(100vw - 2rem)); padding: 1.25rem 1.5rem; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; }
+dialog::backdrop { background: rgb(0 0 0 / 0.35); }
+dialog header { display: flex; align-items: center; justify-content: space-between; }
+dialog h2 { margin: 0; font-size: 1.05rem; }
+dialog header button { padding: 0.25rem 0.65rem; font: inherit; cursor: pointer; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+dialog table { width: 100%; margin-top: 0.75rem; border-collapse: collapse; font-size: 0.85rem; }
+dialog thead th { font-size: 0.76rem; color: var(--muted); }
+dialog th, dialog td { padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); font-weight: 400; }
+dialog tbody th { width: 34%; }
+dialog tbody th button { display: block; padding: 0; font: inherit; font-weight: 600; color: var(--link); text-align: left; cursor: pointer; background: none; border: 0; }
+dialog tr.current { background: var(--soft); box-shadow: inset 3px 0 0 var(--link); }
 .family { display: flex; align-items: center; gap: 0.2rem; }
 .family-name { margin-right: 0.4rem; font-weight: 600; }
 .tab {
-  padding: 0.65rem 0.55rem 0.55rem; font: inherit; color: var(--muted); cursor: pointer;
+  padding: 0.65rem 0.4rem 0.55rem; font: inherit; color: var(--muted); cursor: pointer;
   background: none; border: 0; border-bottom: 2px solid transparent;
 }
 .tab:hover { color: var(--ink); }
@@ -45,12 +67,46 @@ a { color: var(--link); }
 .stage iframe { width: 100%; height: 100%; border: 0; border-right: 1px solid var(--line); background: #fff; }
 .side { overflow: auto; padding: 1.1rem 1.25rem; background: var(--soft); }
 .side section { margin-bottom: 1.5rem; }
-.side h2 { margin: 0; font-size: 1rem; }
+.side h2 { margin: 0 0 0.35rem; font-size: 0.95rem; }
 .side h3 {
   margin: 0 0 0.35rem; font-size: 0.72rem; font-weight: 600;
   letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted);
 }
 .side p { margin: 0.15rem 0 0; }
+/* What this rendering is, tinted by its family. */
+.side .about {
+  padding: 0.8rem 0.9rem; border: 1px solid var(--hue); border-radius: 6px;
+  background: color-mix(in srgb, var(--hue) 8%, #fff);
+}
+.about p { margin: 0 0 0.5rem; }
+#how-text p { font-size: 0.82rem; }
+.about code { padding: 0 0.2em; background: #fff; border-radius: 3px; font-size: 0.92em; }
+.controls label:has(input:disabled) { opacity: 0.5; }
+.about #metrics { margin: 0.6rem 0 0; padding-top: 0.5rem; border-top: 1px solid var(--line); }
+.about .notice { margin: 0.5rem 0 0; font-weight: 600; }
+.about .verified { margin: 0.5rem 0 0; font-size: 0.82rem; color: #15803d; }
+.about .verified.differs { color: #b91c1c; }
+
+/* The views. */
+#view-list label { display: grid; grid-template-columns: auto 1fr; column-gap: 0.45rem; margin-bottom: 0.45rem; cursor: pointer; }
+#view-list input { margin: 0.2rem 0 0; }
+#view-list .small { grid-column: 2; }
+
+/* The inspector. */
+#inspect button {
+  margin-top: 0.4rem; padding: 0.3rem 0.7rem; font: inherit; color: var(--ink); cursor: pointer;
+  background: #fff; border: 1px solid var(--line); border-radius: 6px;
+}
+#inspect button[aria-pressed="true"] { color: #fff; background: var(--link); border-color: var(--link); }
+#inspected h4 { margin: 0.9rem 0 0.2rem; font-size: 0.82rem; }
+#inspected .code { max-height: 12rem; margin-top: 0.25rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+#inspected code { padding: 0 0.25em; background: #fff; border: 1px solid var(--line); border-radius: 3px; font-size: 0.78rem; overflow-wrap: anywhere; }
+.params { margin: 0; font-size: 0.82rem; }
+.params dt { font-weight: 600; }
+.params dd { margin: 0 0 0.3rem; overflow-wrap: anywhere; }
+.candidates { margin: 0.25rem 0 0; padding-left: 1.3rem; font-size: 0.82rem; color: var(--muted); }
+.candidates li { margin-bottom: 0.25rem; }
+.candidates .chosen { color: var(--ink); font-weight: 600; }
 #metrics { font-variant-numeric: tabular-nums; }
 summary { margin-top: 0.4rem; color: var(--muted); cursor: pointer; }
 .code {
@@ -62,6 +118,8 @@ summary { margin-top: 0.4rem; color: var(--muted); cursor: pointer; }
 /* Narrow screens: the page above the panel. */
 @media (max-width: 860px) {
   body { display: block; height: auto; }
+  .paths { flex-direction: column; }
+  .nav-title { flex: none; padding-top: 0.4rem; }
   .stage { grid-template-columns: minmax(0, 1fr); }
   .stage iframe { height: 75vh; border-right: 0; border-bottom: 1px solid var(--line); }
 }

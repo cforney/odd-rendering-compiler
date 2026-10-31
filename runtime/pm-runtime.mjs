@@ -26,7 +26,7 @@ import { xpath, bool, str, seq, isPos } from "./xpath.mjs";
  * A model as the handlers hold it, its XPath compiled: a behaviour with the HTML
  * element and flow behaviour-map.json gives it; a sequence, or a compound, with
  * its parts. A template's text is a string, its elements { name, attributes, children }.
- * @typedef {{ behaviour: string, tag?: string, flow: string, output?: string, predicate?: Expression,
+ * @typedef {{ id?: string, behaviour: string, tag?: string, flow: string, output?: string, predicate?: Expression,
  *   params: Record<string, Expression>, classes: string[], source: boolean,
  *   template?: TemplateNode[], parts?: Model[] }} Model
  * @typedef {string | { name: string, attributes: Record<string, string>, children: TemplateNode[] }} TemplateNode
@@ -199,20 +199,23 @@ export function createResolver(models, output, views = []) {
 const strings = (v) => seq(v).map((item) => str([item]));
 
 /**
- * teiToHast(tree, { output }) → { hast, notes, page }. The page, output "web", has
- * the views laid over it and a switch for each; another output renders alone.
- * `page` holds the params of the root's model for output "page", as strings.
+ * teiToHast(tree, { output, trace }) → { hast, notes, page, sources }. The page,
+ * output "web", has the views laid over it and a switch for each; another output
+ * renders alone. `page` holds the params of the root's model for output "page", as
+ * strings. With `trace`, `sources` maps each element rendered to the position and
+ * the model that gave it.
  * @param {Record<string, Model[]>} models  by element name
  * @param {View[]} [views]
  */
 export function createRenderer(models, views = []) {
   /**
    * @param {XastNode} tree
-   * @param {{ output?: string }} [options]
-   * @returns {{ hast: HastElement, notes: HastElement[], page: Record<string, string[]> }}
+   * @param {{ output?: string, trace?: boolean }} [options]
+   * @returns {{ hast: HastElement, notes: HastElement[], page: Record<string, string[]>, sources: Map<HastNode, { pos: any, model: Model }> }}
    */
-  return function teiToHast(tree, { output = "web" } = {}) {
+  return function teiToHast(tree, { output = "web", trace = false } = {}) {
     const notes = [];
+    const sources = new Map();
     const laidViews = output === "web" ? views : [];
     const { select, modelOf, overlay, readings, atLineStart, renderedText } = createResolver(models, output, laidViews);
 
@@ -233,6 +236,12 @@ export function createRenderer(models, views = []) {
     }
 
     function apply(m, pos, phrasing, first, inner, k = 0) {
+      const rendered = applyModel(m, pos, phrasing, first, inner, k);
+      if (trace) for (const el of rendered) if (!sources.has(el)) sources.set(el, { pos, model: m });
+      return rendered;
+    }
+
+    function applyModel(m, pos, phrasing, first, inner, k) {
       const { node } = pos;
       const params = Object.fromEntries(Object.entries(m.params).map(([name, f]) => [name, f(pos)]));
       const { classes: viewClasses, laid } = overlay(pos, m, k);
@@ -348,6 +357,6 @@ export function createRenderer(models, views = []) {
     const meta = root && select(root, "page");
     const page = meta ? Object.fromEntries(Object.entries(meta.params).map(([k, f]) => [k, strings(f(root))])) : {};
 
-    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on" }, [...switches, ...body, ...sections]), notes: ends, page };
+    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on" }, [...switches, ...body, ...sections]), notes: ends, page, sources };
   };
 }

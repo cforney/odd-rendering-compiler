@@ -57,6 +57,7 @@ const tree = (xml) => {
 function modelJs(m, pad) {
   const params = m.params.map((p) => `${JSON.stringify(p.name)}: ${xp(p.value, "param", writtenAt(m.id, p))}`);
   const fields = [
+    `id: ${JSON.stringify(m.id)}`,
     `behaviour: ${JSON.stringify(m.behaviour)}`,
     m.tag && `tag: ${JSON.stringify(m.tag)}`,
     `flow: ${JSON.stringify(m.flow)}`,

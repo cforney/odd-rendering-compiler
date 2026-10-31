@@ -100,7 +100,6 @@ ${editionCss}
     /* Choice/apparatus toggle (interactive only once hydrated). Notes: edition.css. */
     tei-island[type="choice"][data-hydrated] .tei-alternate {
       border-bottom: 1px dotted #999; cursor: pointer; }
-    .tei-alternate-alt { color: #b91c1c; }
   </style>
 </head>
 <body>

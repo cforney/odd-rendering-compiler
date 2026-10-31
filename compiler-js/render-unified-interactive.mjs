@@ -80,9 +80,6 @@ function renderPage(teiFile) {
     const defaultChild = children[0];
     const altChild = children[1];
 
-    // Remove hidden from alt child (petite-vue handles visibility)
-    if (altChild.properties) delete altChild.properties.hidden;
-
     // Add petite-vue directives
     node.properties = node.properties || {};
     node.properties["v-scope"] = "{ alt: false }";
@@ -94,13 +91,12 @@ function renderPage(teiFile) {
     node.properties["@keydown.space.prevent"] = "alt = !alt";
     node.properties.title = "Click to toggle between readings";
 
-    // Default child: shown when !alt
+    // `hidden`, not v-show: the page stays right without JS, and a view's CSS can still choose a reading
     defaultChild.properties = defaultChild.properties || {};
-    defaultChild.properties["v-show"] = "!alt";
+    defaultChild.properties[":hidden"] = "alt";
 
-    // Alt child: shown when alt
     altChild.properties = altChild.properties || {};
-    altChild.properties["v-show"] = "alt";
+    altChild.properties[":hidden"] = "!alt";
 
     node.children = [defaultChild, altChild];
     return node;
@@ -146,13 +142,12 @@ ${editionCss}
     .render-info code { background: #fef9c3; padding: 0.1em 0.3em; border-radius: 3px; }
 
     /* The reading toggle, by petite-vue. Notes: edition.css. */
-    .tei-alternate {
+    .js .tei-alternate {
       border-bottom: 1px dotted #999;
       cursor: pointer;
     }
-    .tei-alternate:hover { background: #f0f0f0; }
+    .js .tei-alternate:hover { background: #f0f0f0; }
     .tei-alternate-default { /* original reading */ }
-    .tei-alternate-alt { color: #b91c1c; }
 
     /* petite-vue [v-cloak] hides elements until mounted */
     [v-cloak] { display: none; }
@@ -166,7 +161,7 @@ ${editionCss}
     <h3>Interactive unified/xast Rendering Path (petite-vue)</h3>
     <p><strong>Pipeline:</strong> ODD → <code>odd-to-unified.mjs</code> →
       tei-handlers.mjs → xast → hast → HTML + <strong>petite-vue</strong> directives</p>
-    <p>Build-time conversion embeds <code>v-scope</code>, <code>v-show</code> and
+    <p>Build-time conversion embeds <code>v-scope</code>, <code>:hidden</code> and
       <code>@click</code> directives that
       <a href="https://github.com/vuejs/petite-vue" target="_blank" rel="noopener">petite-vue</a>
       (~7 KB) activates at load time: click apparatus readings to toggle. Notes
@@ -192,7 +187,6 @@ ${notesJs}
   <!-- No-JS fallback: show everything if petite-vue doesn't load -->
   <noscript>
     <style>
-      [v-show] { display: revert !important; }
       [v-cloak] { display: block !important; }
     </style>
   </noscript>

@@ -55,7 +55,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
 .render-info { font-family: system-ui, sans-serif; background: #e0f2fe; border: 1px solid #38bdf8; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
 .render-info h3 { margin: 0 0 0.5em; color: #0284c7; }
 .render-info code { background: #f0f9ff; padding: 0.1em 0.3em; border-radius: 3px; }
-.tei-alternate { border-bottom: 1px dotted #999; cursor: pointer; }
+.js .tei-alternate { border-bottom: 1px dotted #999; cursor: pointer; }
 </style>
       </head>
       <body>

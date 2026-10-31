@@ -78,7 +78,6 @@ ${editionCss}
     .render-info code { background: #fef9c3; padding: 0.1em 0.3em; border-radius: 3px; }
 
     /* Apparatus scaffolding the renderer adds; not TEI elements. Notes: edition.css. */
-    .tei-alternate { border-bottom: 1px dotted #999; cursor: pointer; }
     .tei-alternate-alt[hidden] { display: none; }
   </style>
 </head>
