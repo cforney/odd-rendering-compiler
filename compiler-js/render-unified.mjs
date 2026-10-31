@@ -17,9 +17,9 @@
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
+import { extractTeiTitle } from "./odd-parser.mjs";
 import {
-  parseArgs, createLogger, writeOut, toHtml, loadHandlers,
+  parseArgs, createLogger, writeOut, toHtml, loadHandlers, readTei,
   resolveTeiFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
@@ -46,7 +46,7 @@ try {
 
 /** Render one TEI document → a self-contained HTML page. */
 function renderPage(teiFile) {
-  const tree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
+  const tree = readTei(teiFile);
   const { hast, notes, page } = teiToHast(tree, { output });
 
   const html = `<!DOCTYPE html>

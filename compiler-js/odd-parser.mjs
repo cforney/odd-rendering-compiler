@@ -29,8 +29,11 @@
  * The CSS of a model with @output applies where that output is on (see `on`).
  *
  * `values` are the attribute values the spec's value lists foresee. `views` are
- * the outputs laid over the page, labelled by a model's <desc>: all but those in
- * ALONE, which render on their own, and another engine's.
+ * the outputs laid over the page, labelled by a model's <desc>: all but the
+ * CHANNELS, which render on their own, and another engine's.
+ *
+ * `sources` are the ODDs of the chain, base first, with their hashes. `diagnostics`
+ * are what the ODD can be read despite, each with a stable `code` and a `severity`.
  *
  * An @output may carry an engine's prefix (docs/conventions.md): `orc-` names
  * this compiler's own output, so `orc-web` is `web` here and unknown elsewhere;
@@ -38,7 +41,9 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { basename, dirname, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { basename, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseXml, XmlError } from "@rgrove/parse-xml";
 import { xpath, bool, seq, str, nameOf, TEI_NS } from "../runtime/xpath.mjs";
 
@@ -51,11 +56,13 @@ import { xpath, bool, seq, str, nameOf, TEI_NS } from "../runtime/xpath.mjs";
  * The ODD as every generator reads it; `odd` and `line` say where a model or param was written.
  * @typedef {{ name: string, value: string, odd: string, line: number }} Param
  * @typedef {{ id: string, behaviour: string, tag?: string, flow: string, predicate: string | null,
- *   output: string | null, params: Param[], classes: string[], source: boolean, template?: string,
+ *   output: string | null, group?: number, params: Param[], classes: string[], source: boolean, template?: string,
  *   label?: string, parts?: OddModel[], odd: string, line: number }} OddModel
  * @typedef {{ selector: string, css: string }} Rule
  * @typedef {{ ident: string, key: string, ns?: string, mode: string, models: OddModel[], rules: Rule[], values: Record<string, string[]> }} Spec
- * @typedef {{ specs: Spec[], renditions: { id: string, css: string }[], views: import("../runtime/pm-runtime.mjs").View[] }} Odd
+ * @typedef {{ code: string, severity: "error" | "warning" | "info", message: string, odd?: string, line?: number, element?: string, model?: string }} Diagnostic
+ * @typedef {{ specs: Spec[], renditions: { id: string, css: string }[], views: import("../runtime/pm-runtime.mjs").View[],
+ *   sources: { odd: string, sha256: string }[], diagnostics: Diagnostic[] }} Odd
  */
 
 /** An ODD the compiler cannot read; its message has a line per problem. */
@@ -83,12 +90,16 @@ const uriOf = (qname, scope) => {
   return scope[prefix] ?? "";
 };
 /** The ODD's elements named by namespace, each with the prefixes in scope. */
-function qualify(el, outer) {
+function qualify(el, outer, bases = []) {
   el.scope = scopeOf(el.attributes, outer);
+  el.bases = el.attributes["xml:base"] ? [...bases, el.attributes["xml:base"]] : bases;
   el.name = nameOf(uriOf(el.name, el.scope), localName(el.name));
-  for (const c of elements(el)) qualify(c, el.scope);
+  for (const c of elements(el)) qualify(c, el.scope, el.bases);
   return el;
 }
+/** Where a model or param was written, as an error names it. */
+export const writtenAt = (id, { odd, line }) => `${id}, ${odd}:${line}`;
+
 /** An expression with the prefixes the ODD binds resolved; string literals and xml: stay as they are. */
 const qualifyXPath = (expr, scope) =>
   expr.replace(/'[^']*'|"[^"]*"|(@?)([A-Za-z_][\w.-]*):([A-Za-z_][\w.-]*)/g, (m, at, prefix, local) => {
@@ -98,13 +109,13 @@ const qualifyXPath = (expr, scope) =>
   });
 const escape = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
-/** Outputs not laid over the page: the page itself, what it shows around the text, the search text. */
-const ALONE = ["web", "page", "plain"];
+/** Outputs not laid over the page: the page itself, what it shows around the text, the search text, and other media. */
+const CHANNELS = ["web", "page", "plain", "plaintext", "print", "fo", "latex", "epub", "pdf"];
 /** An @output with this compiler's prefix names the output itself. */
 const outputName = (output) => output?.replace(/^orc-/, "") ?? null;
 
 /** Where an output is on: the edition renders it, or its view switch is checked. */
-export const on = (output) => `:is([data-${output}='on'], :root:has(#view-${output}:checked))`;
+export const on = (output) => `:is([data-${output}='on'], .tei-edition:has(> .tei-views input[data-view='${output}']:checked))`;
 
 /** Descendant elements by name (or any of several), in document order; examples (egXML) are not the schema. */
 function findAll(el, name, out = []) {
@@ -120,13 +131,13 @@ function findAll(el, name, out = []) {
  * Resolve `<specGrpRef target="#id"/>` within one document: each reference is
  * replaced by the specs of its `<specGrp xml:id>`, in reference order; a group
  * that is only referenced elsewhere is dropped where it stands. Dangling and
- * cyclic references are skipped with a warning.
+ * cyclic references are skipped, and told to `warn(ref, code, message)`.
  */
-export function resolveSpecGrpRefs(root, warn = (m) => console.error(m)) {
+export function resolveSpecGrpRefs(root, warn) {
   const byId = new Map(findAll(root, "specGrp").map((g) => [g.attributes["xml:id"], g]));
   if (!findAll(root, "specGrpRef").length) return root;
 
-  const copy = (el, children) => ({ type: "element", name: el.name, attributes: el.attributes, scope: el.scope, children, start: el.start });
+  const copy = (el, children) => ({ type: "element", name: el.name, attributes: el.attributes, scope: el.scope, bases: el.bases, children, start: el.start });
   const rewrite = (children, seen) =>
     children.flatMap((c) => {
       if (c.type !== "element") return [c];
@@ -134,7 +145,7 @@ export function resolveSpecGrpRefs(root, warn = (m) => console.error(m)) {
       if (c.name !== "specGrpRef") return [copy(c, rewrite(c.children, seen))];
       const id = (c.attributes.target ?? "").replace(/^#/, "");
       if (!byId.has(id) || seen.has(id)) {
-        warn(`[odd-parser] specGrpRef #${id} ${byId.has(id) ? "is cyclic" : "not found"} (skipped)`);
+        warn(c, "spec-group-unresolved", `<specGrpRef target="#${id}"> ${byId.has(id) ? "is cyclic" : "names no <specGrp>"}: skipped`);
         return [];
       }
       return rewrite(byId.get(id).children, new Set(seen).add(id));
@@ -162,7 +173,7 @@ function known(m, ident, file) {
   const { behaviour } = m.attributes;
   if (behaviour in BEHAVIOURS) return behaviour;
   if (!behaviour) file.problem(m, `<model> in <elementSpec ident="${ident}"> has no @behaviour`);
-  else console.warn(`[odd-parser] ⚠ <${ident}>: unknown behaviour "${behaviour}", rendered inline`);
+  else file.warn(m, "behaviour-unknown", `<${ident}>: unknown behaviour "${behaviour}", rendered inline`, { element: ident });
   return "inline";
 }
 
@@ -213,6 +224,7 @@ function readSpec(spec, file) {
       flow: flowOf(behaviour, parts),
       predicate,
       output,
+      group: group ? entries.filter((e) => e.name === "modelGrp").indexOf(group) + 1 : undefined,
       params: [...new Map(elements(m, "param").map((p) => [p.attributes.name, { name: p.attributes.name, value: qualifyXPath(p.attributes.value ?? "''", p.scope), ...file.at(p.start) }])).values()],
       classes: [...new Set([groupClass, ...own, cls].filter(Boolean))],
       source: inherited("useSourceRendition") === "true",
@@ -226,6 +238,7 @@ function readSpec(spec, file) {
   let groups = 0;
   for (const entry of entries) {
     if (entry.name !== "modelGrp") {
+      if (groups) file.warn(entry, "group-fallback", `<${ident}>: a model after a <modelGrp> applies only because groups are flattened here; other engines are reported to choose the group as a unit`, { element: ident }, "info");
       models.push(read(entry));
       continue;
     }
@@ -252,22 +265,38 @@ export function allModels(specs) {
 function viewsOf(specs) {
   const models = allModels(specs).filter((m) => m.output);
   return [...new Set(models.map((m) => m.output))]
-    .filter((output) => !ALONE.includes(output) && !output.startsWith("opm-"))
+    .filter((output) => !CHANNELS.includes(output) && !output.startsWith("opm-"))
     .map((output) => ({ output, label: models.find((m) => m.output === output && m.label)?.label ?? output }));
+}
+
+/** What a view's model cannot lay over the page: only an omit, or classes on the same behaviour, can be. */
+function unrealized({ specs, views }) {
+  /** @type {Diagnostic[]} */
+  const found = [];
+  for (const { output } of views) for (const s of specs) for (const m of s.models.filter((m) => m.output === output && m.behaviour !== "omit")) {
+    const base = s.models.filter((b) => !b.output || b.output === "web");
+    const content = m.template || m.params.some((p) => p.name === "content");
+    if (!content && (!base.length || base.some((b) => b.behaviour === m.behaviour))) continue;
+    found.push({ code: "view-unrealized", severity: "warning", element: s.key, model: m.id, odd: m.odd, line: m.line,
+      message: `<${s.key}>: view "${output}" ${content ? "changes the content" : `is a ${m.behaviour}`}, which a view cannot lay over the page; it shows when output "${output}" renders alone` });
+  }
+  return found;
 }
 
 /**
  * Read an ODD, or throw an OddError. A `<schemaSpec source="…">` naming another
- * ODD is read as a chain: the base ODD's specs, where this one's specs with
- * models replace the base spec's models, `mode="delete"` removes a spec, and a
- * new ident is added.
+ * ODD, a local file resolved against the ODD and any @xml:base, is read as a
+ * chain: the base ODD's specs, where this one's specs with models replace the
+ * base spec's models, `mode="delete"` removes a spec, and a new ident is added.
+ * Elsewhere than in a chain @mode means nothing, nor do inherited classes or
+ * attributes: docs/capabilities.md says what is read.
  * @param {string} path
  * @returns {Odd}
  */
 export function readOdd(path) {
   const odd = readChain(resolve(path));
-  if (!allModels(odd.specs).length) throw new OddError(`${basename(path)}: holds no <model>, so there is no Processing Model to compile`);
-  return odd;
+  if (!allModels(odd.specs).length) throw new OddError(`${basename(path)}: holds no <model>, so there is no Processing Model to compile; to start from a default rendering, chain one: <schemaSpec source="tei_simplePrint.odd">`);
+  return { ...odd, diagnostics: [...odd.diagnostics, ...unrealized(odd)] };
 }
 
 /** One ODD of a chain, with its base; `seen` are the ODDs that inherit from it. @returns {Odd} */
@@ -279,7 +308,7 @@ function readChain(path, seen = []) {
   let doc, root;
   try {
     doc = parseXml(xml, { includeOffsets: true });
-    root = resolveSpecGrpRefs(qualify(doc.children.find((n) => n.type === "element"), {}));
+    root = qualify(doc.children.find((n) => n.type === "element"), {});
   } catch (e) {
     if (e instanceof OddError) throw new OddError(`${name}: ${e.message}`);
     if (!(e instanceof XmlError)) throw e;
@@ -287,10 +316,15 @@ function readChain(path, seen = []) {
   }
   /** Where something was written, this ODD and the line of its offset; and the problems found, with their offsets. */
   const problems = [];
+  const diagnostics = [];
   const file = {
     at: (start) => ({ odd: name, line: xml.slice(0, start).split("\n").length }),
+    warn: (el, code, message, extra = {}, severity = "warning") => diagnostics.push({ code, severity, message, ...extra, ...file.at(el.start) }),
     problem: (el, message) => problems.push({ start: el.start, text: `${name}:${file.at(el.start).line}: ${message}` }),
   };
+  const schemas = findAll(root, "schemaSpec");
+  if (schemas.length > 1) file.warn(schemas[1], "schema-spec-several", `${schemas.length} <schemaSpec>s: the elementSpecs of all are read, a @source only from the first`);
+  root = resolveSpecGrpRefs(root, file.warn);
   const specs = findAll(root, "elementSpec").map((spec) => readSpec(spec, file));
   const renditions = findAll(root, "tagsDecl")
     .flatMap((t) => elements(t, "rendition"))
@@ -299,18 +333,21 @@ function readChain(path, seen = []) {
 
   const schema = findAll(root, "schemaSpec")[0];
   const source = schema?.attributes.source;
-  if (source && !existsSync(resolve(dirname(path), source))) file.problem(schema, `<schemaSpec source="${source}">: not found`);
+  const target = source && new URL(source, schema.bases.reduce((url, b) => new URL(b, url), pathToFileURL(path)));
+  if (target && target.protocol !== "file:") file.problem(schema, `<schemaSpec source="${source}">: not a local file; keep a copy beside the ODD`);
+  else if (target && !existsSync(target)) file.problem(schema, `<schemaSpec source="${source}">: not found`);
   if (problems.length) throw new OddError(problems.sort((a, b) => a.start - b.start).map((p) => p.text).join("\n"));
-  if (!source) return { specs, renditions, views: viewsOf(specs) };
+  const self = { odd: name, sha256: createHash("sha256").update(xml).digest("hex") };
+  if (!source) return { specs, renditions, views: viewsOf(specs), sources: [self], diagnostics };
 
-  const base = readChain(resolve(dirname(path), source), [...seen, path]);
+  const base = readChain(fileURLToPath(target), [...seen, path]);
   const own = new Map(specs.map((s) => [s.key, s]));
   const chained = base.specs
     .filter((s) => own.get(s.key)?.mode !== "delete")
     .map((s) => (own.get(s.key)?.models.length ? own.get(s.key) : s));
   const added = specs.filter((s) => s.mode !== "delete" && !base.specs.some((b) => b.key === s.key));
   const all = [...chained, ...added];
-  return { specs: all, renditions: [...base.renditions, ...renditions], views: viewsOf(all) };
+  return { specs: all, renditions: [...base.renditions, ...renditions], views: viewsOf(all), sources: [...base.sources, self], diagnostics: [...base.diagnostics, ...diagnostics] };
 }
 
 /**

@@ -33,7 +33,7 @@ const TIERS = {
   ceteicean: "odd-to-ceteicean.mjs",
 };
 /** Options that take a value, so what follows them is not a positional argument. */
-const VALUED = ["--out", "--tokens", "--output", "--tier", "--lang"];
+const VALUED = ["--out", "--tokens", "--output", "--tier", "--lang", "--fail-on", "--lock"];
 
 const USAGE = `odd-render ${version} — compile a TEI ODD's Processing Model, and render an edition with it.
 
@@ -49,6 +49,9 @@ const USAGE = `odd-render ${version} — compile a TEI ODD's Processing Model, a
   --lang <code>     the language of the search records, with --reports
   --reports         also write the findings, the plain text, the JSON records and the coverage
   --strict          fail on XPath the subset cannot evaluate, instead of degrading it
+  --fail-on <sev>   fail on a diagnostic of this severity or above: error | warning | info;
+                    all are written to artefacts/diagnostics.json
+  --lock <file>     fail if the ODD chain differs from the hashes in this file; the first run writes it
   --no-timestamp    leave the date out of the generated headers
   -h, --help        this text
   -v, --version
@@ -95,7 +98,10 @@ if (!sources.length) fail(`no TEI source matched ${teiPaths.join(", ")}`);
 
 /** Run one step of the pipeline; its failure is the command's. Falsy arguments drop out. */
 function step(script, ...args) {
-  const done = spawnSync(process.execPath, [join(HERE, script), ...args.flat(2).filter(Boolean)], { stdio: "inherit" });
+  const done = spawnSync(process.execPath, [join(HERE, script), ...args.flat(2).filter(Boolean)], {
+    stdio: "inherit",
+    env: { ...process.env, ...(script !== "odd-to-unified.mjs" && { ORC_QUIET: "1" }) }, // one step prints the warnings
+  });
   if (done.status !== 0) process.exit(done.status ?? 1);
 }
 
@@ -106,7 +112,9 @@ const handlers = join(artefacts, "tei-handlers.mjs");
 const tei = sources.map((path) => ["--tei", path]);
 
 step("odd-to-css.mjs", "--odd", oddPath, tokens && ["--tokens", tokens], "--out", artefacts, stamp);
-step("odd-to-unified.mjs", "--odd", oddPath, "--out", artefacts, stamp, strict);
+const failOn = cli.get("--fail-on");
+const lock = cli.get("--lock");
+step("odd-to-unified.mjs", "--odd", oddPath, "--out", artefacts, stamp, strict, failOn && ["--fail-on", failOn], lock && ["--lock", lock]);
 if (tier === "ceteicean") {
   step(TIERS[tier], "--odd", oddPath, tei, "--css", css, "--out", outDir, stamp, strict);
 } else {

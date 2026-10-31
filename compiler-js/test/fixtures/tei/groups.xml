@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc><titleStmt><title>Model groups</title></titleStmt></fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <ab type="a">both members hold</ab>
+      <ab type="b">the second holds</ab>
+      <p><ab>none holds</ab>, a <w lemma="word">form</w>.</p>
+    </body>
+  </text>
+</TEI>

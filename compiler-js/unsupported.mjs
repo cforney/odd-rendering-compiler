@@ -49,16 +49,33 @@ export function checkXPath(specs) {
   };
 }
 
+/** What was degraded, as diagnostics of the shape readOdd gives. */
+export const asDiagnostics = (entries) => entries.map((e) => ({
+  code: "xpath-unsupported", severity: "warning", message: `${e.where}: XPath "${e.expression}": ${e.reason}`,
+  odd: e.odd, line: e.line, element: e.element, model: e.model,
+}));
+
+const RANK = { info: 0, warning: 1, error: 2 };
+
 /**
  * Print what was degraded: one line with the count, or every entry and a
- * non-zero exit under `--strict`.
+ * non-zero exit under `--strict`. `failOn`, a severity, exits non-zero if any
+ * of `diagnostics` or the entries reaches it.
  */
-export function reportUnsupported(entries, { scope, strict }) {
-  if (!entries.length) return;
-  if (!strict) {
-    console.warn(`[${scope}] ⚠ ${entries.length} expression(s) outside the XPath subset, degraded (see odd-unsupported.json)`);
-    return;
+export function reportUnsupported(entries, { scope, strict, failOn = null, diagnostics = [] }) {
+  if (entries.length && !strict) console.warn(`[${scope}] ⚠ ${entries.length} expression(s) outside the XPath subset, degraded (see odd-unsupported.json)`);
+  if (entries.length && strict) {
+    for (const e of entries) console.error(`[${scope}] ✗ <${e.element}> (${e.model}, ${e.odd}:${e.line}), ${e.where}: XPath "${e.expression}": ${e.reason}`);
+    process.exit(1);
   }
-  for (const e of entries) console.error(`[${scope}] ✗ <${e.element}> (${e.model}, ${e.odd}:${e.line}), ${e.where}: XPath "${e.expression}": ${e.reason}`);
-  process.exit(1);
+  if (!failOn) return;
+  if (!(failOn in RANK)) {
+    console.error(`[${scope}] ✗ --fail-on takes one of ${Object.keys(RANK).join(", ")}`);
+    process.exit(2);
+  }
+  const reached = [...diagnostics, ...asDiagnostics(entries)].filter((d) => RANK[d.severity] >= RANK[failOn]);
+  if (reached.length) {
+    console.error(`[${scope}] ✗ ${reached.length} diagnostic(s) at --fail-on ${failOn}: ${[...new Set(reached.map((d) => d.code))].join(", ")}`);
+    process.exit(1);
+  }
 }

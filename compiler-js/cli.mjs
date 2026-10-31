@@ -7,13 +7,13 @@
  */
 
 import {
-  writeFileSync, mkdirSync, readdirSync, statSync, existsSync,
+  writeFileSync, mkdirSync, readdirSync, readFileSync, statSync, existsSync,
 } from "fs";
 import {
   resolve, join, basename, extname,
 } from "path";
 import { pathToFileURL } from "url";
-import { readOdd, OddError } from "./odd-parser.mjs";
+import { readOdd, parseXmlToXast, OddError } from "./odd-parser.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI arguments
@@ -252,13 +252,28 @@ ${body}
 
 /**
  * Read the ODD at `path` for a script; one it cannot read ends the process, with
- * a line for each problem, prefixed `[scope]`.
+ * a line for each problem, prefixed `[scope]`. Its warnings are printed, unless
+ * ORC_QUIET says another step does. With `--lock <file>` the chain must match
+ * the hashes in that file, which the first run writes.
  * @param {string} path
  * @param {string} scope
  */
 export function loadOdd(path, scope) {
   try {
-    return readOdd(resolve(path));
+    const odd = readOdd(resolve(path));
+    if (!process.env.ORC_QUIET) {
+      for (const d of odd.diagnostics.filter((d) => d.severity !== "info")) console.warn(`[${scope}] ⚠ ${d.code} ${d.odd}:${d.line}: ${d.message}`);
+    }
+    const lock = parseArgs().get("--lock");
+    if (lock) {
+      const hashes = JSON.stringify(odd.sources, null, 2) + "\n";
+      if (!existsSync(lock)) writeFileSync(lock, hashes);
+      else if (readFileSync(lock, "utf8").replace(/\r\n/g, "\n") !== hashes) {
+        console.error(`[${scope}] ✗ the ODD chain does not match ${lock}`);
+        process.exit(1);
+      }
+    }
+    return odd;
   } catch (e) {
     if (!(e instanceof OddError)) throw e;
     for (const line of e.message.split("\n")) console.error(`[${scope}] ✗ ${line}`);
@@ -345,9 +360,20 @@ export function toHtml(node) {
   return `<${node.tagName}${attrs}>${(node.children ?? []).map(toHtml).join("")}</${node.tagName}>`;
 }
 
-/** Import a generated handler module (tei-handlers.mjs) and return its teiToHast. */
+/** A TEI source as xast, which remembers its file for what goes wrong in rendering it. */
+export function readTei(file) {
+  return { ...parseXmlToXast(readFileSync(resolve(file), "utf8")), file };
+}
+
+/** Import a generated handler module (tei-handlers.mjs) and return its teiToHast; an error names the document. */
 export async function loadHandlers(path) {
   const { teiToHast } = await import(pathToFileURL(resolve(path)).href);
   if (!teiToHast) throw new Error(`${path} exports no teiToHast`);
-  return teiToHast;
+  return (tree, options) => {
+    try {
+      return teiToHast(tree, options);
+    } catch (e) {
+      throw new Error(tree.file ? `${tree.file}: ${e.message}` : e.message, { cause: e });
+    }
+  };
 }

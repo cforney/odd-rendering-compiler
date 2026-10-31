@@ -185,11 +185,13 @@ const ARITY = {
 const TOKEN = /\s*(?:'([^']*)'|"([^"]*)"|(\d+(?:\.\d+)?)|(::|\.\.|!=|<=|>=|[=<>()[\],@/.*+|-])|(Q\{[^}]*\}[A-Za-z_][\w.-]*|[A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?))/y;
 
 /**
- * Compile an expression to a function of a position; throws on anything outside the subset.
+ * Compile an expression to a function of a position; throws on anything outside
+ * the subset. An error when evaluated names the expression and `at`, where it was written.
  * @param {string} expr
+ * @param {string} [at]
  * @returns {Expression}
  */
-export function xpath(expr) {
+export function xpath(expr, at) {
   const fail = (why) => {
     throw new Error(`XPath "${expr}": ${why}`);
   };
@@ -376,5 +378,11 @@ export function xpath(expr) {
 
   const root = or();
   if (i < toks.length) fail(`unexpected "${toks[i].v}"`);
-  return root;
+  return (p) => {
+    try {
+      return root(p);
+    } catch (/** @type {any} */ e) {
+      throw new Error(`XPath "${expr}"${at ? ` (${at})` : ""}: ${e.message.replace(`XPath "${expr}": `, "")}`);
+    }
+  };
 }

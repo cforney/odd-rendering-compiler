@@ -342,7 +342,7 @@ export function createRenderer(models, views = []) {
     // A checkbox per view: CSS lays the view over the page while it is checked.
     const switches = laidViews.length
       ? [h("form", { className: ["tei-views"] }, laidViews.map(({ output: v, label }) =>
-        h("label", {}, [h("input", { type: "checkbox", id: `view-${v}` }), text(` ${label}`)])))]
+        h("label", {}, [h("input", { type: "checkbox", "data-view": v }), text(` ${label}`)])))]
       : [];
     const root = top[0] && { node: top[0], up: [] };
     const meta = root && select(root, "page");

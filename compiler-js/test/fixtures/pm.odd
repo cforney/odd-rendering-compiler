@@ -98,7 +98,7 @@
             <param name="default" value="corr"/>
             <param name="alternate" value="sic"/>
           </model>
-          <model output="print" predicate="sic and corr" behaviour="alternate">
+          <model output="printed" predicate="sic and corr" behaviour="alternate">
             <param name="default" value="sic"/>
             <param name="alternate" value="corr"/>
           </model>
@@ -147,11 +147,11 @@
           </model>
         </elementSpec>
         <!-- models for one engine: opm- is OPM's, never rendered here; orc- is this compiler's, so here
-             it wins over the web model that TEI Publisher and OPM take, and orc-print is the print view -->
+             it wins over the web model that TEI Publisher and OPM take, and orc-printed is the printed view -->
         <elementSpec ident="emph" mode="change">
           <model output="opm-web" behaviour="block" cssClass="emph-opm"/>
           <model output="orc-web" behaviour="inline" cssClass="emph-orc"/>
-          <model output="orc-print" behaviour="inline" cssClass="emph-print"/>
+          <model output="orc-printed" behaviour="inline" cssClass="emph-print"/>
           <model output="web" behaviour="block"/>
         </elementSpec>
         <elementSpec ident="anchor" mode="change">
@@ -167,6 +167,27 @@
           </model>
           <model behaviour="note"/>
         </elementSpec>
+        <!-- groups: flattened, in document order, with the boundary kept in the model. The first member
+             that holds wins; none holding, a model after the group is the fallback; a group's @output
+             and a sequence in a group reach their models -->
+        <elementSpec ident="ab" mode="change">
+          <modelGrp>
+            <model predicate="@type = 'a'" behaviour="block" cssClass="ab-a"/>
+            <model predicate="@type" behaviour="block" cssClass="ab-typed"/>
+          </modelGrp>
+          <model behaviour="inline" cssClass="ab-after"/>
+        </elementSpec>
+        <elementSpec ident="w" mode="change">
+          <modelGrp output="plain">
+            <model behaviour="inline"><param name="content" value="@lemma"/></model>
+          </modelGrp>
+          <modelGrp>
+            <modelSequence>
+              <model behaviour="inline" cssClass="w-form"/>
+              <model predicate="@lemma" behaviour="inline" cssClass="w-lemma"><param name="content" value="@lemma"/></model>
+            </modelSequence>
+          </modelGrp>
+        </elementSpec>
         <!-- namespaces: a spec with @ns takes that namespace's element, and only it; a prefix in a
              predicate means what the ODD binds it to, TEI's own prefix included -->
         <elementSpec ident="mark" ns="urn:x-fixture" mode="change">
@@ -178,18 +199,18 @@
           <model behaviour="inline"/>
         </elementSpec>
         <!-- outputs: an output's models take precedence there; models of another output are skipped.
-             A view (print) is laid over the page: its omit hides, a model of the same behaviour adds its
+             A view (printed) is laid over the page: its omit hides, a model of the same behaviour adds its
              classes, and its readings of an alternate are marked; its switch is labelled by the <desc> -->
         <elementSpec ident="fw" mode="change">
           <model output="plain" behaviour="omit"/>
-          <model output="print" behaviour="block" cssClass="running"/>
+          <model output="printed" behaviour="block" cssClass="running"/>
           <model behaviour="block"/>
         </elementSpec>
         <elementSpec ident="date" mode="change">
           <model output="web" predicate="@when" behaviour="inline">
             <param name="content" value="@when"/>
           </model>
-          <model output="print" behaviour="omit"><desc>As printed</desc></model>
+          <model output="printed" behaviour="omit"><desc>As printed</desc></model>
           <model behaviour="inline"/>
         </elementSpec>
       </schemaSpec>

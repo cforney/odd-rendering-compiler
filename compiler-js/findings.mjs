@@ -93,6 +93,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
   const odd = loadOdd(oddPath, "findings");
   const tokens = cli.get("--tokens") ? readFileSync(resolve(cli.get("--tokens")), "utf8") : "";
   const oddFindings = [
+    ...odd.diagnostics.filter((d) => d.severity !== "info").map((d) => `${d.message} (${d.odd}:${d.line})`),
     ...undefinedProperties(odd, tokens).map((name) => `Custom property defined nowhere: var(${name})`),
     ...checkXPath(odd.specs).entries.map((e) => `XPath outside the subset, degraded: <${e.element}> ${e.where} "${e.expression}" (${e.odd}:${e.line})`),
   ];

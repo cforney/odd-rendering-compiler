@@ -11,15 +11,19 @@
  * degraded and listed in odd-unsupported.json beside the handlers; `--strict`
  * fails the build instead, with the element and model named.
  *
- * Usage:   node odd-to-unified.mjs --odd <path> [--out <dir>] [--strict]
- * Output:  <dir>/tei-handlers.mjs, with pm-runtime.mjs, xpath.mjs and odd-unsupported.json
+ * Usage:   node odd-to-unified.mjs --odd <path> [--out <dir>] [--strict] [--fail-on <severity>] [--lock <file>]
+ * With --fail-on <severity> a diagnostic of that severity or above fails it,
+ * once all of them are written to diagnostics.json.
+ *
+ * Output:  <dir>/tei-handlers.mjs, with pm-runtime.mjs, xpath.mjs, odd-unsupported.json and diagnostics.json
  * Read by: render-unified*.mjs and render-plain.mjs (--handlers)
  */
 
 import { copyFileSync } from "fs";
 import { basename, join } from "path";
 import { parseXml } from "@rgrove/parse-xml";
-import { checkXPath, reportUnsupported } from "./unsupported.mjs";
+import { asDiagnostics, checkXPath, reportUnsupported } from "./unsupported.mjs";
+import { writtenAt } from "./odd-parser.mjs";
 import { parseArgs, loadOdd, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -37,10 +41,11 @@ log(`Parsing ODD: ${oddPath}`);
 const odd = loadOdd(oddPath, "odd-to-unified");
 const specs = odd.specs.filter((s) => s.models.length);
 const grammar = checkXPath(odd.specs);
-reportUnsupported(grammar.entries, { scope: "odd-to-unified", strict: cli.has("--strict") });
+writeOut(outDir, "diagnostics.json", JSON.stringify([...odd.diagnostics, ...asDiagnostics(grammar.entries)], null, 2) + "\n");
+reportUnsupported(grammar.entries, { scope: "odd-to-unified", strict: cli.has("--strict"), failOn: cli.get("--fail-on"), diagnostics: odd.diagnostics });
 
 /** An XPath expression as a call that compiles it when the module loads, degraded where the subset cannot. */
-const xp = (expr, kind) => `xp(${JSON.stringify(grammar[kind](expr))})`;
+const xp = (expr, kind, at) => `xp(${JSON.stringify(grammar[kind](expr))}, ${JSON.stringify(at)})`;
 
 /** A template as the runtime fills it in: its text as strings, its elements as { name, attributes, children }. */
 const tree = (xml) => {
@@ -50,13 +55,13 @@ const tree = (xml) => {
 
 /** One model as a JS object literal. */
 function modelJs(m, pad) {
-  const params = m.params.map((p) => `${JSON.stringify(p.name)}: ${xp(p.value, "param")}`);
+  const params = m.params.map((p) => `${JSON.stringify(p.name)}: ${xp(p.value, "param", writtenAt(m.id, p))}`);
   const fields = [
     `behaviour: ${JSON.stringify(m.behaviour)}`,
     m.tag && `tag: ${JSON.stringify(m.tag)}`,
     `flow: ${JSON.stringify(m.flow)}`,
     m.output && `output: ${JSON.stringify(m.output)}`,
-    m.predicate && `predicate: ${xp(m.predicate, "predicate")}`,
+    m.predicate && `predicate: ${xp(m.predicate, "predicate", writtenAt(m.id, m))}`,
     `params: {${params.length ? ` ${params.join(", ")} ` : ""}}`,
     `classes: ${JSON.stringify(m.classes)}`,
     `source: ${m.source}`,

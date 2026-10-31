@@ -20,9 +20,9 @@
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
+import { extractTeiTitle } from "./odd-parser.mjs";
 import {
-  parseArgs, createLogger, writeOut, toHtml, loadHandlers,
+  parseArgs, createLogger, writeOut, toHtml, loadHandlers, readTei,
   resolveTeiFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
@@ -62,7 +62,7 @@ try {
 // Render one TEI document → an interactive (petite-vue) HTML page.
 // ---------------------------------------------------------------------------
 function renderPage(teiFile) {
-  const xastTree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
+  const xastTree = readTei(teiFile);
   const { hast, notes, page } = teiToHast(xastTree);
 
   // Post-process hast: petite-vue directives on every choice/alternate element.

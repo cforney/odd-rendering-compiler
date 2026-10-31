@@ -64,6 +64,15 @@ test("conformance.mjs runs the suite against a command, here the unified handler
   assert.match(none.stdout, /✗ notes \(web\): the command wrote no notes\.html/);
 });
 
+test("the capability matrix accounts for every conformance case", () => {
+  const matrix = readFileSync(resolve(pocDir, "../docs/capabilities.md"), "utf8");
+  const suite = readFileSync(resolve(pocDir, "../docs/conformance-suite.md"), "utf8");
+  for (const name of cases) {
+    assert.ok(matrix.includes(`\`${name}\``), `${name} in capabilities.md`);
+    assert.ok(suite.includes(`| \`${name}\` |`), `${name} in conformance-suite.md`);
+  }
+});
+
 /** What both compilers name in fixtures/invalid.odd, each with its line. @type {[number, string][]} */
 const PROBLEMS = [
   [6, `<schemaSpec source="missing.odd">: not found`],

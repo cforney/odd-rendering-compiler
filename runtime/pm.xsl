@@ -103,7 +103,7 @@ document.addEventListener('click', function (e) {
       <xsl:if test="exists($pm:laid)">
         <form class="tei-views">
           <xsl:for-each select="$pm:laid">
-            <label><input type="checkbox" id="view-{?output}"/><xsl:value-of select="' ' || ?label"/></label>
+            <label><input type="checkbox" data-view="{?output}"/><xsl:value-of select="' ' || ?label"/></label>
           </xsl:for-each>
         </form>
       </xsl:if>

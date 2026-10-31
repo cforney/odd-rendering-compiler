@@ -19,9 +19,9 @@
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
+import { extractTeiTitle } from "./odd-parser.mjs";
 import {
-  parseArgs, createLogger, writeOut, toHtml, loadHandlers,
+  parseArgs, createLogger, writeOut, toHtml, loadHandlers, readTei,
   resolveTeiFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
@@ -65,7 +65,7 @@ function markIslands(node) {
 // Render one TEI document → a progressively-enhanced islands page.
 // ---------------------------------------------------------------------------
 function renderPage(teiFile) {
-  const xastTree = parseXmlToXast(readFileSync(resolve(teiFile), "utf-8"));
+  const xastTree = readTei(teiFile);
   const { hast, notes, page } = teiToHast(xastTree);
   const htmlBody = toHtml(markIslands(hast));
   const title = extractTeiTitle(xastTree);

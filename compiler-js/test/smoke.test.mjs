@@ -52,7 +52,7 @@ test("odd-to-css adds the design tokens and reports custom properties nothing de
   assert.match(css, /^\.r-twocol \{[^}]*display: grid/m, "the two-column grid rendition");
   assert.match(css, /^\.pb-group \{[^}]*display: flex/m, "a model group's rendition on its class");
   assert.match(css, /^\.pb-rule::before \{/m, "a scoped rendition as a pseudo-element");
-  const on = (output) => `:is\\(\\[data-${output}='on'\\], :root:has\\(#view-${output}:checked\\)\\)`;
+  const on = (output) => `:is\\(\\[data-${output}='on'\\], \\.tei-edition:has\\(> \\.tei-views input\\[data-view='${output}'\\]:checked\\)\\)`;
   assert.match(css, new RegExp(`^${on("entities")} \\.entity-person \\{`, "m"), "an output's CSS where that output is on");
   assert.match(css, new RegExp(`^${on("normalized")} \\.normalized-omit \\{ display: none; \\}`, "m"), "a view hides what it omits");
   assert.match(css, /^\.tei-tooltip \{/m, "the renderers' own furniture last");
@@ -91,7 +91,7 @@ test("render-unified renders every example, with an index", () => {
 
 test("render-unified lays the views over the page, each with a switch", () => {
   const columns = page("unified", "simler-buchstabwechsel");
-  assert.match(columns, /<div class="tei-edition" data-web="on"><form class="tei-views"><label><input type="checkbox" id="view-entities"> entities<\/label><label><input type="checkbox" id="view-normalized"> normalized<\/label><\/form>/,
+  assert.match(columns, /<div class="tei-edition" data-web="on"><form class="tei-views"><label><input type="checkbox" data-view="entities"> entities<\/label><label><input type="checkbox" data-view="normalized"> normalized<\/label><\/form>/,
     "a checkbox per view, labelled by the output where its models have no <desc>");
   assert.match(columns, /<span class="tei-rs entity-person">/, "a view's model of the same behaviour adds its classes");
 
@@ -184,7 +184,7 @@ test("odd-to-unified degrades XPath outside the subset, and --strict fails on it
     { element: "p", model: "p-1", where: "param content", expression: "let $x := . return $x", reason: `cannot read "$x := . return $x"`, odd: "bad.odd", line: 3 },
   ], "the table names each expression, where it stands and the line it was written on");
   const handlers = readFileSync(join(out, "tei-handlers.mjs"), "utf8");
-  assert.match(handlers, /predicate: xp\("false\(\)"\), params: \{ "content": xp\("\(\)"\) \}/,
+  assert.match(handlers, /predicate: xp\("false\(\)", "p-1, bad\.odd:3"\), params: \{ "content": xp\("\(\)", "p-1, bad\.odd:3"\) \}/,
     "a predicate degrades to false, a param to nothing — what a failing evaluation returns");
 
   const result = spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", odd, "--out", out, "--strict"], { cwd: pocDir, encoding: "utf8" });
@@ -325,6 +325,102 @@ test("odd-render refuses sources that would overwrite each other, before writing
   const twice = render("twice", a, join(dir, "b", "..", "a", "text.xml"));
   assert.equal(twice.status, 0, "one file under two spellings is one source");
   assert.match(twice.stdout, /✓ 1 page\(s\)/);
+});
+
+const scratchOdd = (name, specs, attrs = "", around = (s) => s) => {
+  const file = join(outDir, name);
+  writeFileSync(file, around(`<TEI xmlns="http://www.tei-c.org/ns/1.0"><schemaSpec ident="x"${attrs}>${specs}</schemaSpec></TEI>`));
+  return file;
+};
+const P = `<elementSpec ident="p"><model behaviour="block"/></elementSpec>`;
+
+test("only a view gets a switch, scoped to its edition; a channel renders alone", () => {
+  const { views } = readOdd(scratchOdd("channels.odd", `${P}<elementSpec ident="hi">
+    <model output="print" behaviour="omit"/><model output="latex" behaviour="omit"/><model output="opm-web" behaviour="omit"/><model output="orc-fo" behaviour="omit"/>
+    <model output="reading" behaviour="omit"/><model behaviour="inline"/></elementSpec>`));
+  assert.deepEqual(views.map((v) => v.output), ["reading"]);
+  const out = join(outDir, "channels");
+  run("odd-to-css.mjs", ["--odd", join(outDir, "channels.odd"), "--out", out]);
+  const css = readFileSync(join(out, "edition.css"), "utf8");
+  assert.ok(css.includes(".tei-edition:has(> .tei-views input[data-view='reading']:checked)) .reading-omit"), "two editions on a page switch apart");
+  assert.doesNotMatch(css, /:root:has|#view-/);
+});
+
+test("a view that cannot be laid over the page is diagnosed", () => {
+  const { diagnostics } = readOdd(scratchOdd("views.odd", `${P}<elementSpec ident="hi">
+    <model output="a" behaviour="omit"/>
+    <model output="b" behaviour="block"/>
+    <model output="c" behaviour="inline"><param name="content" value="'x'"/></model>
+    <model output="d" behaviour="inline"/>
+    <model behaviour="inline"/></elementSpec>`));
+  assert.deepEqual(diagnostics.map((d) => [d.code, d.model, d.severity]), [["view-unrealized", "hi-2", "warning"], ["view-unrealized", "hi-3", "warning"]]);
+  assert.match(diagnostics[1].message, /view "c" changes the content/);
+});
+
+test("the chain resolves against @xml:base, stays local, and can be locked", () => {
+  mkdirSync(join(outDir, "bases"), { recursive: true });
+  writeFileSync(join(outDir, "bases", "base.odd"), `<TEI xmlns="http://www.tei-c.org/ns/1.0"><schemaSpec ident="b">${P}</schemaSpec></TEI>`);
+  const child = scratchOdd("child.odd", "", ` source="base.odd" xml:base="bases/"`);
+  const { specs, sources } = readOdd(child);
+  assert.deepEqual(specs.map((s) => s.ident), ["p"]);
+  assert.deepEqual(sources.map((s) => s.odd), ["base.odd", "child.odd"]);
+  assert.match(sources[0].sha256, /^[0-9a-f]{64}$/);
+
+  assert.throws(() => readOdd(scratchOdd("remote.odd", P, ` source="https://example.org/x.odd"`)), /remote\.odd:1: <schemaSpec source="https:\/\/example\.org\/x\.odd">: not a local file/);
+  assert.throws(() => readOdd(scratchOdd("release.odd", P, ` source="tei:current"`)), /not a local file/);
+
+  const lock = join(outDir, "chain.lock.json");
+  const unified = (...args) => spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", child, "--out", join(outDir, "locked"), "--lock", lock, ...args], { cwd: pocDir, encoding: "utf8" });
+  assert.equal(unified().status, 0, "the first run writes the lock");
+  assert.equal(unified().status, 0, "and the next agrees");
+  writeFileSync(join(outDir, "bases", "base.odd"), `<TEI xmlns="http://www.tei-c.org/ns/1.0"><schemaSpec ident="b">${P}<!-- changed --></schemaSpec></TEI>`);
+  assert.match(unified().stderr, /the ODD chain does not match/);
+});
+
+test("diagnostics have codes and places, go to a file, and can fail the build", () => {
+  const odd = scratchOdd("diag.odd", `<specGrpRef target="#gone"/><elementSpec ident="p"><modelGrp><model predicate="@a" behaviour="block"/></modelGrp><model behaviour="nonsense"/></elementSpec>
+    <elementSpec ident="hi"><model predicate="let $x := 1 return $x" behaviour="inline"/></elementSpec>`);
+  const out = join(outDir, "diag");
+  const unified = (...args) => spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", odd, "--out", out, ...args], { cwd: pocDir, encoding: "utf8" });
+  const quiet = unified();
+  assert.equal(quiet.status, 0, "they do not fail it unasked");
+  assert.match(quiet.stderr, /⚠ spec-group-unresolved diag\.odd:1: <specGrpRef target="#gone"> names no <specGrp>: skipped/);
+  assert.deepEqual(JSON.parse(readFileSync(join(out, "diagnostics.json"), "utf8")).map((d) => [d.code, d.severity]).sort(), [
+    ["behaviour-unknown", "warning"], ["group-fallback", "info"], ["spec-group-unresolved", "warning"], ["xpath-unsupported", "warning"],
+  ]);
+  assert.equal(unified("--fail-on", "error").status, 0);
+  const failed = unified("--fail-on", "warning");
+  assert.equal(failed.status, 1);
+  assert.match(failed.stderr, /✗ 3 diagnostic\(s\) at --fail-on warning: spec-group-unresolved, behaviour-unknown, xpath-unsupported/);
+  assert.equal(unified("--fail-on", "nope").status, 2);
+
+  const tei = join(outDir, "diag.xml");
+  writeFileSync(tei, `<p xmlns="http://www.tei-c.org/ns/1.0"/>`);
+  const render = spawnSync(process.execPath, ["odd-render.mjs", odd, tei, "--out", join(outDir, "diag-render"), "--fail-on", "warning"], { cwd: pocDir, encoding: "utf8" });
+  assert.equal(render.status, 1, "odd-render passes it on");
+  assert.equal(render.stderr.match(/spec-group-unresolved diag/g)?.length, 1, "and one step prints the warnings");
+  assert.ok(existsSync(join(outDir, "diag-render", "artefacts", "diagnostics.json")), "written before it fails");
+
+  const several = readOdd(scratchOdd("several.odd", P, "", (s) => s.replace("</TEI>", `<schemaSpec ident="y"><elementSpec ident="hi"><model behaviour="inline"/></elementSpec></schemaSpec></TEI>`)));
+  assert.deepEqual(several.specs.map((s) => s.ident), ["p", "hi"]);
+  assert.deepEqual(several.diagnostics.map((d) => d.code), ["schema-spec-several"]);
+});
+
+test("an error in rendering names the document, the expression and the model", () => {
+  const odd = scratchOdd("runtime.odd", `<elementSpec ident="p"><model predicate="(1, 2) eq 2" behaviour="block"/></elementSpec>`);
+  const tei = join(outDir, "runtime.xml");
+  writeFileSync(tei, `<p xmlns="http://www.tei-c.org/ns/1.0"/>`);
+  const out = join(outDir, "runtime");
+  run("odd-to-unified.mjs", ["--odd", odd, "--out", out]);
+  const failed = spawnSync(process.execPath, ["render-unified.mjs", "--handlers", join(out, "tei-handlers.mjs"), "--tei", tei, "--out", out], { cwd: pocDir, encoding: "utf8" });
+  assert.notEqual(failed.status, 0);
+  assert.match(failed.stderr, /runtime\.xml: XPath "\(1, 2\) eq 2" \(p-1, runtime\.odd:1\): eq compares single items, not 2/);
+});
+
+test("readOdd keeps a model's group, and says what it holds with no model", () => {
+  const { specs } = readOdd(scratchOdd("kept.odd", `<elementSpec ident="p"><modelGrp><model predicate="@a" behaviour="block"/></modelGrp><modelGrp><model behaviour="block"/></modelGrp><model behaviour="inline"/></elementSpec>`));
+  assert.deepEqual(specs[0].models.map((m) => m.group), [1, 2, undefined]);
+  assert.throws(() => readOdd(scratchOdd("schema.odd", `<elementSpec ident="p"/>`)), /holds no <model>.*chain one: <schemaSpec source="tei_simplePrint\.odd">/);
 });
 
 test("readOdd resolves <specGrpRef> indirection (tei_simplePrint)", () => {

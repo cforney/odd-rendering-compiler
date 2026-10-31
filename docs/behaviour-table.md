@@ -55,7 +55,7 @@ becomes `::before`/`::after`.
 
 **Model groups.** A `<modelGrp>` is flattened: its models keep their place in
 document order, and take `@output` and `@useSourceRendition` from the group
-unless they set their own.
+unless they set their own. Each model records its group's number.
 
 **Sequences.** A `<modelSequence>` renders each of its models whose predicate
 holds, and the element's id goes on the first.
@@ -85,10 +85,10 @@ sequence part by part:
 - an `alternate`'s two readings are marked `<view>-default` or
   `<view>-alternate`, as the view's `default` param reads them.
 
-A checkbox per view, `<input id="view-<view>">`, heads the edition, labelled by
+A checkbox per view, `<input data-view="<view>">`, heads the edition, labelled by
 the first `<desc>` of the view's models, else by its name. `edition.css` lays a
 view over the page where it is on, either output or checkbox:
-`:is([data-<view>='on'], :root:has(#view-<view>:checked))`. It hides what the
+`:is([data-<view>='on'], .tei-edition:has(> .tei-views input[data-view='<view>']:checked))`. It hides what the
 view omits and swaps the readings, and the view's model CSS applies. So the
 views work on the CSS floor, without JavaScript.
 

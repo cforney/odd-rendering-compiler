@@ -9,7 +9,7 @@
         <pm:rendition id css/>…                         the source renditions of <tagsDecl>
         <pm:spec ident key ns? mode>
           <pm:rule selector css/>                        a model group's CSS
-          <pm:model behaviour tag flow predicate? output? label? template? classes source>
+          <pm:model behaviour tag flow group? predicate? output? label? template? classes source>
             <pm:rule selector css/>                      the model's CSS
             <pm:param name value/>…
             <pm:model …/>…                               the parts of a sequence
@@ -18,14 +18,14 @@
         <pm:view output label/>…                         the outputs laid over the page
       </pm:odd>
 
-  Models are in document order, groups flattened; a model takes @output and
+  Models are in document order, groups flattened, each saying its group by number; a model takes @output and
   @useSourceRendition from its sequence or group. A spec's only model styles
   .tei-<ident>; otherwise a group styles .<ident>-group, and a model its first
   @cssClass, or <ident>-<n> (the n-th <model> of the spec) without one. The CSS
   of a model with @output applies where that output is on (see pm:on). A
   model's <pb:template>, a TEI Publisher extension, is kept as XML (see
   pm:template). The views are all outputs but those rendering alone and another
-  engine's, each labelled by the first <desc> of its models. An @output prefixed
+  engine's (see $pm:channels), each labelled by the first <desc> of its models. An @output prefixed
   orc-, this compiler's own, names the output itself; one prefixed opm-, OPM's,
   is never rendered here (docs/conventions.md).
 
@@ -52,7 +52,7 @@
     <xsl:param name="doc" as="document-node()"/>
     <xsl:variable name="odd" select="pm:chain($doc, ())"/>
     <xsl:sequence select="if (empty($odd//pm:model))
-      then error(xs:QName('pm:odd'), pm:name($doc) || ': holds no &lt;model&gt;, so there is no Processing Model to compile')
+      then error(xs:QName('pm:odd'), pm:name($doc) || ': holds no &lt;model&gt;, so there is no Processing Model to compile; to start from a default rendering, chain one: &lt;schemaSpec source=&quot;tei_simplePrint.odd&quot;&gt;')
       else $odd"/>
   </xsl:function>
 
@@ -60,11 +60,13 @@
   <xsl:function name="pm:problems" as="xs:string*">
     <xsl:param name="doc" as="document-node()"/>
     <xsl:variable name="source" select="($doc//tei:schemaSpec)[1]/@source"/>
-    <xsl:for-each select="$source[not(doc-available(resolve-uri(., base-uri($doc))))]/.. | $doc//tei:elementSpec[not(@ident)]
+    <xsl:variable name="target" select="$source ! resolve-uri(., base-uri(..))"/>
+    <xsl:variable name="remote" select="exists($target) and not(starts-with($target, 'file:'))"/>
+    <xsl:for-each select="$source[$remote or not(doc-available($target))]/.. | $doc//tei:elementSpec[not(@ident)]
       | $doc//tei:elementSpec//(tei:model[not(@behaviour)] | tei:modelSequence[not(tei:model)] | tei:param[not(@name)])">
       <xsl:variable name="in" select="' in &lt;elementSpec ident=&quot;' || ancestor::tei:elementSpec/@ident || '&quot;&gt;'"/>
       <xsl:sequence select="pm:name($doc) || ': ' || (
-        if (self::tei:schemaSpec) then '&lt;schemaSpec source=&quot;' || $source || '&quot;&gt;: not found'
+        if (self::tei:schemaSpec) then '&lt;schemaSpec source=&quot;' || $source || '&quot;&gt;: ' || (if ($remote) then 'not a local file; keep a copy beside the ODD' else 'not found')
         else if (self::tei:elementSpec) then '&lt;elementSpec&gt; has no @ident'
         else if (self::tei:model) then '&lt;model&gt;' || $in || ' has no @behaviour'
         else if (self::tei:modelSequence) then '&lt;modelSequence&gt;' || $in || ' holds no &lt;model&gt;'
@@ -100,7 +102,7 @@
       <xsl:choose>
         <!-- A chain: the base ODD's specs; this one's replace their models, delete, or add. -->
         <xsl:when test="$source">
-          <xsl:variable name="base" select="pm:chain(doc(resolve-uri($source, base-uri($doc))), ($seen, $uri))"/>
+          <xsl:variable name="base" select="pm:chain(doc(resolve-uri($source, base-uri($source/..))), ($seen, $uri))"/>
           <xsl:sequence select="$base/pm:rendition, $renditions"/>
           <xsl:for-each select="$base/pm:spec">
             <xsl:variable name="own" select="$specs[@key = current()/@key][last()]"/>
@@ -117,7 +119,7 @@
     </xsl:variable>
     <pm:odd>
       <xsl:sequence select="$all"/>
-      <xsl:for-each select="distinct-values($all//pm:model/@output)[not(. = $pm:alone or starts-with(., 'opm-'))]">
+      <xsl:for-each select="distinct-values($all//pm:model/@output)[not(. = $pm:channels or starts-with(., 'opm-'))]">
         <pm:view output="{.}" label="{($all//pm:model[@output = current()]/@label, .)[1]}"/>
       </xsl:for-each>
     </pm:odd>
@@ -129,13 +131,13 @@
     <xsl:sequence select="$output ! replace(., '^orc-', '')"/>
   </xsl:function>
 
-  <!-- Outputs not laid over the page: the page itself, what it shows around the text, the search text. -->
-  <xsl:variable name="pm:alone" select="('web', 'page', 'plain')"/>
+  <!-- Outputs not laid over the page: the page itself, what it shows around the text, the search text, and other media. -->
+  <xsl:variable name="pm:channels" select="('web', 'page', 'plain', 'plaintext', 'print', 'fo', 'latex', 'epub', 'pdf')"/>
 
   <!-- Where an output is on: the edition renders it, or its view switch is checked. -->
   <xsl:function name="pm:on" as="xs:string">
     <xsl:param name="output" as="xs:string"/>
-    <xsl:sequence select="':is([data-' || $output || '=''on''], :root:has(#view-' || $output || ':checked))'"/>
+    <xsl:sequence select="':is([data-' || $output || '=''on''], .tei-edition:has(&gt; .tei-views input[data-view=''' || $output || ''']:checked))'"/>
   </xsl:function>
 
   <!-- Resolve <specGrpRef> within one document: each reference contributes the specs
@@ -148,9 +150,10 @@
         <xsl:when test="self::tei:specGrpRef">
           <xsl:variable name="id" select="substring-after(@target, '#')"/>
           <xsl:variable name="grp" select="root(.)//tei:specGrp[@xml:id = $id]"/>
-          <xsl:if test="$grp and not($id = $seen)">
-            <xsl:sequence select="pm:schema-specs($grp/node(), ($seen, $id))"/>
-          </xsl:if>
+          <xsl:choose>
+            <xsl:when test="$grp and not($id = $seen)"><xsl:sequence select="pm:schema-specs($grp/node(), ($seen, $id))"/></xsl:when>
+            <xsl:otherwise><xsl:message select="'[odd-model] ⚠ spec-group-unresolved: &lt;specGrpRef target=&quot;#' || $id || '&quot;&gt; ' || (if ($grp) then 'is cyclic' else 'names no &lt;specGrp&gt;') || ': skipped'"/></xsl:otherwise>
+          </xsl:choose>
         </xsl:when>
         <xsl:when test="self::tei:elementSpec"><xsl:sequence select="."/></xsl:when>
         <xsl:when test="self::tei:specGrp[not(@xml:id)]"><xsl:sequence select="pm:schema-specs(node(), $seen)"/></xsl:when>
@@ -241,6 +244,7 @@
              else if ($flows = 'block') then 'block' else if (every $f in $flows satisfies $f = 'inline') then 'inline' else ''}"
       classes="{distinct-values(($groupClass[.], $own, $cls))}"
       source="{(@useSourceRendition, $outer/@useSourceRendition, $group/@useSourceRendition)[1] = 'true'}">
+      <xsl:if test="$group"><xsl:attribute name="group" select="count($group/preceding-sibling::tei:modelGrp) + 1"/></xsl:if>
       <xsl:if test="@predicate"><xsl:attribute name="predicate" select="pm:xpath(@predicate, .)"/></xsl:if>
       <xsl:if test="$output"><xsl:attribute name="output" select="$output"/></xsl:if>
       <xsl:if test="tei:desc"><xsl:attribute name="label" select="normalize-space(tei:desc[1])"/></xsl:if>
@@ -301,7 +305,7 @@
     <xsl:choose>
       <xsl:when test="map:contains($pm:behaviours, $behaviour)"><xsl:sequence select="$behaviour"/></xsl:when>
       <xsl:otherwise>
-        <xsl:message select="'[odd-model] ⚠ &lt;' || $ident || '&gt;: unknown behaviour &quot;' || $behaviour || '&quot;, rendered inline'"/>
+        <xsl:message select="'[odd-model] ⚠ behaviour-unknown: &lt;' || $ident || '&gt;: unknown behaviour &quot;' || $behaviour || '&quot;, rendered inline'"/>
         <xsl:sequence select="'inline'"/>
       </xsl:otherwise>
     </xsl:choose>

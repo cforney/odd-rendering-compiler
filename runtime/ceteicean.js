@@ -21,8 +21,8 @@ const TEI_PLACEHOLDER = /\[\[([^[\]]*)\]\]/g;
 function teiCompile(models) {
   const compile = (m) => ({
     ...m,
-    predicate: m.predicate ? teiXpath.xpath(m.predicate) : undefined,
-    params: Object.fromEntries(Object.entries(m.params).map(([k, v]) => [k, teiXpath.xpath(v)])),
+    predicate: m.predicate ? teiXpath.xpath(m.predicate, m.at) : undefined,
+    params: Object.fromEntries(Object.entries(m.params).map(([k, v]) => [k, teiXpath.xpath(v, m.at)])),
     parts: m.parts && m.parts.map(compile),
   });
   return Object.fromEntries(Object.entries(models).map(([ident, ms]) => [ident, ms.map(compile)]));
@@ -251,7 +251,7 @@ function teiRoot(views, dom) {
       const l = form.appendChild(document.createElement("label"));
       const box = l.appendChild(document.createElement("input"));
       box.type = "checkbox";
-      box.id = `view-${output}`;
+      box.dataset.view = output;
       l.append(` ${label}`);
     }
   }

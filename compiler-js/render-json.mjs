@@ -20,7 +20,7 @@
 
 import { readFileSync } from "fs";
 import { resolve, basename, extname } from "path";
-import { parseXmlToXast, allModels } from "./odd-parser.mjs";
+import { parseXmlToXast, allModels, writtenAt } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import { createResolver } from "../runtime/pm-runtime.mjs";
 import { xpath, seq, str } from "../runtime/xpath.mjs";
@@ -44,8 +44,8 @@ reportUnsupported(grammar.entries, { scope: "render-json", strict: cli.has("--st
 /** The models with their XPath compiled, as the generated handlers hold them. */
 const compile = (m) => ({
   ...m,
-  predicate: m.predicate ? xpath(grammar.predicate(m.predicate)) : undefined,
-  params: Object.fromEntries(m.params.map((p) => [p.name, xpath(grammar.param(p.value))])),
+  predicate: m.predicate ? xpath(grammar.predicate(m.predicate), writtenAt(m.id, m)) : undefined,
+  params: Object.fromEntries(m.params.map((p) => [p.name, xpath(grammar.param(p.value), writtenAt(m.id, p))])),
   parts: m.parts?.map(compile),
 });
 const models = Object.fromEntries(odd.specs.filter((s) => s.models.length).map((s) => [s.key, s.models.map(compile)]));
@@ -86,7 +86,7 @@ function describe(used) {
     const m = byId.get(id);
     table[id] = {
       element: m.element, behaviour: m.behaviour,
-      predicate: m.predicate ?? undefined, output: m.output ?? undefined,
+      predicate: m.predicate ?? undefined, output: m.output ?? undefined, group: m.group,
       desc: m.label, odd: m.odd, line: m.line,
       parts: m.parts?.map((p) => p.id),
     };

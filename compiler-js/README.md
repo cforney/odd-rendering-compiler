@@ -135,6 +135,13 @@ read `../examples/tei_simler.odd`, and `build` adds its tokens,
 `render:interactive`, `render:islands`, `render:xslt`, `render:ceteicean`,
 `render:plain`, `render:json`) render every example.
 
+**Diagnostics.** What an ODD is read despite has a stable code, a severity and a
+place. `odd-to-unified.mjs` writes all of it to `diagnostics.json` and prints the
+warnings; `--fail-on warning` makes them fail a publication build. `--lock <file>`
+holds the ODD chain to the hashes the first run wrote. `odd-render` passes both
+on. [`../docs/capabilities.md`](../docs/capabilities.md) lists the codes, and what
+each target reads.
+
 **Reproducible output.** Each generator writes a timestamp into its header by
 default. Pass `--no-timestamp` to omit it, or set `SOURCE_DATE_EPOCH` (Unix
 seconds) to pin it.

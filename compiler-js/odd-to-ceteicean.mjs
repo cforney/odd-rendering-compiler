@@ -27,7 +27,7 @@
 
 import { readFileSync, copyFileSync, mkdirSync } from "fs";
 import { resolve, basename } from "path";
-import { parseXmlToXast, extractTeiTitle, pageOf } from "./odd-parser.mjs";
+import { parseXmlToXast, extractTeiTitle, pageOf, writtenAt } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import {
   parseArgs, loadOdd, createLogger, writeOut, generatedStamp,
@@ -64,7 +64,7 @@ function script(file, name, from) {
 
 /** A model as JSON: its behaviour, classes and flow, with predicate and params as XPath. */
 const json = (m) => ({
-  behaviour: m.behaviour, tag: m.tag, flow: m.flow,
+  behaviour: m.behaviour, tag: m.tag, flow: m.flow, at: writtenAt(m.id, m),
   predicate: m.predicate ? grammar.predicate(m.predicate) : undefined, output: m.output ?? undefined,
   params: Object.fromEntries(m.params.map((p) => [p.name, grammar.param(p.value)])),
   classes: m.classes, source: m.source, template: m.template,

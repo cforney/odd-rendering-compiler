@@ -15,22 +15,29 @@ in a view.
 
 A render renders one output, `web` unless told otherwise. An element takes the
 first model of that output whose predicate holds, else the first model without
-`@output`. Three output names are fixed:
+`@output`. These output names are fixed:
 
 | Output | Meaning here | Elsewhere |
 |---|---|---|
 | `web` | the page | TEI Publisher and OPM render it too |
 | `page` | what the page shows around the text: the params of the root's model, such as `title`, `manifest` and `pages` | an unknown output, skipped |
 | `plain` | the search text, rendered by `render-plain.mjs` | known to OPM too |
+| `plaintext`, `print`, `fo`, `latex`, `epub`, `pdf` | a channel: renders alone, with `--output`, and is never a view | other tools' outputs |
 
 **Views.** Every other output is a view laid over the `web` page, not a render of
-its own. It gets a checkbox `<input id="view-<view>">`, labelled by the first
+its own, so another tool's output with an unlisted name becomes a switch; give it
+an engine's prefix to keep it apart. A view gets a checkbox
+`<input data-view="<view>">`, labelled by the first
 `<desc>` among its models. For each element, the view's first model whose
 predicate holds adds to the page: an `omit` becomes the class `<view>-omit`, a
 model of the same behaviour adds its classes, and an `alternate`'s readings are
 marked `<view>-default` and `<view>-alternate`. The CSS applies the view where
-`:is([data-<view>='on'], :root:has(#view-<view>:checked))` holds, so a view
-switches without JavaScript. A tool that does not know views skips these models
+`:is([data-<view>='on'], .tei-edition:has(> .tei-views input[data-view='<view>']:checked))`
+holds, so a view switches without JavaScript, and two editions on one page switch
+apart. A view can only hide and add classes: a model of another behaviour, or one
+changing the content, has no effect on the page, shows when that output renders
+alone, and is diagnosed as `view-unrealized`. Views combine; none is exclusive of
+another. A tool that does not know views skips these models
 and renders the page without them.
 
 ## Engine prefixes on `@output`
@@ -78,6 +85,11 @@ Every renderer stamps the same classes, so one `edition.css` styles every tier:
 
 The CSS of `<outputRendition>` is compiled onto the same classes.
 
+## What is read, and by which target
+
+[capabilities.md](capabilities.md) has the matrix: model structure, namespaces,
+XPath, ODD resolution and diagnostics, by target.
+
 ## Rendering choices the Processing Model does not make
 
 - **Notes.** A note whose `place` is `end` or `foot` gets a numbered marker, its
@@ -110,5 +122,9 @@ Each is labelled as an extension wherever it is used; see
 
 ## Not a convention, but a difference
 
-A `<modelGrp>` is flattened here: a model after a group is a fallback. TEI
-Publisher, OPM and the Simler preview choose the group as a unit.
+A `<modelGrp>` is flattened here: a model after a group is a fallback, and the
+conformance case `groups` pins it. TEI Publisher, OPM and the Simler preview are
+reported to choose the group as a unit, which has not been run against pinned
+versions, so selection stays as it is until it has. The boundary is kept as the
+model's `group`, and a model that depends on flattening is diagnosed as
+`group-fallback`.
