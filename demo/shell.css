@@ -53,6 +53,8 @@ dialog th, dialog td { padding: 0.5rem 0.6rem; text-align: left; vertical-align:
 dialog tbody th { width: 34%; }
 dialog tbody th button { display: block; padding: 0; font: inherit; font-weight: 600; color: var(--link); text-align: left; cursor: pointer; background: none; border: 0; }
 dialog tr.current { background: var(--soft); box-shadow: inset 3px 0 0 var(--link); }
+.size-bar { display: block; width: 6rem; height: 4px; margin-top: 0.3rem; background: var(--line); border-radius: 2px; }
+.size-bar span { display: block; height: 100%; background: var(--muted); border-radius: 2px; }
 .family { display: flex; align-items: center; gap: 0.2rem; }
 .family-name { margin-right: 0.4rem; font-weight: 600; }
 .tab {
@@ -84,8 +86,6 @@ dialog tr.current { background: var(--soft); box-shadow: inset 3px 0 0 var(--lin
 .controls label:has(input:disabled) { opacity: 0.5; }
 .about #metrics { margin: 0.6rem 0 0; padding-top: 0.5rem; border-top: 1px solid var(--line); }
 .about .notice { margin: 0.5rem 0 0; font-weight: 600; }
-.about .verified { margin: 0.5rem 0 0; font-size: 0.82rem; color: #15803d; }
-.about .verified.differs { color: #b91c1c; }
 
 /* The views. */
 #view-list label { display: grid; grid-template-columns: auto 1fr; column-gap: 0.45rem; margin-bottom: 0.45rem; cursor: pointer; }

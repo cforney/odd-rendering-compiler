@@ -62,8 +62,11 @@ opens, with the views on, and without JavaScript. The visible text and each text
 run's place, font and colour must equal the first rendering's, and the pixels
 nearly so. It also holds the manifest's claims to the pages (`interactive`,
 `needsJs`) and the inspector's records to the elements rendered. It writes
-`site/verified.json`, which the badge and the comparison table read, and exits 1 on
-a difference. CI runs it; a demo built without it shows no badge.
+`site/verified.json`, which the comparison table reads, and exits 1 on a difference.
+CI runs it; a demo built without it says "Not checked" there.
+
+The table's bars share one scale, so a page and a script can be compared. `build-demo`
+fetches each CDN script to weigh it; without network it stays a name, and out of the bar.
 
 ## Using it
 

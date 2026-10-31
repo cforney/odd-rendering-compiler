@@ -47,7 +47,7 @@ function render() {
   byId("how").hidden = !state.path.how;
   byId("how-text").innerHTML = state.path.how ?? ""; // the compilers' own banner
   byId("notice").hidden = state.js || !state.path.needsJs;
-  const ext = page?.jsExternal.length ? ` + ${page.jsExternal.join(", ")} (CDN)` : "";
+  const ext = page?.jsExternal.length ? ` + ${cdnNames(page)} (CDN)` : "";
   const also = state.path.fetchesKB ? ` + ${state.path.fetchesKB} KB compiled stylesheet` : "";
   byId("metrics").textContent = !page ? "No page for this document."
     : state.path.report ? `${page.pageKB} KB` : `Page ${page.pageKB} KB${also} · client JS ${page.jsKB} KB${ext}`;
@@ -58,13 +58,11 @@ function render() {
   const jsOn = byId("js-on");
   jsOn.disabled = Boolean(state.path.report);
   jsOn.parentElement.title = jsOn.disabled ? "Reports are plain files: JavaScript makes no difference" : "Reload this rendering with or without JavaScript";
-  showVerified();
   markCompared();
   remember();
   const link = byId("artefact-link");
   link.textContent = state.path.artefact.label;
   link.href = state.path.artefact.url;
-  byId("artefact-code").textContent = state.path.artefact.snippet;
 }
 
 // --- The inspector ----------------------------------------------------------
@@ -90,24 +88,27 @@ const recordsOf = (doc) => {
 
 // --- What the check found (check-demo.mjs) -------------------------------------
 let verified = null;
-fetch("verified.json").then((r) => (r.ok ? r.json() : null)).then((v) => { verified = v; showVerified(); renderCompared(); }).catch(() => {});
-
-function showVerified() {
-  const box = byId("verified");
-  const differs = verified?.results[state.path.id];
-  box.hidden = !differs;
-  if (!differs) return;
-  box.className = differs.length ? "verified differs" : "verified";
-  box.textContent = differs.length
-    ? `Differs from the other renderings: ${differs[0]}${differs.length > 1 ? ` (and ${differs.length - 1} more)` : ""}`
-    : `✓ Same text and layout as the other renderings, on all ${verified.examples} examples. Checked in Chrome on ${verified.checked}.`;
-}
+fetch("verified.json").then((r) => (r.ok ? r.json() : null)).then((v) => { verified = v; renderCompared(); }).catch(() => {});
 
 // --- The comparison of the renderings ---------------------------------------
+const pageKB = (p, page) => Number(page.pageKB) + Number(p.fetchesKB ?? 0);
+const scriptKB = (page) => Number(page.jsKB) + page.jsExternal.reduce((sum, e) => sum + Number(e.kb ?? 0), 0);
+const cdnNames = (page) => page.jsExternal.map((e) => (e.kb ? `${e.name}, ${e.kb} KB` : e.name)).join(" + ");
+
+/** A size in its cell: the words, and a bar on the one scale of all the table's bars. */
+function sizeCell(row, text, value, max) {
+  const cell = make(row, "td", text);
+  const track = make(cell, "span", undefined, "size-bar");
+  make(track, "span").style.width = value ? `max(1px, ${(value / max) * 100}%)` : "0";
+}
+
 function renderCompared() {
   const body = byId("compare-rows");
   body.replaceChildren();
-  for (const p of data.paths.filter((q) => !q.report)) {
+  const rendering = data.paths.filter((q) => !q.report);
+  const max = Math.max(...rendering.flatMap((p) => (p.pages[state.doc] ? [pageKB(p, p.pages[state.doc]), scriptKB(p.pages[state.doc])] : [0])));
+  byId("compare-checked").textContent = verified ? `Compared in ${verified.browser.split("/")[0]} on ${verified.checked}, on all ${verified.examples} examples.` : "";
+  for (const p of rendering) {
     const page = p.pages[state.doc];
     const row = make(body, "tr");
     row.dataset.id = p.id;
@@ -115,12 +116,18 @@ function renderCompared() {
     const open = make(name, "button", `${p.family} · ${p.label}`);
     open.onclick = () => { state.path = p; byId("compare").close(); render(); };
     make(name, "span", p.plain, "muted small");
-    make(row, "td", page ? `${page.pageKB} KB${p.fetchesKB ? ` + ${p.fetchesKB} KB stylesheet` : ""}` : "–");
-    make(row, "td", page ? `${page.jsKB} KB${page.jsExternal.length ? ` + ${page.jsExternal.join(", ")} (CDN)` : ""}` : "–");
+    if (page) {
+      sizeCell(row, `${page.pageKB} KB${p.fetchesKB ? ` + ${p.fetchesKB} KB stylesheet` : ""}`, pageKB(p, page), max);
+      sizeCell(row, `${page.jsKB} KB${page.jsExternal.length ? ` + ${cdnNames(page)} (CDN)` : ""}`, scriptKB(page), max);
+    } else {
+      make(row, "td", "–");
+      make(row, "td", "–");
+    }
     make(row, "td", p.needsJs ? "No: empty" : "Yes");
     make(row, "td", p.server ? "Yes" : "No");
     make(row, "td", p.interactive ? "Yes" : "No: notes at the end");
-    make(row, "td", verified ? (verified.results[p.id]?.length ? "Differs" : "✓ Same") : "Not checked");
+    const differs = verified?.results[p.id] ?? [];
+    make(row, "td", verified ? (differs.length ? "Differs" : "✓ Same") : "Not checked").title = differs.join("\n");
   }
   markCompared();
 }
@@ -309,7 +316,6 @@ const floorLink = byId("floor-link");
 floorLink.textContent = data.floor.label;
 floorLink.href = data.floor.url;
 byId("floor-size").textContent = `${data.floor.sizeKB} KB`;
-byId("floor-code").textContent = data.floor.snippet;
 
 show(null);
 render();

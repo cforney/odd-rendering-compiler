@@ -10,7 +10,7 @@ export const concept =
 //   family    the implementation the path belongs to; label names the path within it
 //   dir       compiler output the page came from (copied to site/<dir>/)
 //   file      the rendered page, relative to that output; {doc} is the document
-//   artefact  the generated file behind the path (its snippet + a full-file link)
+//   artefact  the generated file behind the path, linked from the panel
 //   hue       accent of the tab and the info box, one per family (unified green, XSLT blue, CETEIcean pink, build grey)
 //   needsJs   the page renders in the browser, so it is empty with JavaScript off
 //   plain     what the path is for, in a line anyone can read (the tab's tooltip too)

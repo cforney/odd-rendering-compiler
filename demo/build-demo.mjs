@@ -4,7 +4,7 @@
  * Assemble the comparison demo (demo/site/) from outputs both compilers already
  * produce. It copies each compiler's output/, moves each page's render-info banner
  * into the side panel, so the frame shows the edition alone, measures page weight
- * and client JS per page, reads the artefact snippets, and writes a single
+ * and client JS per page, and writes a single
  * index.html shell driven by demo/manifest.mjs. For the inspector it records what
  * decided each element, from the handlers' own trace. Build the outputs first:
  *
@@ -36,29 +36,30 @@ const SOURCES = {                          // manifest `dir` → compiler output
 const kb = (bytes) => (bytes / 1024).toFixed(1);
 const sizeOf = (file) => (existsSync(file) ? statSync(file).size : 0);
 
-// First lines of an artefact, for the "generated behind it" panel.
-function snippet(text, maxLines = 40) {
-  const lines = text.replace(/\r\n/g, "\n").split("\n");
-  const head = lines.slice(0, maxLines).join("\n");
-  return lines.length > maxLines ? head + "\n…" : head;
-}
+// A CDN script's size, once per URL; without network it stays a name, with no size.
+const weighed = new Map();
+const weighRemote = (url) => {
+  if (!weighed.has(url)) {
+    weighed.set(url, fetch(url.replace(/^\/\//, "https://")).then((r) => (r.ok ? r.arrayBuffer() : null)).then((b) => (b ? kb(b.byteLength) : null)).catch(() => null));
+  }
+  return weighed.get(url);
+};
 
-// Client JS a page actually ships: inline <script> bytes plus local script files
-// (measured); CDN scripts — whether a <script src> or an import inside an inline
-// module — can't be weighed offline, so they're listed by name.
-function measureClientJs(htmlFile) {
+// Client JS a page actually ships: inline <script> bytes plus local script files;
+// CDN scripts, whether a <script src> or an import inside an inline module, apart.
+async function measureClientJs(htmlFile) {
   const html = readFileSync(htmlFile, "utf8");
   const base = dirname(htmlFile);
   let bytes = 0;
-  const external = [];
+  const remote = new Set();
   const isRemote = (url) => /^(https?:)?\/\//i.test(url);
-  const note = (url) => external.push(basename(url.split(/[?#]/)[0]));
   for (const [, attrs, inner] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
     const src = attrs.match(/src\s*=\s*["']([^"']+)["']/i)?.[1];
-    if (src) { isRemote(src) ? note(src) : (bytes += sizeOf(resolve(base, src))); continue; }
+    if (src) { isRemote(src) ? remote.add(src) : (bytes += sizeOf(resolve(base, src))); continue; }
     bytes += Buffer.byteLength(inner, "utf8");                 // inline script
-    for (const [, url] of inner.matchAll(/(?:from|import)\s*\(?\s*["'](https?:\/\/[^"']+)["']/gi)) note(url);
+    for (const [, url] of inner.matchAll(/(?:from|import)\s*\(?\s*["'](https?:\/\/[^"']+)["']/gi)) remote.add(url);
   }
+  const external = await Promise.all([...remote].map(async (url) => ({ name: basename(url.split(/[?#]/)[0]), kb: await weighRemote(url) })));
   return { bytes, external };
 }
 
@@ -88,10 +89,9 @@ for (const [dir, src] of Object.entries(SOURCES)) {
 for (const asset of ["shell.css", "shell.js", "robots.txt"]) copyFileSync(resolve(DEMO, asset), resolve(SITE, asset));
 
 // ---------------------------------------------------------------------------
-// 2 · Resolve each path and document against the copied site: URL and metrics
-//     per page, the artefact snippet per path.
+// 2 · Resolve each path and document against the copied site: URL and metrics per page.
 // ---------------------------------------------------------------------------
-const resolved = paths.flatMap((p) => {
+const resolved = (await Promise.all(paths.map(async (p) => {
   const pages = {};
   let banner = null;
   for (const doc of docs) {
@@ -99,26 +99,21 @@ const resolved = paths.flatMap((p) => {
     const page = resolve(SITE, url);
     if (!existsSync(page)) continue;
     if (page.endsWith(".html")) banner = takeBanner(page) ?? banner;
-    const js = measureClientJs(page);
-    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), jsKB: kb(js.bytes), jsExternal: [...new Set(js.external)] };
+    const js = await measureClientJs(page);
+    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), jsKB: kb(js.bytes), jsExternal: js.external };
   }
   if (!Object.keys(pages).length) {
     console.warn(`[build-demo] skipping ${p.id}: no ${p.dir}/${p.file} found`);
     return [];
   }
-  const artefactFile = resolve(SITE, p.artefact.file);
   return [{
     id: p.id, family: p.family, label: p.label, hue: p.hue, pages, needsJs: Boolean(p.needsJs), interactive: Boolean(p.interactive), server: Boolean(p.server),
     fetchesKB: p.fetches ? kb(sizeOf(resolve(SITE, p.fetches))) : null,
     plain: p.plain, report: Boolean(p.report),
     how: banner?.replace(/<h3>[\s\S]*?<\/h3>\s*/, "") ?? null,
-    artefact: {
-      label: p.artefact.label,
-      url: p.artefact.file,
-      snippet: existsSync(artefactFile) ? snippet(readFileSync(artefactFile, "utf8")) : "",
-    },
+    artefact: { label: p.artefact.label, url: p.artefact.file },
   }];
-});
+}))).flat();
 if (!resolved.length) { console.error("[build-demo] no paths resolved — nothing to build."); process.exit(1); }
 
 // ---------------------------------------------------------------------------
@@ -184,11 +179,7 @@ const data = {
   concept, paths: resolved, inspect: await writeInspection(), notElements: NOT_ELEMENTS,
   views: readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: views[v.output]?.label ?? v.label, help: views[v.output]?.help ?? "" })),
   docs: docs.filter((d) => resolved.some((p) => p.pages[d.id])),
-  floor: {
-    label: floor.label, url: floor.file,
-    sizeKB: kb(sizeOf(floorFile)),
-    snippet: existsSync(floorFile) ? snippet(readFileSync(floorFile, "utf8")) : "",
-  },
+  floor: { label: floor.label, url: floor.file, sizeKB: kb(sizeOf(floorFile)) },
 };
 
 // ---------------------------------------------------------------------------
@@ -235,7 +226,6 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
         <h2 id="about-title"></h2>
         <p id="about-purpose"></p>
         <p class="muted" id="metrics"></p>
-        <p class="verified" id="verified" hidden></p>
         <p class="notice" id="notice" hidden>This path renders in the browser, so with JavaScript off there is nothing to show. The prebuilt paths keep their text.</p>
         <details id="how"><summary>How it works</summary><div id="how-text"></div></details>
       </section>
@@ -252,12 +242,10 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
       <section>
         <h3>Generated behind it</h3>
         <a id="artefact-link"></a>
-        <details><summary>Show the start</summary><pre class="code" id="artefact-code"></pre></details>
       </section>
       <section id="floor">
         <h3>Shared stylesheet</h3>
         <p class="muted">Every path renders against <a id="floor-link"></a> (<span id="floor-size"></span>).</p>
-        <details><summary>Show the start</summary><pre class="code" id="floor-code"></pre></details>
       </section>
       <p class="muted small">Static HTML framing the files both compilers build — nothing is re-rendered here.</p>
     </aside>
@@ -268,7 +256,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
       <h2 id="compare-title">Which rendering should I use?</h2>
       <button type="button" id="compare-close">Close</button>
     </header>
-    <p class="muted">They all show the same edition; they differ in what the reader downloads and what the page can do. Sizes are for the document picked.</p>
+    <p class="muted">They all show the same edition; they differ in what the reader downloads and what the page can do. Sizes are uncompressed, for the document picked, and all bars share one scale; a script inside the page counts in both columns. <span id="compare-checked"></span></p>
     <table>
       <thead><tr><th>Rendering</th><th>Page</th><th>Script</th><th>Works without JavaScript</th><th>Needs a server</th><th>Readings and notes in place</th><th>Same as the others</th></tr></thead>
       <tbody id="compare-rows"></tbody>

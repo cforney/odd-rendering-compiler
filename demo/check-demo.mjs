@@ -8,7 +8,7 @@
  * the first rendering, and the pixels nearly so. It also holds the manifest's other
  * claims to what the pages do, and the inspector's records to what they render.
  *
- * Writes site/verified.json, which the demo's badge reads, and exits 1 on a difference.
+ * Writes site/verified.json, which the demo's comparison reads, and exits 1 on a difference.
  *
  * Usage:   node --experimental-websocket demo/check-demo.mjs     (after build-demo; CHROME names the browser)
  * Needs:   Chrome, and network for the CDN scripts of some renderings
