@@ -57,10 +57,10 @@ function map(m, part = false) {
 }
 
 /** An element's first model of the output asked for ('' the models without @output) whose predicate holds. */
-function template({ ident, models }) {
+function template({ key, models }) {
   const test = (m) => [`$output = ${q(m.output ?? "")}`, m.predicate && `(${m.predicate})`].filter(Boolean).join(" and ");
   return [
-    `<xsl:template match="${ident}" mode="pm:select">`,
+    `<xsl:template match="${key.startsWith("{") ? `Q${key}` : key}" mode="pm:select">`,
     `  <xsl:param name="output" as="xs:string"/>`,
     `  <xsl:choose>`,
     ...models.map((m) => `    <xsl:when test="${escapeXml(test(m))}"><xsl:sequence select="${escapeXml(map(m))}"/></xsl:when>`),

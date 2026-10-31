@@ -148,6 +148,45 @@ test("the XSLT compiler keeps the whitespace of a quoted CSS string", { skip: !s
   for (const css of QUOTED_CSS) assert.ok(readFileSync(join(out, "quoted.css"), "utf8").includes(css), css);
 });
 
+/** The fixtures' ODD with every TEI element prefixed: it must read, and render, the same. */
+function prefixedOdd() {
+  const file = join(out, "prefixed.odd");
+  const xml = readFileSync(odd, "utf8").replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<(\/?)(?![\w.-]+:|[?!/])/g, "<$1tei:")
+    .replace(`xmlns="http://www.tei-c.org/ns/1.0"`, `xmlns:tei="http://www.tei-c.org/ns/1.0"`);
+  writeFileSync(file, xml);
+  return file;
+}
+
+test("the JS compiler reads an ODD by its namespaces, however they are spelled", async () => {
+  const dir = join(out, "prefixed-unified");
+  execFileSync(process.execPath, ["odd-to-unified.mjs", "--odd", prefixedOdd(), "--out", dir, "--strict"], { cwd: pocDir });
+  const teiToHast = await loadHandlers(join(dir, "tei-handlers.mjs"));
+  for (const name of cases) {
+    const tei = readFileSync(join(fixtures, "tei", `${name}.xml`), "utf8");
+    for (const output of OUTPUTS) check(name, output, toHtml(teiToHast(parseXmlToXast(tei), { output }).hast));
+  }
+  writeFileSync(join(out, "undeclared.odd"), `<TEI xmlns="http://www.tei-c.org/ns/1.0"><x:model behaviour="block"/></TEI>`);
+  const refused = spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", join(out, "undeclared.odd"), "--out", dir], { cwd: pocDir, encoding: "utf8" });
+  assert.match(refused.stderr, /✗ undeclared\.odd: the namespace prefix of x:model is not declared/);
+});
+
+test("a document outside the TEI namespace takes no model, and findings says so", () => {
+  const tei = join(out, "plain.xml");
+  writeFileSync(tei, "<TEI><text><p>x</p></text></TEI>");
+  execFileSync(process.execPath, ["findings.mjs", "--odd", odd, "--tei", tei, "--out", join(out, "plain-findings")], { cwd: pocDir });
+  const { documents } = JSON.parse(readFileSync(join(out, "plain-findings", "findings.json"), "utf8"));
+  assert.deepEqual(documents["plain.xml"], ["Root element not in the TEI namespace, so no model applies: <{}TEI>"]);
+});
+
+test("the stylesheet from a prefixed ODD renders the fixtures", { skip: !saxonHome && "needs Saxon HE 12 at $SAXON_HOME" }, () => {
+  const dir = join(out, "prefixed-xsl");
+  saxon(`-s:${prefixedOdd()}`, `-xsl:${resolve(pocDir, "../compiler-xslt/generate/odd-to-xsl.xsl")}`, `-o:${join(dir, "edition.xsl")}`);
+  mkdirSync(join(dir, "web"), { recursive: true });
+  saxon(`-s:${join(fixtures, "tei")}`, `-xsl:${join(dir, "edition.xsl")}`, `-o:${join(dir, "web")}`);
+  for (const name of cases) check(name, "web", readFileSync(join(dir, "web", `${name}.xml`), "utf8"));
+});
+
 for (const [generator, generate] of Object.entries(GENERATORS)) {
   test(`the stylesheet from ${generator} renders the fixtures`, { skip: !saxonHome && "needs Saxon HE 12 at $SAXON_HOME" }, () => {
     const dir = join(out, generator);

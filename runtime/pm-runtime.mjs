@@ -40,7 +40,7 @@ export const text = (value) => ({ type: "text", value });
 
 const isElement = (n) => n?.type === "element";
 const isText = (n) => n?.type === "text";
-const localName = (qname) => qname.slice(qname.indexOf(":") + 1);
+const localName = (name) => name.replace(/^\{.*\}/, "");
 const textOf = (n) => (isText(n) ? n.value : (n.children ?? []).map(textOf).join(""));
 /** XML whitespace, as XPath counts it (not the no-break space). */
 const blank = (s) => !/[^ \t\n\r]/.test(s);
@@ -84,14 +84,14 @@ function paramProps(params) {
  * text as rendered. teiToHast renders by it; the CETEIcean tier chooses models by
  * it in the browser.
  * @template {Model} M
- * @param {Record<string, M[]>} models  by element name
+ * @param {Record<string, M[]>} models  by element name, as nameOf spells it
  * @param {string} output
  * @param {View[]} [views]
  */
 export function createResolver(models, output, views = []) {
   /** The first model of exactly `out` (null: the base models) whose predicate holds. */
   const select = (pos, out) =>
-    (models[localName(pos.node.name)] ?? []).find((m) => (m.output ?? null) === out && (!m.predicate || bool(m.predicate(pos))));
+    (models[pos.node.name] ?? []).find((m) => (m.output ?? null) === out && (!m.predicate || bool(m.predicate(pos))));
   const modelOf = (pos) => select(pos, output) ?? select(pos, null);
   const flow = (pos) => (isElement(pos.node) && modelOf(pos)?.flow) || "";
 
@@ -158,7 +158,7 @@ export function createResolver(models, output, views = []) {
     for (; i >= 0 && i < list.length; i += step) {
       const { node } = list[i];
       const met = isText(node) ? (blank(node.value) ? "" : "stop")
-        : localName(node.name) === "lb" ? (node.attributes.break === "no" ? "join" : "stop")
+        : node.name === "lb" ? (node.attributes.break === "no" ? "join" : "stop")
         : flow(list[i]) === "block" ? "stop"
         : along(children(list[i]), step > 0 ? 0 : children(list[i]).length - 1, step);
       if (met) return met;
@@ -318,7 +318,7 @@ export function createRenderer(models, views = []) {
         case "index": {
           const heads = [];
           (function walk(n) {
-            for (const c of (n.children ?? []).filter(isElement)) localName(c.name) === "head" ? heads.push(textOf(c)) : walk(c);
+            for (const c of (n.children ?? []).filter(isElement)) c.name === "head" ? heads.push(textOf(c)) : walk(c);
           })(node);
           if (heads.length < 2) return [];
           return [h("nav", { className: ["tei-toc"] }, [h("ul", {}, heads.map((t) => h("li", {}, [text(collapse(t).trim())])))])];

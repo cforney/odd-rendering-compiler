@@ -3,7 +3,7 @@
 /**
  * Build-time findings: what the ODD does not foresee in the encoding.
  *
- * In a document's text: attribute values outside the ODD's value lists,
+ * A root element outside the TEI namespace. In a document's text: attribute values outside the ODD's value lists,
  * renditions it does not declare, elements it has no model for, note ranges
  * (@targetEnd) whose start is missing and anchors no range starts at, and page
  * images without the IIIF manifest to resolve them (by the root's model for
@@ -35,7 +35,7 @@ export function undefinedProperties({ specs, renditions }, tokens = "") {
 /** The findings in one document's text, each once, with a count where it recurs. */
 export function documentFindings({ specs, renditions }, tree) {
   const found = [];
-  const spec = Object.fromEntries(specs.map((s) => [s.ident, s]));
+  const spec = Object.fromEntries(specs.map((s) => [s.key, s]));
   const declared = new Set(renditions.map((r) => r.id));
   const all = [];
   (function walk(node, up) {
@@ -44,6 +44,7 @@ export function documentFindings({ specs, renditions }, tree) {
     node.children.forEach((c) => walk(c, [...up, node]));
   })(tree.children.find((n) => n.type === "element"), []);
 
+  if (all[0].node.name.startsWith("{")) found.push(`Root element not in the TEI namespace, so no model applies: <${all[0].node.name}>`);
   const inText = all.filter(({ node, up }) => node.name === "text" || up.some((a) => a.name === "text"));
   for (const { node } of inText) {
     const { models = [], values = {} } = spec[node.name] ?? {};

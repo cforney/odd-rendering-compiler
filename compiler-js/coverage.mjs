@@ -51,7 +51,7 @@ function unreachableIn(spec) {
   const found = [];
   for (const m of spec.models) {
     const output = m.output ?? "";
-    if (decided.has(output)) found.push({ ...m, element: spec.ident, after: decided.get(output) });
+    if (decided.has(output)) found.push({ ...m, element: spec.key, after: decided.get(output) });
     else if (!m.predicate) decided.set(output, m.id);
   }
   return found;
@@ -68,18 +68,18 @@ export function coverage(odd, records, local) {
   const unreachable = odd.specs.flatMap(unreachableIn);
   const blocked = new Set(unreachable.map((m) => m.id));
   const never = specs
-    .filter((s) => seen.has(s.ident))
-    .flatMap((s) => s.models.filter((m) => inRun(m) && !fired.has(m.id) && !blocked.has(m.id)).map((m) => ({ ...m, element: s.ident })));
-  const absent = specs.filter((s) => !seen.has(s.ident)).map((s) => {
+    .filter((s) => seen.has(s.key))
+    .flatMap((s) => s.models.filter((m) => inRun(m) && !fired.has(m.id) && !blocked.has(m.id)).map((m) => ({ ...m, element: s.key })));
+  const absent = specs.filter((s) => !seen.has(s.key)).map((s) => {
     const [first] = s.models.filter(inRun);
-    return { element: s.ident, models: s.models.filter(inRun).length, odd: first.odd, line: first.line };
+    return { element: s.key, models: s.models.filter(inRun).length, odd: first.odd, line: first.line };
   });
 
   const entry = (m) => ({ model: m.id, element: m.element, behaviour: m.behaviour, predicate: m.predicate ?? undefined, desc: m.label, odd: m.odd, line: m.line, after: m.after });
   const order = (a, b) => `${a.element} ${a.model ?? ""}`.localeCompare(`${b.element} ${b.model ?? ""}`);
   /** `ours` picks the models this ODD wrote, or those a chained one did. */
   const models = (list, ours) => list.map(entry).filter((e) => (e.odd === local) === ours).sort(order);
-  const specced = new Set(specs.map((s) => s.ident));
+  const specced = new Set(specs.map((s) => s.key));
   const elements = (known) => [...unhandled]
     .filter(([element]) => specced.has(element) === known)
     .map(([element, count]) => ({ element, count }))

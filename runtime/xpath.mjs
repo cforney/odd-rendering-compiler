@@ -13,12 +13,18 @@
  * than one item on a side throws when evaluated, as in XPath. Regular expressions
  * are JavaScript's.
  *
+ * A name means what XSLT's xpath-default-namespace makes it mean: unprefixed, or
+ * prefixed tei:, it is TEI's; another namespace is written Q{uri}local, which
+ * readOdd makes of the ODD's prefixes. Any other prefix does not compile.
+ *
  * A position is `{ node, up }`: the node and its ancestor elements, outermost
  * first. Attributes evaluate to their string values.
  */
 
 /**
- * TEI as xast, the tree every renderer reads.
+ * TEI as xast, the tree every renderer reads. An element's name is nameOf its
+ * namespace and local name; an attribute of a namespace other than xml's is
+ * keyed {uri}local, and namespace declarations are not attributes.
  * @typedef {{ type: "element", name: string, attributes: Record<string, string>, children: XastNode[] }} XastElement
  * @typedef {{ type: "text", value: string }} XastText
  * @typedef {{ type: "root", children: XastNode[] }} XastRoot
@@ -39,7 +45,10 @@
 const isElement = (n) => n?.type === "element";
 /** @type {(n: any) => n is XastText} */
 const isText = (n) => n?.type === "text";
-const localName = (qname = "") => qname.slice(qname.indexOf(":") + 1);
+export const TEI_NS = "http://www.tei-c.org/ns/1.0";
+/** An element's name: the local name in TEI's namespace, {uri}local in another, {}local in none. */
+export const nameOf = (uri, local) => (uri === TEI_NS ? local : `{${uri}}${local}`);
+const localName = (name = "") => name.replace(/^\{.*\}/, "");
 const textOf = (n) => (isText(n) ? n.value : (n?.children ?? []).map(textOf).join(""));
 
 /** @type {(item: unknown) => item is Position} */
@@ -173,7 +182,7 @@ const ARITY = {
   matches: [2, 3], replace: [3, 4], concat: [2, Infinity],
 };
 
-const TOKEN = /\s*(?:'([^']*)'|"([^"]*)"|(\d+(?:\.\d+)?)|(::|\.\.|!=|<=|>=|[=<>()[\],@/.*+|-])|([A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?))/y;
+const TOKEN = /\s*(?:'([^']*)'|"([^"]*)"|(\d+(?:\.\d+)?)|(::|\.\.|!=|<=|>=|[=<>()[\],@/.*+|-])|(Q\{[^}]*\}[A-Za-z_][\w.-]*|[A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?))/y;
 
 /**
  * Compile an expression to a function of a position; throws on anything outside the subset.
@@ -205,6 +214,12 @@ export function xpath(expr) {
   const eat = (v, t = "op") => (is(v, t) ? (i++, true) : false);
   const expect = (v) => eat(v) || fail(`expected "${v}"`);
   const name = () => (toks[i]?.t === "name" ? toks[i++].v : fail("expected a name"));
+  /** A name as the tree spells it. */
+  const resolved = (n, attribute) => {
+    const [, uri, local] = n.match(/^Q\{([^}]*)\}(.+)$/) ?? (n.startsWith("tei:") ? [n, TEI_NS, n.slice(4)] : []);
+    if (local) return attribute ? `{${uri}}${local}` : nameOf(uri, local);
+    return n.includes(":") && !(attribute && n.startsWith("xml:")) ? fail(`the namespace prefix of ${n} is not declared`) : n;
+  };
 
   /** Keep the items a predicate admits: a number is a position, anything else a test. */
   const filter = (items, preds, outer) =>
@@ -327,7 +342,7 @@ export function xpath(expr) {
     if (eat(".")) return (p) => [p];
     if (eat("..")) return parent;
     if (eat("@")) {
-      const attr = name();
+      const attr = resolved(name(), true);
       return (p) => {
         const v = isElement(p.node) ? p.node.attributes?.[attr] : undefined;
         return v == null ? [] : [v];
@@ -346,7 +361,10 @@ export function xpath(expr) {
       if ((n === "node" || n === "text") && eat("(")) {
         expect(")");
         test = n === "node" ? () => true : (q) => isText(q);
-      } else test = (q) => isElement(q) && localName(q.name) === localName(n);
+      } else {
+        const wanted = resolved(n, false);
+        test = (q) => isElement(q) && q.name === wanted;
+      }
     }
     const preds = predicates();
     // Predicates count in proximity order; the step gives its nodes in document order.

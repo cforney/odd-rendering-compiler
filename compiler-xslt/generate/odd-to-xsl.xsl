@@ -51,7 +51,7 @@
 
   <!-- An element's first model of the output asked for ('' the models without @output) whose predicate holds. -->
   <xsl:template match="pm:spec">
-    <axsl:template match="{@ident}" mode="pm:select">
+    <axsl:template match="{if (@ns) then 'Q' || @key else @key}" mode="pm:select">
       <axsl:param name="output" as="xs:string"/>
       <axsl:choose>
         <xsl:for-each select="pm:model">

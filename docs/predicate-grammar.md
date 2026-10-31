@@ -9,7 +9,9 @@ takes the first of its models, in document order, whose predicate holds. Params
 Any XPath 3.1. Both generators copy predicates and params verbatim into the
 generated XSLT 3.0 stylesheet, where the XSLT processor evaluates them. The
 stylesheet sets `xpath-default-namespace` to TEI's, so the ODD's unprefixed
-names are TEI elements.
+names are TEI elements. A prefix the ODD binds where the expression stands is
+resolved when the ODD is read, to `Q{uri}local`, or to the unprefixed name for
+TEI's namespace, so the expression needs no declaration where it is carried.
 
 ## unified / xast and CETEIcean — `odd-to-unified.mjs`, `odd-to-ceteicean.mjs`, `odd-to-ceteicean.xsl`
 
@@ -23,6 +25,9 @@ browser:
 - **Axes:** `self`, `child`, `parent`, `ancestor`, `ancestor-or-self`,
   `descendant`, `descendant-or-self`, `preceding-sibling`, `following-sibling`,
   `preceding`, `following`.
+- **Names:** unprefixed or `tei:`, TEI's; `Q{uri}local` another namespace's, as a
+  prefix the ODD binds becomes. A prefix it does not bind is outside the subset.
+  `x:*`, `*:name` and `namespace-uri()` are too.
 - **Operators:** `or`, `and`, the general comparisons (`= != < <= > >=`), the
   value comparisons (`eq ne lt le gt ge`), `+ -`, `mod`,
   `if (…) then … else …`, and sequences `(a, b)`.

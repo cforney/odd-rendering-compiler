@@ -26,6 +26,7 @@ here:
 | `outputs` | `@output`: an output's models take precedence, a view laid over the page (`omit`, added classes, an `alternate`'s readings), a model marked `web` |
 | `params` | params as CSS custom properties and attributes; node-valued params, one selecting the element itself; predicates with positions, value comparisons and conditionals; breaks, labels, the hyphen at a joined line end; `link` and `graphic` |
 | `notes` | notes numbered in document order, the outer before the inner; a note in the margin, without a marker; a range closed by `@targetEnd`; a note's `xml:id` on its marker, or on its body without one |
+| `namespaces` | a prefixed TEI source renders as an unprefixed one; a same-named element of another namespace is distinct; `elementSpec/@ns`; prefixes in a predicate |
 | `whitespace` | the nearest `xml:space` decides, through alternating `preserve` and `default` |
 | `behaviours` | `figure`; TEI Publisher's `pass-through` and `<pb:template>`; engine prefixes on `@output` (`opm-`, `orc-`) |
 | `invalid.odd` | no `@behaviour`, `@ident` or param `@name`; an empty `modelSequence`; a base ODD not found |
@@ -66,9 +67,7 @@ the question into a diff.
   Publisher do not; `behaviours` shows how an ODD can carry a model per engine.
 - **An element with no model.** Its content passes through here; the preview
   reports it and renders a span.
-- **`modelGrp`.** Flattened here, chosen as a unit by TEI Publisher, OPM and the
-  preview ([ALIGNMENT.md](../ALIGNMENT.md) D8). No case decides it yet: the next
-  one should.
+- **`modelGrp`.** Flattened here, chosen as a unit by TEI Publisher and OPM.
 - **Nested models.** `compound` (Boot 2024) is an extension here and not a case;
   whether it belongs in a shared suite is itself a question.
 - **`pb:template`.** In a template of text, TEI Publisher fills in a param's

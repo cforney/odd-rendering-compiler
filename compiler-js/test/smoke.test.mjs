@@ -116,6 +116,13 @@ test("odd-to-ceteicean writes a page per example, over the unified runtime", () 
   const context = vm.createContext({});
   vm.runInContext(`${readFileSync(join(out, "tei-ceteicean-behaviours.js"), "utf8")}
     this.twocol = teiModels.l[0].predicate; this.compiled = Object.keys(teiCompile(teiModels)).length; this.views = teiViews;`, context);
+  const fake = (attrs, kids = []) => ({ nodeType: 1, namespaceURI: "http://www.tei-c.org/ns/1.0", localName: "p", attributes: attrs, childNodes: kids });
+  const xast = vm.runInContext(`var Node = { TEXT_NODE: 3, CDATA_SECTION_NODE: 4, ELEMENT_NODE: 1 }; teiXast`, context)(
+    fake([{ name: "xmlns:t", prefix: "xmlns", namespaceURI: "http://www.w3.org/2000/xmlns/", localName: "t", value: "u" }, { name: "xml:id", prefix: "xml", namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "id", value: "i" }, { name: "f:n", prefix: "f", namespaceURI: "urn:f", localName: "n", value: "1" }],
+      [{ ...fake([]), namespaceURI: "urn:f" }]));
+  assert.equal(xast.name, "p", "the browser's tree names elements as the parser's does");
+  assert.equal(xast.children[0].name, "{urn:f}p");
+  assert.deepEqual({ ...xast.attributes }, { "xml:id": "i", "{urn:f}n": "1" });
   assert.equal(context.twocol, "parent::lg[contains-token(@rendition, '#twocol')]", "the models keep their XPath");
   assert.ok(context.compiled > 40, "the inlined XPath module compiles every model");
   assert.deepEqual(Array.from(context.views, (v) => v.output), ["entities", "normalized"], "and the views");

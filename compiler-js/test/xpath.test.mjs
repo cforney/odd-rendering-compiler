@@ -8,8 +8,10 @@ import assert from "node:assert/strict";
 import { xpath } from "../../runtime/xpath.mjs";
 import { parseXmlToXast } from "../odd-parser.mjs";
 
+const TEI = `xmlns="http://www.tei-c.org/ns/1.0"`;
+
 /** @type {any} */
-const context = { node: parseXmlToXast(`<p n="10" m="9"><a n="1"><b/></a><a n="2"><b/></a></p>`).children[0], up: [] };
+const context = { node: parseXmlToXast(`<p ${TEI} n="10" m="9"><a n="1"><b/></a><a n="2"><b/></a></p>`).children[0], up: [] };
 /** @type {any} */
 const inner = { node: context.node.children[1].children[0], up: [context.node, context.node.children[1]] };
 const value = (expr, at = context) => xpath(expr)(at);
@@ -39,7 +41,7 @@ test("the effective Boolean value of a singleton is that of its item", () => {
   assert.equal(value("not((0, ()))"), true);
   assert.equal(value("not((true(), ()))"), false);
   assert.equal(value("not(@n)"), false, "an attribute exists");
-  assert.equal(value("not(@e)", /** @type {any} */ ({ node: parseXmlToXast(`<p e=""/>`).children[0], up: [] })), false, "even empty");
+  assert.equal(value("not(@e)", /** @type {any} */ ({ node: parseXmlToXast(`<p ${TEI} e=""/>`).children[0], up: [] })), false, "even empty");
 });
 
 test("functions take the arguments they declare, and no others", () => {
@@ -49,4 +51,19 @@ test("functions take the arguments they declare, and no others", () => {
   for (const [expr, why] of [["contains('a')", "contains() cannot take 1"], ["true(1)", "true() cannot take 1"], ["replace('a', 'b')", "replace() cannot take 2"], ["concat('a')", "concat() cannot take 1"]]) {
     assert.throws(() => xpath(expr), new RegExp(why.replace(/[()]/g, "\\$&")), expr);
   }
+});
+
+test("names resolve by namespace, not by spelling", () => {
+  const root = parseXmlToXast(`<t:p xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:f="urn:f" f:n="1" n="2" xml:id="i"><t:a/><a xmlns="http://www.tei-c.org/ns/1.0"/><f:a/><a xmlns=""/></t:p>`).children[0];
+  const at = /** @type {any} */ ({ node: root, up: [] });
+  assert.deepEqual(/** @type {any} */ (root).attributes, { "{urn:f}n": "1", n: "2", "xml:id": "i" }, "no declarations among the attributes");
+  assert.equal(value("count(a)", at), 2, "TEI's, prefixed or not");
+  assert.equal(value("count(tei:a)", at), 2, "tei: as in the generated stylesheets");
+  assert.equal(value("count(Q{urn:f}a)", at), 1, "another namespace's");
+  assert.equal(value("count(Q{}a)", at), 1, "no namespace");
+  assert.equal(value("string(@Q{urn:f}n)", at), "1");
+  assert.equal(value("string(@n)", at), "2");
+  assert.equal(value("string(@xml:id)", at), "i");
+  assert.equal(value("local-name(Q{urn:f}a)", at), "a");
+  assert.throws(() => xpath("x:a"), /the namespace prefix of x:a is not declared/);
 });

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tei:TEI xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:f="urn:x-fixture" xmlns:o="urn:x-other">
+  <tei:teiHeader>
+    <tei:fileDesc><tei:titleStmt><tei:title>Namespaces</tei:title></tei:titleStmt></tei:fileDesc>
+  </tei:teiHeader>
+  <tei:text>
+    <tei:body>
+      <tei:p>Prefixed, <hi xmlns="http://www.tei-c.org/ns/1.0">by default</hi>, <f:hi>foreign without a model</f:hi>, <f:mark>foreign with one</f:mark>, <o:mark>another's</o:mark>, <tei:mark>TEI's</tei:mark>.</tei:p>
+      <tei:p><tei:term><f:mark>marked</f:mark></tei:term>, <tei:term><tei:hi>high</tei:hi></tei:term>, <tei:term><o:mark>plain</o:mark></tei:term>.</tei:p>
+    </tei:body>
+  </tei:text>
+</tei:TEI>

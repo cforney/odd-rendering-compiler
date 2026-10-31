@@ -48,18 +48,18 @@ const compile = (m) => ({
   params: Object.fromEntries(m.params.map((p) => [p.name, xpath(grammar.param(p.value))])),
   parts: m.parts?.map(compile),
 });
-const models = Object.fromEntries(odd.specs.filter((s) => s.models.length).map((s) => [s.ident, s.models.map(compile)]));
+const models = Object.fromEntries(odd.specs.filter((s) => s.models.length).map((s) => [s.key, s.models.map(compile)]));
 const byId = new Map(allModels(odd.specs).map((m) => [m.id, m]));
 
 const { modelOf, renderedText } = createResolver(models, output, output === "web" ? odd.views : []);
-const localName = (qname) => qname.slice(qname.indexOf(":") + 1);
+const localName = (name) => name.replace(/^\{.*\}/, "");
 /** Behaviours that render nothing, so the record stops there too. */
 const SILENT = ["omit", "metadata"];
 
 /** One element as a record; `used` collects the models the document made fire. */
 function record(pos, used) {
   const { node, up } = pos;
-  const element = localName(node.name);
+  const element = node.name;
   const model = modelOf(pos);
   if (model) used.add(model.id);
   const params = Object.fromEntries(Object.entries(model?.params ?? {}).map(([name, f]) => [name, seq(f(pos)).map((item) => str([item]))]));
@@ -72,7 +72,7 @@ function record(pos, used) {
     element,
     model: model?.id ?? null,
     behaviour: model?.behaviour ?? null,
-    classes: [`tei-${element}`, ...(model?.classes ?? [])],
+    classes: [`tei-${localName(element)}`, ...(model?.classes ?? [])],
     ...(Object.keys(params).length && { params }),
     children,
   };

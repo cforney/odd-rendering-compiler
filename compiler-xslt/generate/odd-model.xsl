@@ -7,7 +7,7 @@
     pm:odd(/) →
       <pm:odd>
         <pm:rendition id css/>…                         the source renditions of <tagsDecl>
-        <pm:spec ident mode>
+        <pm:spec ident key ns? mode>
           <pm:rule selector css/>                        a model group's CSS
           <pm:model behaviour tag flow predicate? output? label? template? classes source>
             <pm:rule selector css/>                      the model's CSS
@@ -28,6 +28,10 @@
   engine's, each labelled by the first <desc> of its models. An @output prefixed
   orc-, this compiler's own, names the output itself; one prefixed opm-, OPM's,
   is never rendered here (docs/conventions.md).
+
+  An XPath prefix the ODD binds becomes Q{uri}local (see pm:xpath). A spec with
+  @ns has it, and a key of {ns}ident, by which it is matched; otherwise its key
+  is its ident.
 
   An ODD it cannot read raises the error pm:odd, naming each problem as
   odd-parser.mjs names it, but without the line (see pm:problems).
@@ -99,12 +103,12 @@
           <xsl:variable name="base" select="pm:chain(doc(resolve-uri($source, base-uri($doc))), ($seen, $uri))"/>
           <xsl:sequence select="$base/pm:rendition, $renditions"/>
           <xsl:for-each select="$base/pm:spec">
-            <xsl:variable name="own" select="$specs[@ident = current()/@ident][last()]"/>
+            <xsl:variable name="own" select="$specs[@key = current()/@key][last()]"/>
             <xsl:if test="not($own/@mode = 'delete')">
               <xsl:sequence select="if ($own/pm:model) then $own else ."/>
             </xsl:if>
           </xsl:for-each>
-          <xsl:sequence select="$specs[not(@mode = 'delete') and not(@ident = $base/pm:spec/@ident)]"/>
+          <xsl:sequence select="$specs[not(@mode = 'delete') and not(@key = $base/pm:spec/@key)]"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:sequence select="$renditions, $specs"/>
@@ -156,7 +160,9 @@
 
   <xsl:template match="tei:elementSpec" mode="pm:spec">
     <xsl:variable name="entries" select="tei:model | tei:modelGrp | tei:modelSequence"/>
-    <pm:spec ident="{@ident}" mode="{(@mode, 'add')[1]}">
+    <xsl:variable name="ns" select="@ns[. ne 'http://www.tei-c.org/ns/1.0']"/>
+    <pm:spec ident="{@ident}" key="{if ($ns) then '{' || $ns || '}' || @ident else @ident}" mode="{(@mode, 'add')[1]}">
+      <xsl:if test="$ns"><xsl:attribute name="ns" select="$ns"/></xsl:if>
       <xsl:for-each select="$entries">
         <xsl:choose>
           <xsl:when test="self::tei:modelGrp">
@@ -235,7 +241,7 @@
              else if ($flows = 'block') then 'block' else if (every $f in $flows satisfies $f = 'inline') then 'inline' else ''}"
       classes="{distinct-values(($groupClass[.], $own, $cls))}"
       source="{(@useSourceRendition, $outer/@useSourceRendition, $group/@useSourceRendition)[1] = 'true'}">
-      <xsl:if test="@predicate"><xsl:attribute name="predicate" select="@predicate"/></xsl:if>
+      <xsl:if test="@predicate"><xsl:attribute name="predicate" select="pm:xpath(@predicate, .)"/></xsl:if>
       <xsl:if test="$output"><xsl:attribute name="output" select="$output"/></xsl:if>
       <xsl:if test="tei:desc"><xsl:attribute name="label" select="normalize-space(tei:desc[1])"/></xsl:if>
       <xsl:if test="*:template"><xsl:attribute name="template" select="pm:template(*:template[1])"/></xsl:if>
@@ -248,11 +254,30 @@
       </xsl:if>
       <!-- A repeated param counts once, with its last value. -->
       <xsl:for-each-group select="tei:param" group-by="@name">
-        <pm:param name="{@name}" value="{(current-group()[last()]/@value, '''''')[1]}"/>
+        <pm:param name="{@name}" value="{pm:xpath((current-group()[last()]/@value, '''''')[1], current-group()[last()])}"/>
       </xsl:for-each-group>
       <xsl:sequence select="$parts"/>
     </pm:model>
   </xsl:template>
+
+  <!-- An expression with the prefixes the ODD binds resolved, to Q{uri}local or, for TEI's
+       namespace, the unprefixed name; string literals and xml: stay as they are. -->
+  <xsl:function name="pm:xpath" as="xs:string">
+    <xsl:param name="expr" as="xs:string"/>
+    <xsl:param name="at" as="element()"/>
+    <xsl:variable name="parts" as="xs:string*">
+      <xsl:analyze-string select="$expr" regex="'[^']*'|&quot;[^&quot;]*&quot;|(@?)([A-Za-z_][\w.\-]*):([A-Za-z_][\w.\-]*)">
+        <xsl:matching-substring>
+          <xsl:variable name="uri" select="if (regex-group(2) and regex-group(2) ne 'xml') then namespace-uri-for-prefix(regex-group(2), $at) else ()"/>
+          <xsl:sequence select="if (empty($uri)) then .
+            else if (not(regex-group(1)) and $uri = 'http://www.tei-c.org/ns/1.0') then regex-group(3)
+            else regex-group(1) || 'Q{' || $uri || '}' || regex-group(3)"/>
+        </xsl:matching-substring>
+        <xsl:non-matching-substring><xsl:sequence select="."/></xsl:non-matching-substring>
+      </xsl:analyze-string>
+    </xsl:variable>
+    <xsl:sequence select="string-join($parts)"/>
+  </xsl:function>
 
   <!-- A <pb:template> as XML without namespaces, as TEI Publisher reads it:
        its elements, or with none its text, each line's leading whitespace dropped. -->

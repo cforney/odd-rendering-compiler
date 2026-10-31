@@ -71,7 +71,7 @@ function modelJs(m, pad) {
 
 const table = specs.map((s) => {
   const models = s.models.map((m) => `    ${modelJs(m, "    ")},`);
-  return `  ${JSON.stringify(s.ident)}: [\n${models.join("\n")}\n  ],`;
+  return `  ${JSON.stringify(s.key)}: [\n${models.join("\n")}\n  ],`;
 });
 
 const source = `/**

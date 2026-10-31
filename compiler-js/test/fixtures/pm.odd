@@ -167,6 +167,16 @@
           </model>
           <model behaviour="note"/>
         </elementSpec>
+        <!-- namespaces: a spec with @ns takes that namespace's element, and only it; a prefix in a
+             predicate means what the ODD binds it to, TEI's own prefix included -->
+        <elementSpec ident="mark" ns="urn:x-fixture" mode="change">
+          <model behaviour="inline" cssClass="mark-foreign"/>
+        </elementSpec>
+        <elementSpec ident="term" mode="change" xmlns:f="urn:x-fixture" xmlns:t="http://www.tei-c.org/ns/1.0">
+          <model predicate="f:mark" behaviour="inline" cssClass="term-marked"/>
+          <model predicate="t:hi" behaviour="inline" cssClass="term-hi"/>
+          <model behaviour="inline"/>
+        </elementSpec>
         <!-- outputs: an output's models take precedence there; models of another output are skipped.
              A view (print) is laid over the page: its omit hides, a model of the same behaviour adds its
              classes, and its readings of an alternate are marked; its switch is labelled by the <desc> -->

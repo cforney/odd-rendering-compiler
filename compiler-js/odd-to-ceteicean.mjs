@@ -70,7 +70,10 @@ const json = (m) => ({
   classes: m.classes, source: m.source, template: m.template,
   parts: m.parts?.map(json),
 });
-const models = Object.fromEntries(specs.filter((s) => s.models.length).map((s) => [s.ident, s.models.map(json)]));
+// CETEIcean's behaviours reach TEI's elements only.
+const foreign = specs.filter((s) => s.models.length && s.ns !== undefined);
+for (const s of foreign) log(`⚠ <${s.key}>: models of another namespace are not applied in this tier`);
+const models = Object.fromEntries(specs.filter((s) => s.models.length && !foreign.includes(s)).map((s) => [s.ident, s.models.map(json)]));
 
 const behaviours = `/* tei-ceteicean-behaviours.js — generated from ${basename(oddPath)} by odd-to-ceteicean.mjs${stamp ? `, ${stamp}` : ""} */
 ${script("xpath.mjs", "teiXpath")}

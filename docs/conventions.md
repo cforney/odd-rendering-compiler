@@ -87,6 +87,13 @@ The CSS of `<outputRendition>` is compiled onto the same classes.
 - **Line breaks.** A `break` of type `line` where a line already starts renders
   nothing. At an `lb break="no"`, the hyphen that ends the line's text and the
   spaces around the break go; the break's model sets the hyphen.
+- **Namespaces.** Names resolve by namespace, not by spelling, in the ODD and in
+  the source. A model applies to TEI's element of its `@ident`, or with
+  `elementSpec/@ns` to that namespace's, under the same class `tei-<ident>`. Any
+  other element, in another namespace or in none, SVG and MathML included, has no
+  model: its content passes through, and its markup is not copied. A document
+  whose root is outside TEI's namespace takes no models, as in XSLT, and findings
+  reports it. The CETEIcean tier applies TEI's models only, and warns of others.
 - **Whitespace.** Whitespace-only text at the edge of a block, or next to one, is
   indentation and is dropped. Other whitespace collapses, unless the nearest
   `xml:space` says `preserve`.
@@ -104,5 +111,4 @@ Each is labelled as an extension wherever it is used; see
 ## Not a convention, but a difference
 
 A `<modelGrp>` is flattened here: a model after a group is a fallback. TEI
-Publisher, OPM and the Simler preview choose the group as a unit. See
-[ALIGNMENT.md](../ALIGNMENT.md) D8.
+Publisher, OPM and the Simler preview choose the group as a unit.

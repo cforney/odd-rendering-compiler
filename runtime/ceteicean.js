@@ -32,8 +32,10 @@ function teiCompile(models) {
 function teiXast(n) {
   if (n.nodeType === Node.TEXT_NODE || n.nodeType === Node.CDATA_SECTION_NODE) return { type: "text", value: n.nodeValue, dom: n };
   if (n.nodeType !== Node.ELEMENT_NODE) return null;
-  const attributes = Object.fromEntries(Array.from(n.attributes, (a) => [a.name, a.value]));
-  return { type: "element", name: n.nodeName, attributes, children: Array.from(n.childNodes, teiXast).filter(Boolean), dom: n };
+  const declared = (a) => a.name === "xmlns" || a.prefix === "xmlns";
+  const key = (a) => (a.namespaceURI && a.prefix !== "xml" ? `{${a.namespaceURI}}${a.localName}` : a.name);
+  const attributes = Object.fromEntries(Array.from(n.attributes).filter((a) => !declared(a)).map((a) => [key(a), a.value]));
+  return { type: "element", name: teiXpath.nameOf(n.namespaceURI ?? "", n.localName), attributes, children: Array.from(n.childNodes, teiXast).filter(Boolean), dom: n };
 }
 
 /** Render the TEI source with CETEIcean, the models and the views laid over them; done(dom) receives the result. */
@@ -66,7 +68,7 @@ function teiEdition(ct, source, models, views, done) {
     const parts = !m ? [] : m.behaviour === "sequence" ? m.parts.map((p, k) => [p, k]).filter(([p]) => !p.predicate || bool(p.predicate(pos))) : [[m, 0]];
     marks.set(node, choices.length);
     node.dom.setAttribute("data-pm", choices.length);
-    choices.push(m && { ident: node.name.replace(/^.*:/, ""), pos, models: parts.map(([p, k]) => evaluate(p, pos, k)) });
+    choices.push(m && { ident: node.name, pos, models: parts.map(([p, k]) => evaluate(p, pos, k)) });
     if (m && ["omit", "metadata"].includes(m.behaviour)) return;
     node.children.forEach((c, i) => walk({ node: c, up: [...pos.up, node], i }));
   })({ node: teiXast(doc.documentElement), up: [] });
