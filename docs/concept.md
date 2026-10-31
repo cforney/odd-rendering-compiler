@@ -18,7 +18,7 @@ The chain is built twice, in JavaScript (`compiler-js/`) and in XSLT
 read the ODD into the same model, the JavaScript in `odd-parser.mjs` and the XSLT
 in `generate/odd-model.xsl`. The unified handlers and the stylesheets of both XSLT
 generators produce an equivalent static body: identical up to attribute order
-and whitespace. `npm test` checks this on the examples and on the conformance
+and the whitespace next to a block's tags. `npm test` checks this on the examples and on the conformance
 fixtures (`compiler-js/test/fixtures/`).
 
 ## The pieces

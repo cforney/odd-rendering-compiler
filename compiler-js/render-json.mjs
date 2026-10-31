@@ -24,7 +24,7 @@ import { parseXmlToXast, allModels } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import { createResolver } from "../runtime/pm-runtime.mjs";
 import { xpath, seq, str } from "../runtime/xpath.mjs";
-import { parseArgs, loadOdd, createLogger, writeOut, resolveInputFiles } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("render-json");
@@ -96,7 +96,7 @@ function describe(used) {
   return table;
 }
 
-for (const teiFile of resolveInputFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml")) {
+for (const teiFile of resolveTeiFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml")) {
   const tree = parseXmlToXast(readFileSync(resolve(teiFile), "utf8"));
   const used = new Set();
   const root = record({ node: tree.children.find((n) => n.type === "element"), up: [] }, used);

@@ -46,7 +46,7 @@
   <!-- The ODD, or the error pm:odd naming each problem that keeps it from being read. -->
   <xsl:function name="pm:odd" as="element(pm:odd)">
     <xsl:param name="doc" as="document-node()"/>
-    <xsl:variable name="odd" select="pm:chain($doc)"/>
+    <xsl:variable name="odd" select="pm:chain($doc, ())"/>
     <xsl:sequence select="if (empty($odd//pm:model))
       then error(xs:QName('pm:odd'), pm:name($doc) || ': holds no &lt;model&gt;, so there is no Processing Model to compile')
       else $odd"/>
@@ -73,9 +73,13 @@
     <xsl:sequence select="tokenize(base-uri($doc), '/')[last()]"/>
   </xsl:function>
 
-  <!-- One ODD of a chain, with its base. -->
+  <!-- One ODD of a chain, with its base; $seen are the ODDs that inherit from it. -->
   <xsl:function name="pm:chain" as="element(pm:odd)">
     <xsl:param name="doc" as="document-node()"/>
+    <xsl:param name="seen" as="xs:string*"/>
+    <xsl:variable name="uri" select="string(base-uri($doc))"/>
+    <xsl:sequence select="if ($uri = $seen) then error(xs:QName('pm:odd'), pm:name($doc) || ': inherits from itself: '
+      || string-join(($seen, $uri) ! tokenize(., '/')[last()], ' → ')) else ()"/>
     <xsl:variable name="problems" select="pm:problems($doc)"/>
     <xsl:sequence select="if (exists($problems)) then error(xs:QName('pm:odd'), string-join($problems, '&#10;')) else ()"/>
     <xsl:variable name="specs" as="element(pm:spec)*">
@@ -84,7 +88,7 @@
     </xsl:variable>
     <xsl:variable name="renditions" as="element(pm:rendition)*">
       <xsl:for-each select="$doc//tei:tagsDecl/tei:rendition[@xml:id]">
-        <pm:rendition id="{@xml:id}" css="{normalize-space(.)}"/>
+        <pm:rendition id="{@xml:id}" css="{pm:css(.)}"/>
       </xsl:for-each>
     </xsl:variable>
     <xsl:variable name="source" select="($doc//tei:schemaSpec)[1]/@source"/>
@@ -92,7 +96,7 @@
       <xsl:choose>
         <!-- A chain: the base ODD's specs; this one's replace their models, delete, or add. -->
         <xsl:when test="$source">
-          <xsl:variable name="base" select="pm:chain(doc(resolve-uri($source, base-uri($doc))))"/>
+          <xsl:variable name="base" select="pm:chain(doc(resolve-uri($source, base-uri($doc))), ($seen, $uri))"/>
           <xsl:sequence select="$base/pm:rendition, $renditions"/>
           <xsl:for-each select="$base/pm:spec">
             <xsl:variable name="own" select="$specs[@ident = current()/@ident][last()]"/>
@@ -181,9 +185,21 @@
     <xsl:param name="selector" as="xs:string"/>
     <xsl:param name="output" as="xs:string?"/>
     <xsl:for-each select="$el/tei:outputRendition">
-      <pm:rule selector="{$output ! (pm:on(.) || ' ')}{$selector}{if (@scope) then '::' || @scope else ''}" css="{normalize-space(.)}"/>
+      <pm:rule selector="{$output ! (pm:on(.) || ' ')}{$selector}{if (@scope) then '::' || @scope else ''}" css="{pm:css(.)}"/>
     </xsl:for-each>
   </xsl:template>
+
+  <!-- CSS with its whitespace collapsed, but for that of its quoted strings. -->
+  <xsl:function name="pm:css" as="xs:string">
+    <xsl:param name="css" as="xs:string"/>
+    <xsl:variable name="parts" as="xs:string*">
+      <xsl:analyze-string select="$css" regex="&quot;([^&quot;\\]|\\.)*&quot;|'([^'\\]|\\.)*'" flags="s">
+        <xsl:matching-substring><xsl:sequence select="."/></xsl:matching-substring>
+        <xsl:non-matching-substring><xsl:sequence select="replace(., '\s+', ' ')"/></xsl:non-matching-substring>
+      </xsl:analyze-string>
+    </xsl:variable>
+    <xsl:sequence select="replace(string-join($parts), '^ | $', '')"/>
+  </xsl:function>
 
   <!-- One model or sequence, the context; `outer` is the model or sequence it is a part of. -->
   <xsl:template name="pm:read">

@@ -31,13 +31,13 @@ import { parseXmlToXast, extractTeiTitle, pageOf } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import {
   parseArgs, loadOdd, createLogger, writeOut, generatedStamp,
-  resolveInputFiles, htmlPageName, buildIndexPage,
+  resolveTeiFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("odd-to-ceteicean");
 const oddPath = cli.get("--odd");
-const teiFiles = resolveInputFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml");
+const teiFiles = resolveTeiFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml");
 const cssPath = cli.get("--css") || "output/edition.css";
 const outDir = cli.get("--out") || "output";
 const stamp = generatedStamp(cli);

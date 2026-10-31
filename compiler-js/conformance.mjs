@@ -11,7 +11,7 @@
  * {out}/{case}.html: the page a renderer here writes, or `… > {out}/{case}.html`.
  *
  * --level strict compares as the byte-identity gate does, up to attribute order
- * and whitespace. --level structure compares only tags and text, inside the
+ * and the whitespace next to a block's tags. --level structure compares only tags and text, inside the
  * edition: without attributes, the edition's wrapper and the view switches,
  * which are this compiler's conventions, so an implementation with conventions
  * of its own can be compared on the rest.

@@ -17,10 +17,10 @@
  */
 
 import { spawnSync } from "child_process";
-import { existsSync, readdirSync, readFileSync } from "fs";
-import { basename, dirname, join, resolve } from "path";
+import { existsSync, readFileSync } from "fs";
+import { basename, dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { parseArgs, resolveInputFiles } from "./cli.mjs";
+import { parseArgs, resolveTeiFiles } from "./cli.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const { version } = JSON.parse(readFileSync(join(HERE, "package.json"), "utf8"));
@@ -88,7 +88,7 @@ if (output !== "web" && tier !== "static") fail(`--output ${output} needs --tier
 if (!existsSync(oddPath)) fail(`ODD not found: ${oddPath}`);
 
 // Resolve the sources here, so a typo or an empty glob is an error, not an empty build.
-const sources = resolveInputFiles(teiPaths);
+const sources = resolveTeiFiles(teiPaths);
 const missing = sources.filter((path) => !existsSync(path));
 if (missing.length) fail(`TEI source not found: ${missing.join(", ")}`);
 if (!sources.length) fail(`no TEI source matched ${teiPaths.join(", ")}`);
@@ -120,6 +120,5 @@ if (cli.has("--reports")) {
   step("findings.mjs", "--odd", oddPath, tei, tokens && ["--tokens", tokens], "--out", join(reports, "findings"));
 }
 
-const pages = readdirSync(resolve(outDir)).filter((f) => f.endsWith(".html")).length;
 const where = [`artefacts in ${outDir}/artefacts`, cli.has("--reports") && `reports in ${outDir}/reports`].filter(Boolean);
-console.log(`[odd-render] ✓ ${pages} page(s) in ${outDir} — the ${tier} tier of ${basename(oddPath)}; ${where.join(", ")}`);
+console.log(`[odd-render] ✓ ${sources.length} page(s) in ${outDir} — the ${tier} tier of ${basename(oddPath)}; ${where.join(", ")}`);

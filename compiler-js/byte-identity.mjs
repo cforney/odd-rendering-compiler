@@ -3,7 +3,8 @@
  * byte-identity.mjs — the equivalence gate between the renders.
  *
  * The unified and XSLT renders of the same ODD have the same <body> modulo
- * serialisation (attribute order, whitespace between and within tags).
+ * serialisation (attribute order, whitespace next to a block's tags), and only
+ * that: a space between inline elements, in text or in an attribute value counts.
  * normaliseRenderedBody() strips exactly that, so the comparison holds whichever
  * engine (Saxon HE, SaxonJS, or the unified serialiser) produced each file.
  *
@@ -12,6 +13,9 @@
  */
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+
+/** Whitespace between tags is not rendered next to these. */
+const BLOCK = new Set("article aside blockquote div figcaption figure form h1 h2 h3 h4 h5 h6 li nav p section table td tr ul".split(" "));
 
 /** Canonical form of a rendered page's body, ignoring serialisation noise. */
 export function normaliseRenderedBody(html) {
@@ -27,8 +31,8 @@ export function normaliseRenderedBody(html) {
     return "<" + tag + sorted.map((a) => " " + a).join("") + ">";
   });
 
-  b = b.replace(/>\s+</g, "><");        // drop inter-tag whitespace
-  return b.replace(/\s+/g, " ").trim(); // collapse the rest
+  b = b.replace(/(<\/?([A-Za-z][\w-]*)[^>]*>)\s+(?=<\/?([A-Za-z][\w-]*))/g, (m, tag, a, c) => (BLOCK.has(a) || BLOCK.has(c) ? tag : m));
+  return b.trim();
 }
 
 /** Compare two rendered files; returns { equal, index, a, b }. */

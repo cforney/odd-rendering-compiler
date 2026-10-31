@@ -124,7 +124,7 @@ document.addEventListener('click', function (e) {
           <xsl:otherwise>
             <section class="tei-notes" data-place="{current-grouping-key()}">
               <xsl:for-each select="current-group()">
-                <aside class="tei-note-body"><xsl:apply-templates select="pm:body/node()" mode="pm:page"/></aside>
+                <aside class="tei-note-body"><xsl:copy-of select="*:a/@id"/><xsl:apply-templates select="pm:body/node()" mode="pm:page"/></aside>
               </xsl:for-each>
             </section>
           </xsl:otherwise>
@@ -193,7 +193,8 @@ document.addEventListener('click', function (e) {
   <!-- At a joined line end the lb's model sets the hyphen: the encoded one goes, and so do the spaces. -->
   <xsl:template match="text()">
     <xsl:choose>
-      <xsl:when test="ancestor::*/@xml:space = 'preserve'"><xsl:value-of select="."/></xsl:when>
+      <!-- The nearest xml:space decides. -->
+      <xsl:when test="(ancestor::*/@xml:space)[last()] = 'preserve'"><xsl:value-of select="."/></xsl:when>
       <xsl:when test="normalize-space()">
         <xsl:variable name="collapsed" select="replace(., '[ \t\n\r]+', ' ')"/>
         <xsl:variable name="start" select="if (pm:joined(., -1)) then replace($collapsed, '^ ', '') else $collapsed"/>
@@ -403,7 +404,7 @@ document.addEventListener('click', function (e) {
         <xsl:variable name="place" select="if (map:contains($params, 'place')) then string(head($params?place)) else 'end'"/>
         <pm:note place="{if ($place = ('end', 'foot')) then 'end' else $place}">
           <a class="{$class} tei-note-ref">
-            <xsl:sequence select="$attrs[not(name() = 'id')]"/>
+            <xsl:sequence select="$attrs"/>
             <xsl:if test="map:contains($params, 'range')">
               <xsl:attribute name="data-range" select="replace(string(head($params?range)), '^#', '')"/>
             </xsl:if>

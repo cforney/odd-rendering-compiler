@@ -21,7 +21,7 @@ import { resolve, join } from "path";
 import { tmpdir } from "os";
 import {
   parseArgs, createLogger, writeOut,
-  resolveInputFiles, htmlPageName, buildIndexPage,
+  resolveTeiFiles, htmlPageName, buildIndexPage,
 } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -33,7 +33,7 @@ const cssPath = cli.get("--css") || "output/edition.css";
 const outDir  = cli.get("--out") || "output";
 const output  = cli.get("--output") || "web";
 
-const teiFiles = resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-*.xml");
+const teiFiles = resolveTeiFiles(teiArg.length ? teiArg : "../examples/simler-*.xml");
 const multi = teiFiles.length > 1;
 
 mkdirSync(resolve(outDir), { recursive: true });

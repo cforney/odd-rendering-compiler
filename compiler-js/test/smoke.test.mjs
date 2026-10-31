@@ -243,7 +243,7 @@ test("coverage reads the ODD back against the records of a corpus", () => {
   assert.deepEqual(written.absent.map((e) => e.element), ["figure"], "an element the ODD models but no record names");
   assert.deepEqual(encoded.unmodelled, [{ element: "foo", count: 1 }],
     "an element with no model — and nothing from inside the alternate, where an unrendered reading is a decision");
-  assert.deepEqual(encoded.silent, [{ element: "note", count: 1 }], "a spec with models of which none applied: no output, no warning");
+  assert.deepEqual(encoded.silent, [{ element: "note", count: 1 }], "a spec with models of which none applied: its content passes through, with no warning");
   assert.deepEqual(inherited.absent.map((e) => [e.element, e.odd]), [["hi", "base.odd"]], "what the chained ODD wrote is reported apart");
   assert.deepEqual(inherited.never, [], "its model for <p> did fire");
 
@@ -295,6 +295,29 @@ test("odd-render compiles and renders an edition in one command", () => {
   const bad = spawnSync(process.execPath, ["odd-render.mjs", ODD, "nope.xml", "--out", out], { cwd: pocDir, encoding: "utf8" });
   assert.equal(bad.status, 1, "a source that is not there is an error, not an empty build");
   assert.match(bad.stderr, /TEI source not found: nope\.xml/);
+});
+
+test("odd-render refuses sources that would overwrite each other, before writing anything", () => {
+  const dir = join(outDir, "clash");
+  for (const sub of ["a", "b"]) mkdirSync(join(dir, sub), { recursive: true });
+  const tei = (path) => {
+    writeFileSync(join(dir, path), "<TEI/>");
+    return join(dir, path);
+  };
+  const render = (name, ...sources) => ({ out: join(dir, name), ...spawnSync(process.execPath, ["odd-render.mjs", ODD, ...sources, "--out", join(dir, name)], { cwd: pocDir, encoding: "utf8" }) });
+  const [a, b, index, upper] = [tei("a/text.xml"), tei("b/text.xml"), tei("index.xml"), tei("b/TEXT2.xml")];
+
+  const same = render("same", a, b);
+  assert.equal(same.status, 1);
+  assert.match(same.stderr, /text\.xml, .*text\.xml would write text\.html, the same page/);
+  assert.ok(!existsSync(same.out), "nothing written");
+  assert.match(render("case", upper, tei("a/text2.xml")).stderr, /would write text2\.html/, "names that differ only in case");
+  assert.match(render("index", index, a).stderr, /index\.xml would write index\.html, the index of several sources/);
+
+  assert.equal(render("alone", index).status, 0, "a lone index.xml has no index to overwrite");
+  const twice = render("twice", a, join(dir, "b", "..", "a", "text.xml"));
+  assert.equal(twice.status, 0, "one file under two spellings is one source");
+  assert.match(twice.stdout, /✓ 1 page\(s\)/);
 });
 
 test("readOdd resolves <specGrpRef> indirection (tei_simplePrint)", () => {

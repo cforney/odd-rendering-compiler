@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc><titleStmt><title>xml:space</title></titleStmt></fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>collapsed  here <hi xml:space="preserve">kept  here <hi xml:space="default">collapsed  again <hi xml:space="preserve">kept  again</hi></hi></hi></p>
+    </body>
+  </text>
+</TEI>

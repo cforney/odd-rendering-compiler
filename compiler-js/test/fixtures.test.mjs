@@ -85,6 +85,28 @@ test("the JS compiler refuses an ODD it cannot read, naming each problem and its
   assert.match(refuse(join(out, "broken.odd")).stderr, /✗ broken\.odd:3: not well-formed XML: Missing end tag for element model/);
 });
 
+const QUOTED_ODD = `<TEI xmlns="http://www.tei-c.org/ns/1.0"><encodingDesc><tagsDecl><rendition xml:id="r">content:   "a  b";</rendition></tagsDecl></encodingDesc>
+  <schemaSpec><elementSpec ident="p"><model behaviour="block"><outputRendition>--literal:  'a  \\'  b';
+    color:  red;</outputRendition></model></elementSpec></schemaSpec></TEI>`;
+const QUOTED_CSS = [`content: "a  b";`, `--literal: 'a  \\'  b'; color: red;`];
+
+test("the JS compiler keeps the whitespace of a quoted CSS string", () => {
+  const odd = join(out, "quoted.odd");
+  writeFileSync(odd, QUOTED_ODD);
+  execFileSync(process.execPath, ["odd-to-css.mjs", "--odd", odd, "--out", join(out, "quoted")], { cwd: pocDir });
+  for (const css of QUOTED_CSS) assert.ok(readFileSync(join(out, "quoted", "edition.css"), "utf8").includes(css), css);
+});
+
+test("the JS compiler refuses an ODD that inherits from itself", () => {
+  const refuse = (file) => spawnSync(process.execPath, ["odd-to-unified.mjs", "--odd", file, "--out", out], { cwd: pocDir, encoding: "utf8" });
+  const chain = (name, source) => writeFileSync(join(out, name), `<TEI xmlns="http://www.tei-c.org/ns/1.0"><schemaSpec source="${source}"><elementSpec ident="p"><model behaviour="block"/></elementSpec></schemaSpec></TEI>`);
+  chain("self.odd", "self.odd");
+  assert.match(refuse(join(out, "self.odd")).stderr, /✗ self\.odd: inherits from itself: self\.odd → self\.odd/);
+  chain("one.odd", "two.odd");
+  chain("two.odd", "one.odd");
+  assert.match(refuse(join(out, "one.odd")).stderr, /✗ one\.odd: inherits from itself: one\.odd → two\.odd → one\.odd/);
+});
+
 // Saxon HE 12 as build.sh finds it: the jar and its xmlresolver libraries.
 const saxonHome = process.env.SAXON_HOME;
 function saxon(...args) {
@@ -106,6 +128,24 @@ test("the XSLT compiler refuses an ODD it cannot read, naming each problem", { s
     for (const [, p] of PROBLEMS) assert.ok(e.stderr.toString().includes(`invalid.odd: ${p}`), p);
     return true;
   });
+});
+
+test("the XSLT compiler refuses an ODD that inherits from itself", { skip: !saxonHome && "needs Saxon HE 12 at $SAXON_HOME" }, () => {
+  const xsl = resolve(pocDir, "../compiler-xslt/generate/odd-to-xsl.xsl");
+  const chain = (name, source) => writeFileSync(join(out, name), `<TEI xmlns="http://www.tei-c.org/ns/1.0"><schemaSpec source="${source}"><elementSpec ident="p"><model behaviour="block"/></elementSpec></schemaSpec></TEI>`);
+  chain("one.odd", "two.odd");
+  chain("two.odd", "one.odd");
+  assert.throws(() => saxon(`-s:${join(out, "one.odd")}`, `-xsl:${xsl}`, `-o:${join(out, "cycle.xsl")}`), (/** @type {any} */ e) => {
+    assert.match(e.stderr.toString(), /one\.odd: inherits from itself: one\.odd .+ two\.odd .+ one\.odd/);
+    return true;
+  });
+});
+
+test("the XSLT compiler keeps the whitespace of a quoted CSS string", { skip: !saxonHome && "needs Saxon HE 12 at $SAXON_HOME" }, () => {
+  const odd = join(out, "quoted.odd");
+  writeFileSync(odd, QUOTED_ODD);
+  saxon(`-s:${odd}`, `-xsl:${resolve(pocDir, "../compiler-xslt/generate/odd-to-css.xsl")}`, `-o:${join(out, "quoted.css")}`, "tokens=");
+  for (const css of QUOTED_CSS) assert.ok(readFileSync(join(out, "quoted.css"), "utf8").includes(css), css);
 });
 
 for (const [generator, generate] of Object.entries(GENERATORS)) {

@@ -7,7 +7,11 @@
  * `/`, `//`, absolute paths and `[predicate]`. Operators: or, and, the general
  * (= != < <= > >=) and value (eq ne lt le gt ge) comparisons, + -, mod,
  * `if (…) then … else …`. Sequences `(a, b)`, string and number literals, and
- * the functions in FUNCTIONS.
+ * the functions in FUNCTIONS, whose number of arguments is checked when compiled.
+ *
+ * A path gives each node once, in document order. A value comparison with more
+ * than one item on a side throws when evaluated, as in XPath. Regular expressions
+ * are JavaScript's.
  *
  * A position is `{ node, up }`: the node and its ancestor elements, outermost
  * first. Attributes evaluate to their string values.
@@ -48,7 +52,8 @@ const num = (v) => (typeof v === "number" ? v : Number(str(v)));
 
 /** @type {(v: Value) => boolean} */
 export const bool = (v) =>
-  Array.isArray(v) ? v.length > 0 : typeof v === "number" ? v !== 0 && !Number.isNaN(v) : Boolean(v);
+  // A string in a sequence may be an attribute, whose node is always true.
+  Array.isArray(v) ? (v.length === 1 && ["boolean", "number"].includes(typeof v[0]) ? bool(v[0]) : v.length > 0) : typeof v === "number" ? v !== 0 && !Number.isNaN(v) : Boolean(v);
 /** The string value of the first item. @type {(v: Value) => string} */
 export const str = (v) => (Array.isArray(v) ? (v.length ? String(atom(v[0])) : "") : String(v));
 
@@ -68,8 +73,7 @@ function compare(op, a, b) {
   return seq(a).some((x) =>
     seq(b).some((y) => {
       const [p, q] = [atom(x), atom(y)];
-      const numeric = typeof p === "number" || typeof q === "number" || (op !== "=" && op !== "!=");
-      return numeric ? COMPARE[op](Number(p), Number(q)) : COMPARE[op](p, q);
+      return typeof p === "number" || typeof q === "number" ? COMPARE[op](Number(p), Number(q)) : COMPARE[op](p, q);
     }),
   );
 }
@@ -102,6 +106,19 @@ const ancestors = (p) => p.up.map((node, i) => ({ node, up: p.up.slice(0, i) }))
 /** The document node above the outermost element, where an absolute path starts. */
 const documentOf = (p) => ({ node: { type: "root", children: [p.up[0] ?? p.node] }, up: [] });
 
+/** Where a node stands: its index under each of its ancestors, outermost first. */
+const orderKey = ({ node, up }) => up.map((a, k) => (nodesOf(a), index.get(up[k + 1] ?? node)));
+/** Each node once, in document order; attribute values are strings, in the order of their elements. */
+function inOrder(items) {
+  if (items.length < 2 || !isPos(items[0])) return items;
+  const keyed = [...new Map(items.map((p) => [p.node, p])).values()].map((p) => [orderKey(p), p]);
+  keyed.sort(([a], [b]) => {
+    for (let k = 0; k < Math.max(a.length, b.length); k++) if (a[k] !== b[k]) return (a[k] ?? -1) - (b[k] ?? -1);
+    return 0;
+  });
+  return keyed.map(([, p]) => p);
+}
+
 /** The axes, each in proximity order. */
 const AXES = {
   self: (p) => [p],
@@ -116,6 +133,8 @@ const AXES = {
   preceding: (p) => [p, ...ancestors(p)].flatMap((a) => siblings(a, false).flatMap((s) => [...descendants(s).reverse(), s])),
   following: (p) => [p, ...ancestors(p)].flatMap((a) => siblings(a, true).flatMap((s) => [s, ...descendants(s)])),
 };
+
+const REVERSE = ["parent", "ancestor", "ancestor-or-self", "preceding-sibling", "preceding"];
 
 /** Position and size of the context in the predicate being evaluated. */
 let focus = { position: 1, size: 1 };
@@ -133,7 +152,7 @@ const FUNCTIONS = {
   "string-length": (a) => [...str(a)].length,
   "ends-with": (a, b) => str(a).endsWith(str(b)),
   matches: (a, re, flags) => new RegExp(str(re), flags === undefined ? "" : str(flags)).test(str(a)),
-  replace: (a, re, to) => str(a).replace(new RegExp(str(re), "g"), str(to)),
+  replace: (a, re, to, flags) => str(a).replace(new RegExp(str(re), `g${flags === undefined ? "" : str(flags)}`), str(to)),
   not: (v) => !bool(v),
   count: (v) => seq(v).length,
   concat: (...vs) => vs.map(str).join(""),
@@ -146,6 +165,12 @@ const FUNCTIONS = {
   string: (a) => str(a),
   true: () => true,
   false: () => false,
+};
+
+/** Arguments a function takes where they are not those it declares. */
+const ARITY = {
+  "local-name": [0, 1], "string-length": [0, 1], "normalize-space": [0, 1], string: [0, 1],
+  matches: [2, 3], replace: [3, 4], concat: [2, Infinity],
 };
 
 const TOKEN = /\s*(?:'([^']*)'|"([^"]*)"|(\d+(?:\.\d+)?)|(::|\.\.|!=|<=|>=|[=<>()[\],@/.*+|-])|([A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?))/y;
@@ -220,11 +245,13 @@ export function xpath(expr) {
   }
   function comparison() {
     const left = additive();
-    const op = Object.keys(COMPARE).find((o) => is(o)) ?? VALUE_COMPARE[Object.keys(VALUE_COMPARE).find((o) => is(o, "name"))];
+    const word = Object.keys(VALUE_COMPARE).find((o) => is(o, "name"));
+    const op = Object.keys(COMPARE).find((o) => is(o)) ?? VALUE_COMPARE[word];
     if (!op) return left;
     i++;
     const right = additive();
-    return (p) => compare(op, left(p), right(p));
+    const single = (v) => (seq(v).length > 1 ? fail(`${word} compares single items, not ${seq(v).length}`) : v);
+    return word ? (p) => compare(op, single(left(p)), single(right(p))) : (p) => compare(op, left(p), right(p));
   }
   function additive() {
     let left = multiplicative();
@@ -273,6 +300,8 @@ export function xpath(expr) {
       const args = [];
       if (!is(")")) do args.push(or()); while (eat(","));
       expect(")");
+      const [min, max] = ARITY[tok.v] ?? [f.length, f.length];
+      if (args.length < min || args.length > max) fail(`${tok.v}() cannot take ${args.length} argument(s)`);
       base = (p) => f(...(args.length ? args.map((a) => a(p)) : [[p]]));
     }
     if (!base) return path();
@@ -288,7 +317,10 @@ export function xpath(expr) {
       if (eat("/")) steps.push(AXES["descendant-or-self"]);
       steps.push(step());
     }
-    return (p) => steps.reduce((ctx, s) => ctx.flatMap((c) => (isPos(c) ? s(c) : [])), [absolute ? documentOf(p) : p]);
+    return (p) => steps.reduce((ctx, s) => {
+      const next = ctx.flatMap((c) => (isPos(c) ? s(c) : []));
+      return ctx.length > 1 ? inOrder(next) : next;
+    }, [absolute ? documentOf(p) : p]);
   }
 
   function step() {
@@ -317,7 +349,11 @@ export function xpath(expr) {
       } else test = (q) => isElement(q) && localName(q.name) === localName(n);
     }
     const preds = predicates();
-    return (p) => filter(move(p).filter((q) => test(q.node)), preds, p);
+    // Predicates count in proximity order; the step gives its nodes in document order.
+    return (p) => {
+      const kept = filter(move(p).filter((q) => test(q.node)), preds, p);
+      return REVERSE.includes(axis) ? [...kept].reverse() : kept;
+    };
   }
 
   const root = or();

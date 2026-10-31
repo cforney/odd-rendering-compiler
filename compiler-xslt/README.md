@@ -131,7 +131,7 @@ as the JS `odd-to-ceteicean.mjs`.
   tooltips by `../runtime/notes.js`, which the build copies beside `edition.xsl`.
 - **Fidelity.** The body of each static page in `xslt/` is **equivalent** to the
   unified render and to that of the stylesheet from `odd-to-xslt.mjs`: identical
-  up to attribute order and whitespace. `compiler-js`'s `npm test` checks this on
+  up to attribute order and the whitespace next to a block's tags. `compiler-js`'s `npm test` checks this on
   the examples and on the conformance fixtures.
 
 ## Example sources & credits

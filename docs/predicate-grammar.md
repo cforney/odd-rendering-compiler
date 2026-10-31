@@ -31,6 +31,13 @@ browser:
   `matches`, `replace`, `translate`, `normalize-space`, `string-length`,
   `local-name`, `true`, `false`.
 
+What it accepts follows XPath 3.1: a path gives each node once, in document
+order; a general comparison is numeric only against a number; a value comparison
+with more than one item on a side is an error when evaluated, as is a call with
+the wrong number of arguments when compiled. Two known differences: regular
+expressions are JavaScript's, and `@n eq 1` compares numerically where XPath
+raises a type error.
+
 `odd-to-unified.mjs` and `odd-to-ceteicean.mjs` compile every expression once.
 A CETEIcean page compiles them again when it loads.
 

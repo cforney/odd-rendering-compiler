@@ -3,7 +3,7 @@
  * stylesheet from odd-to-xslt.mjs (run by SaxonJS) and by the one from
  * compiler-xslt's odd-to-xsl.xsl (run by Saxon HE) must have an equivalent
  * static body (compared via byte-identity.mjs, which normalises attribute order
- * and whitespace).
+ * and the whitespace next to a block's tags).
  *
  * Needs the renders on disk; CI builds them first. Locally each example SKIPS unless:
  *   (compiler-js)   npm run build && npm run build:unified && npm run render:unified
@@ -24,6 +24,16 @@ const RENDERS = {
   "odd-to-xslt.mjs": (doc) => resolve(pocDir, `output/xslt/${doc}.html`),
   "odd-to-xsl.xsl": (doc) => resolve(pocDir, `../compiler-xslt/output/xslt/${doc}.html`),
 };
+
+test("the comparison ignores serialisation, not what renders", () => {
+  const same = (a, b) => normaliseRenderedBody(a) === normaliseRenderedBody(b);
+  assert.ok(same(`<p b="2" a="1">x</p>`, `<p a="1" b="2">x</p>`), "attribute order");
+  assert.ok(same(`<div>\n  <p>x</p>\n</div>\n`, `<div><p>x</p></div>`), "indentation between blocks");
+  assert.ok(!same("<p><span>a</span> <span>b</span></p>", "<p><span>a</span><span>b</span></p>"), "a word separator");
+  assert.ok(!same("<pre>a  b</pre>", "<pre>a b</pre>"), "a preserved space");
+  assert.ok(!same(`<a href="#a  b">x</a>`, `<a href="#a b">x</a>`), "an attribute value");
+  assert.ok(!same(`<a href="#a">x</a>`, `<a href="#b">x</a>`), "a link");
+});
 
 for (const doc of examples) {
   test(`${doc}: the unified and XSLT renders are equivalent (normalised byte-identity)`, (t) => {

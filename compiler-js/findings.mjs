@@ -21,7 +21,7 @@ import { resolve, basename } from "path";
 import { pathToFileURL } from "url";
 import { parseXmlToXast, pageOf, allModels } from "./odd-parser.mjs";
 import { checkXPath } from "./unsupported.mjs";
-import { parseArgs, loadOdd, createLogger, writeOut, resolveInputFiles, htmlPageName, buildReportPage } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles, htmlPageName, buildReportPage } from "./cli.mjs";
 
 /** Custom properties the ODD's CSS reads that neither the tokens, the ODD's CSS nor a `--…` param defines. */
 export function undefinedProperties({ specs, renditions }, tokens = "") {
@@ -98,7 +98,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
   for (const f of oddFindings) log(`  ${basename(oddPath)}: ${f}`);
 
   const report = { odd: oddFindings, documents: {} };
-  for (const teiFile of resolveInputFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml")) {
+  for (const teiFile of resolveTeiFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml")) {
     const own = documentFindings(odd, parseXmlToXast(readFileSync(resolve(teiFile), "utf8")));
     report.documents[basename(teiFile)] = own;
     log(`${basename(teiFile)}: ${own.length ? `${own.length} finding(s)` : "no findings"}`);

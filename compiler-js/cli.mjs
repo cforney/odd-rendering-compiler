@@ -141,7 +141,24 @@ export function resolveInputFiles(specs, ext = ".xml") {
       files.add(spec);
     }
   }
-  return [...files].sort();
+  // The same file under two spellings is one source.
+  return [...new Map([...files].map((f) => [resolve(f), f])).values()].sort();
+}
+
+/**
+ * The TEI sources of a script. Sources that would write the same page, or the
+ * index of several sources, end the process before anything is written.
+ * @param {string|string[]} specs
+ * @returns {string[]}
+ */
+export function resolveTeiFiles(specs) {
+  const files = resolveInputFiles(specs);
+  const pages = new Map();
+  for (const f of files) pages.set(htmlPageName(f).toLowerCase(), [...(pages.get(htmlPageName(f).toLowerCase()) ?? []), f]);
+  const clashes = [...pages].filter(([page, from]) => from.length > 1 || (page === "index.html" && files.length > 1));
+  for (const [page, from] of clashes) console.error(`✗ ${from.join(", ")} would write ${page}, ${from.length > 1 ? "the same page" : "the index of several sources"}`);
+  if (clashes.length) process.exit(1);
+  return files;
 }
 
 /** Output HTML filename for one TEI source, e.g. `letters/L12.xml` → `L12.html`. */

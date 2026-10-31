@@ -4,8 +4,8 @@
  *
  * readOdd(path) → Odd, the shapes in the typedefs below. An ODD it cannot read
  * throws an OddError naming each problem and its line: XML that is not
- * well-formed, a base ODD not found, no <model> at all, a missing @ident,
- * @behaviour or param @name, or a <modelSequence> with no <model>.
+ * well-formed, a base ODD not found or inheriting from itself, no <model> at all,
+ * a missing @ident, @behaviour or param @name, or a <modelSequence> with no <model>.
  *
  * `models` are the element's models in document order, model groups flattened.
  * `id` names the model, `<ident>-<n>` by its place among the spec's models, and
@@ -62,6 +62,8 @@ const elements = (el, name) =>
   (el?.children ?? []).filter((c) => c.type === "element" && (!name || c.name === name));
 const textOf = (n) => (n.type === "element" ? n.children.map(textOf).join("") : n.text ?? "");
 const normalize = (s) => s.replace(/\s+/g, " ").trim();
+/** CSS with its whitespace collapsed, but for that of its quoted strings. */
+const cssOf = (el) => textOf(el).replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|[ \t\r\n]+/gs, (_, quoted) => quoted ?? " ").trim();
 const localName = (qname) => qname.slice(qname.indexOf(":") + 1);
 const escape = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
@@ -152,7 +154,7 @@ function readSpec(spec, file) {
   const style = (el, selector, output) => {
     for (const r of elements(el, "outputRendition")) {
       const scope = r.attributes.scope ? `::${r.attributes.scope}` : "";
-      rules.push({ selector: (output ? `${on(output)} ` : "") + selector + scope, css: normalize(textOf(r)) });
+      rules.push({ selector: (output ? `${on(output)} ` : "") + selector + scope, css: cssOf(r) });
     }
   };
 
@@ -230,14 +232,15 @@ function viewsOf(specs) {
  * @returns {Odd}
  */
 export function readOdd(path) {
-  const odd = readChain(path);
+  const odd = readChain(resolve(path));
   if (!allModels(odd.specs).length) throw new OddError(`${basename(path)}: holds no <model>, so there is no Processing Model to compile`);
   return odd;
 }
 
-/** One ODD of a chain, with its base. @returns {Odd} */
-function readChain(path) {
+/** One ODD of a chain, with its base; `seen` are the ODDs that inherit from it. @returns {Odd} */
+function readChain(path, seen = []) {
   const name = basename(path);
+  if (seen.includes(path)) throw new OddError(`${name}: inherits from itself: ${[...seen, path].map((p) => basename(p)).join(" → ")}`);
   if (!existsSync(path)) throw new OddError(`${name}: not found (${path})`);
   const xml = readFileSync(path, "utf8");
   let doc;
@@ -258,7 +261,7 @@ function readChain(path) {
   const renditions = findAll(root, "tagsDecl")
     .flatMap((t) => elements(t, "rendition"))
     .filter((r) => r.attributes["xml:id"])
-    .map((r) => ({ id: r.attributes["xml:id"], css: normalize(textOf(r)) }));
+    .map((r) => ({ id: r.attributes["xml:id"], css: cssOf(r) }));
 
   const schema = findAll(root, "schemaSpec")[0];
   const source = schema?.attributes.source;
@@ -266,7 +269,7 @@ function readChain(path) {
   if (problems.length) throw new OddError(problems.sort((a, b) => a.start - b.start).map((p) => p.text).join("\n"));
   if (!source) return { specs, renditions, views: viewsOf(specs) };
 
-  const base = readChain(resolve(dirname(path), source));
+  const base = readChain(resolve(dirname(path), source), [...seen, path]);
   const own = new Map(specs.map((s) => [s.ident, s]));
   const chained = base.specs
     .filter((s) => own.get(s.ident)?.mode !== "delete")

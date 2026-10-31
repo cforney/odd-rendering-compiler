@@ -84,8 +84,8 @@ did I write that never runs?* — models no document made fire, models that can
 never fire because an earlier model of the same output has no predicate, and
 elements the ODD has models for that no record names. *What is in my documents
 that I never handled?* — elements with no model at all, and the silent case:
-elements whose spec has models of which none applied, which render nothing and
-warn about nothing. Models a chained ODD wrote are reported apart, and unhandled
+elements whose spec has models of which none applied, whose content passes
+through without a warning. Models a chained ODD wrote are reported apart, and unhandled
 elements below an `alternate` are not reported, where leaving a reading
 unrendered is a decision. Coverage is per output, and a sequence counts as the
 one model the records name.
@@ -111,7 +111,8 @@ See [`../docs/predicate-grammar.md`](../docs/predicate-grammar.md).
 Every renderer accepts **one file or a whole corpus**: `--tei` may be a single
 file, a directory, a `* ? **` glob (quote it), a comma-separated list, or a
 repeated flag. Each source gives `<basename>.html`; several also a linking
-`index.html`. The npm scripts render every example, `../examples/simler-*.xml`.
+`index.html`. Sources that would write the same page or that index, also by
+names differing only in case, stop the build before anything is written. The npm scripts render every example, `../examples/simler-*.xml`.
 
 ## Quick start
 

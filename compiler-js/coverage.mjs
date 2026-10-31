@@ -8,8 +8,8 @@
  * can never fire because an earlier model of the same output has no predicate,
  * and elements the ODD has models for that no record names. What the corpus
  * holds that the ODD never handles — elements with no model at all, and the
- * silent case: elements whose spec has models of which none applied, which
- * render nothing and warn about nothing.
+ * silent case: elements whose spec has models of which none applied, whose
+ * content passes through without a warning.
  *
  * Models a chained ODD wrote are reported apart: they are not this ODD's author's
  * to fix. Inside an `alternate`, leaving a reading unrendered is a decision, not
@@ -122,7 +122,7 @@ function page({ odd, output, documents, written, encoded, inherited }) {
       { heading: "Written, unreachable", note: "An earlier model of the same output has no predicate, so these can never be reached.", items: written.unreachable.map(modelLine) },
       { heading: "Never exercised", note: "The ODD has models for these elements; no record names them.", items: written.absent.map(absentLine) },
       { heading: "Encoded, unmodelled", note: "In the corpus with no model in the ODD, so rendered as their content.", items: encoded.unmodelled.map((e) => `<${e.element}> — ${e.count}×`) },
-      { heading: "Encoded, silent", note: "A spec with models, none of which applied: no output, and no warning.", items: encoded.silent.map((e) => `<${e.element}> — ${e.count}×`) },
+      { heading: "Encoded, silent", note: "A spec with models, none of which applied: their content passes through, with no warning.", items: encoded.silent.map((e) => `<${e.element}> — ${e.count}×`) },
       { heading: "From a chained ODD", note: "Reported apart: not this ODD's to fix.", items: [...inherited.never, ...inherited.unreachable].map(modelLine).concat(inherited.absent.map(absentLine)) },
     ],
   });

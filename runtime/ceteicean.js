@@ -173,9 +173,11 @@ function teiEdition(ct, source, models, views, done) {
         }
         aside.append(...own());
         section(e.n ? "end" : str(params.place)).append(aside);
-        if (!e.n) return [];
+        if (!e.n) {
+          if (first && el.getAttribute("xml:id")) aside.id = el.getAttribute("xml:id");
+          return [];
+        }
         const ref = make("a", [String(e.n)], ["tei-note-ref"]);
-        ref.removeAttribute("id");
         ref.href = `#note-${e.n}`;
         if ("range" in params) ref.dataset.range = str(params.range).replace(/^#/, "");
         return [ref];

@@ -82,12 +82,14 @@ The CSS of `<outputRendition>` is compiled onto the same classes.
 
 - **Notes.** A note whose `place` is `end` or `foot` gets a numbered marker, its
   body collected in a `tei-footnotes` section; a note elsewhere is collected in
-  `section.tei-notes[data-place]`, without a marker.
+  `section.tei-notes[data-place]`, without a marker. A note's `xml:id` goes on its
+  marker, or without one on its body, so links into the source keep a target.
 - **Line breaks.** A `break` of type `line` where a line already starts renders
   nothing. At an `lb break="no"`, the hyphen that ends the line's text and the
   spaces around the break go; the break's model sets the hyphen.
 - **Whitespace.** Whitespace-only text at the edge of a block, or next to one, is
-  indentation and is dropped.
+  indentation and is dropped. Other whitespace collapses, unless the nearest
+  `xml:space` says `preserve`.
 
 ## Extensions
 

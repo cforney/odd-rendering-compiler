@@ -182,7 +182,8 @@ export function createResolver(models, output, views = []) {
    */
   function renderedText(pos) {
     const { node, up } = pos;
-    if (up.some((a) => a.attributes["xml:space"] === "preserve")) return node.value;
+    // The nearest xml:space decides.
+    if (up.findLast((a) => a.attributes["xml:space"])?.attributes["xml:space"] === "preserve") return node.value;
     const [before, after] = [joined(pos, -1), joined(pos, 1)];
     if (blank(node.value)) return before || after || indentation(pos) ? "" : " ";
     let value = collapse(node.value);
@@ -287,13 +288,13 @@ export function createRenderer(models, views = []) {
         }
         case "note": {
           const place = "place" in params ? str(params.place) : "end";
-          const note = { place: NUMBERED.includes(place) ? "end" : place };
+          const note = { place: NUMBERED.includes(place) ? "end" : place, id: props.id };
           notes.push(note);
           if (note.place === "end") note.n = notes.filter((x) => x.place === "end").length;
           note.body = content(false);
           if (note.place !== "end") return [];
           const range = "range" in params ? str(params.range).replace(/^#/, "") : undefined;
-          return [h("a", { ...props, id: undefined, className: [...props.className, "tei-note-ref"], href: `#note-${note.n}`, "data-range": range }, [text(String(note.n))])];
+          return [h("a", { ...props, className: [...props.className, "tei-note-ref"], href: `#note-${note.n}`, "data-range": range }, [text(String(note.n))])];
         }
         case "break": {
           const line = "type" in params && str(params.type) === "line";
@@ -336,7 +337,7 @@ export function createRenderer(models, views = []) {
       place === "end"
         ? h("section", { className: ["tei-footnotes"] }, ends)
         : h("section", { className: ["tei-notes"], "data-place": place },
-          notes.filter((n) => n.place === place).map((n) => h("aside", { className: ["tei-note-body"] }, n.body))));
+          notes.filter((n) => n.place === place).map((n) => h("aside", { className: ["tei-note-body"], id: n.id }, n.body))));
 
     // A checkbox per view: CSS lays the view over the page while it is checked.
     const switches = laidViews.length

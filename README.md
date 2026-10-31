@@ -18,7 +18,7 @@ clean clone that builds.
 The chain is implemented **twice — in JavaScript and in XSLT** — on purpose: the
 *generate* step is generic, not tied to one language. The unified handlers and
 the stylesheets of both XSLT generators render an **equivalent static body**
-(identical up to attribute order and whitespace), checked in CI on the examples
+(identical up to attribute order and the whitespace next to a block's tags), checked in CI on the examples
 and on conformance fixtures.
 
 > **Note.** This is an experimental implementation: it exists to illustrate
@@ -97,6 +97,8 @@ CI publishes it to GitHub Pages on every push to `main`. See
 
 - [docs/concept.md](docs/concept.md) — how the pipeline fits together (define → generate → render, the tiers)
 - [docs/behaviour-table.md](docs/behaviour-table.md) — the behaviour → HTML element mapping
+- [docs/conventions.md](docs/conventions.md) — what this compiler decides where the Processing Model leaves it open, declared for other tools
+- [docs/conformance-suite.md](docs/conformance-suite.md) — the conformance fixtures, proposed as a suite the implementations share
 - [docs/predicate-grammar.md](docs/predicate-grammar.md) — how far each target reads the XPath of predicates and params
 
 ## Examples, licensing, and credits

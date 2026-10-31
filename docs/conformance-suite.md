@@ -25,7 +25,8 @@ here:
 | `structure` | a spec's only model; a model group with an inherited `@useSourceRendition`; `@cssClass`; document order (the first model wins, the next predicate is never asked); a `modelSequence` with the id on its first part; a block inside phrasing content |
 | `outputs` | `@output`: an output's models take precedence, a view laid over the page (`omit`, added classes, an `alternate`'s readings), a model marked `web` |
 | `params` | params as CSS custom properties and attributes; node-valued params, one selecting the element itself; predicates with positions, value comparisons and conditionals; breaks, labels, the hyphen at a joined line end; `link` and `graphic` |
-| `notes` | notes numbered in document order, the outer before the inner; a note in the margin, without a marker; a range closed by `@targetEnd` |
+| `notes` | notes numbered in document order, the outer before the inner; a note in the margin, without a marker; a range closed by `@targetEnd`; a note's `xml:id` on its marker, or on its body without one |
+| `whitespace` | the nearest `xml:space` decides, through alternating `preserve` and `default` |
 | `behaviours` | `figure`; TEI Publisher's `pass-through` and `<pb:template>`; engine prefixes on `@output` (`opm-`, `orc-`) |
 | `invalid.odd` | no `@behaviour`, `@ident` or param `@name`; an empty `modelSequence`; a base ODD not found |
 
@@ -35,7 +36,8 @@ The expected files carry this compiler's conventions ([conventions.md](conventio
 its classes, its view switches, its notes section. Two levels of comparison
 separate those from what the ODD decides:
 
-- **strict:** the body, up to attribute order and whitespace. This is how the
+- **strict:** the body, up to attribute order and the whitespace next to a
+  block's tags; any other whitespace counts. This is how the
   compiler's own engines are held to each other.
 - **structure:** only tags and text, inside the edition, without attributes, the
   edition's wrapper and the view switches. This is the level at which two

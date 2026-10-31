@@ -16,7 +16,7 @@
 import { readFileSync } from "fs";
 import { resolve, basename, extname } from "path";
 import { parseXmlToXast, extractTeiTitle } from "./odd-parser.mjs";
-import { parseArgs, createLogger, writeOut, loadHandlers, resolveInputFiles, htmlPageName } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut, loadHandlers, resolveTeiFiles, htmlPageName } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("render-plain");
@@ -36,7 +36,7 @@ function textOf(node) {
 }
 
 const records = [];
-for (const teiFile of resolveInputFiles(teiArg.length ? teiArg : "../examples/simler-*.xml")) {
+for (const teiFile of resolveTeiFiles(teiArg.length ? teiArg : "../examples/simler-*.xml")) {
   const tree = parseXmlToXast(readFileSync(resolve(teiFile), "utf8"));
   const { hast, page } = teiToHast(tree, { output: "plain" });
   const text = textOf(hast).split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
