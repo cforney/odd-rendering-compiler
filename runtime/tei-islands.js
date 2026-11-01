@@ -1,12 +1,13 @@
 /*
- * Generic island hydration — framework-free, ~2 KB.
+ * tei-islands.js — the enhancer that loads behaviour when it is needed, framework-free.
  *
- * The renderer wraps each interactive region in
- *   <tei-island type="choice" on="load|idle|visible|media(…)">
- * around HTML that already works without JavaScript. This custom element upgrades
- * that one region when its strategy fires, so only marked regions ship behaviour,
- * and only on demand — static-first interactivity. The `type` → behaviour table is
- * a registry; add a type with TeiIslands.register(name, fn) and emit the marker.
+ * It finds the interactive regions by what every renderer writes (.tei-alternate,
+ * [data-page]) and wraps each in a <tei-island type on="load|idle|visible|media(…)">,
+ * so a page needs nothing from its build; a renderer may write such an element itself.
+ * When a region's strategy fires, its type's behaviour runs. A standard type fetches
+ * the shared script of that behaviour, beside this one, which then serves the whole
+ * page; so a page without a kind of region never loads its script. Add a type with
+ * TeiIslands.register(name, fn), where fn receives the island.
  *
  * The model mirrors Astro's <astro-island> and its client:load / client:idle /
  * client:visible / client:media directives (display:contents wrapper; "visible"
@@ -40,37 +41,32 @@
     return cb();                                   // "load", or no observer support
   }
 
-  // --- Standard TEI island behaviours --------------------------------------
-
-  // Choice/apparatus: click or keyboard toggles between the two readings.
-  register("choice", function (island) {
-    var alt = island.querySelector(".tei-alternate");
-    var readings = alt && [].filter.call(alt.children, function (n) { return n.nodeType === 1; });
-    if (!readings || readings.length < 2) return;
-    var showAlt = false;
-    function toggle() {
-      showAlt = !showAlt;
-      readings[0].hidden = showAlt; readings[1].hidden = !showAlt;
-      alt.setAttribute("aria-checked", String(showAlt));
-    }
-    readings[1].hidden = true;
-    alt.setAttribute("role", "switch");
-    alt.setAttribute("aria-checked", "false");
-    alt.setAttribute("tabindex", "0");
-    alt.addEventListener("click", toggle);
-    alt.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
-    });
-  });
-
-  // A page break: the first in view loads the facsimile, which then serves them all.
-  var facsimile = new URL("facsimile.js", document.currentScript.src).href;
-  register("facsimile", function () {
-    if (document.querySelector('script[src="' + facsimile + '"]')) return;
-    document.head.appendChild(document.createElement("script")).src = facsimile;
-  });
+  var here = document.currentScript.src;
+  /** A behaviour that fetches a script beside this one, once. */
+  function fetches(file) {
+    var url = new URL(file, here).href;
+    return function () {
+      if (!document.querySelector('script[src="' + url + '"]')) document.head.appendChild(document.createElement("script")).src = url;
+    };
+  }
+  register("choice", fetches("readings.js"));
+  register("facsimile", fetches("facsimile.js"));
 
   window.TeiIslands = { register: register };
+
+  /** Wrap what matches as an island, unless it is inside a reading, which swaps as a whole. */
+  function mark(selector, type, on) {
+    document.querySelectorAll(selector).forEach(function (el) {
+      if (el.parentElement.closest(".tei-alternate")) return;
+      var island = document.createElement("tei-island");
+      island.setAttribute("type", type);
+      island.setAttribute("on", on);
+      el.replaceWith(island);
+      island.appendChild(el);
+    });
+  }
+  mark(".tei-alternate", "choice", "visible");
+  mark('[data-page]:not([data-page=""])', "facsimile", "visible");
 
   // Defined last, so the registry is populated before any element upgrades.
   customElements.define("tei-island", class extends HTMLElement {

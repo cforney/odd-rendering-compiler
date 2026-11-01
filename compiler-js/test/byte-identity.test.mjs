@@ -47,3 +47,16 @@ for (const doc of examples) {
     for (const [name, body] of rest) assert.equal(body, first[1], `${name} differs from ${first[0]}`);
   });
 }
+
+// An enhancer adds scripts: the XSLT path's pages hold the edition of its static page.
+test("the XSLT path's enhancers leave the edition as it is", (t) => {
+  const dir = resolve(pocDir, "../compiler-xslt/output");
+  const edition = (html) => { const from = html.indexOf('<div class="tei-edition"'); return html.slice(from, from + html.slice(from).search(/<script|<\/body>/)); };
+  const pages = (name) => readdirSync(resolve(dir, name)).filter((f) => f.startsWith("simler-") && f.endsWith(".html"));
+  if (!existsSync(resolve(dir, "xslt-islands"))) return t.skip("needs the XSLT build");
+  for (const enhanced of ["xslt-script", "xslt-islands"]) {
+    for (const page of pages("xslt")) {
+      assert.equal(edition(readFileSync(resolve(dir, enhanced, page), "utf8")), edition(readFileSync(resolve(dir, "xslt", page), "utf8")), `${enhanced}/${page}`);
+    }
+  }
+});

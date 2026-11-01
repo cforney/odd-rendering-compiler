@@ -25,8 +25,8 @@
 
   <!-- The PM output to render: its models take precedence, models of another output are skipped. -->
   <xsl:param name="output" as="xs:string" select="'web'"/>
-  <!-- 'true' renders the progressively enhanced page: a small script swaps readings, notes.js and facsimile.js (beside the stylesheet) open notes and page images. -->
-  <xsl:param name="interactive" as="xs:string" select="'false'"/>
+  <!-- An enhancer, as in render-unified.mjs: 'script', 'islands', or 'none'. It adds scripts of ../runtime, which the build puts beside this stylesheet (and for islands beside the page); the edition stays as it is. -->
+  <xsl:param name="enhance" as="xs:string" select="'none'"/>
 
   <!-- HTML elements whose content must be phrasing: a block inside becomes a span. -->
   <xsl:variable name="pm:phrasing" select="('p', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6')"/>
@@ -42,29 +42,26 @@
       <head>
         <meta charset="UTF-8"/>
         <title><xsl:value-of select="(pm:select(/*, 'page')?params?title ! string(), normalize-space((//title)[1]))[.][1]"/></title>
-        <xsl:choose>
-          <xsl:when test="$interactive = 'true'">
-            <style id="edition-css"><xsl:value-of select="unparsed-text('edition.css')"/></style>
-          </xsl:when>
-          <xsl:otherwise>
-            <link rel="stylesheet" href="edition.css"/>
-          </xsl:otherwise>
-        </xsl:choose>
+        <link rel="stylesheet" href="edition.css"/>
         <style>
 body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
 .render-info { font-family: system-ui, sans-serif; background: #e0f2fe; border: 1px solid #38bdf8; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
 .render-info h3 { margin: 0 0 0.5em; color: #0284c7; }
 .render-info code { background: #f0f9ff; padding: 0.1em 0.3em; border-radius: 3px; }
-.js .tei-alternate { border-bottom: 1px dotted #999; cursor: pointer; }
 </style>
       </head>
       <body>
         <div class="render-info">
           <xsl:choose>
-            <xsl:when test="$interactive = 'true'">
-              <h3>Interactive XSLT Rendering Path (progressive enhancement)</h3>
-              <p><strong>Pipeline:</strong> ODD &#8594; generator &#8594; <code>edition.xsl</code> &#8594; (TEI) &#8594; HTML + ~12 lines of vanilla JS (Saxon, build time)</p>
-              <p>Every model is an XSLT branch with its predicate kept as XPath; <code>edition.css</code> is inlined. A small script swaps apparatus readings, and notes open as tooltips; with JavaScript off the page degrades to the static floor.</p>
+            <xsl:when test="$enhance = 'script'">
+              <h3>XSLT + small script Rendering Path</h3>
+              <p><strong>Pipeline:</strong> ODD &#8594; generator &#8594; <code>edition.xsl</code> &#8594; (TEI) &#8594; HTML (Saxon, build time) + the small script</p>
+              <p>Every model is an XSLT branch with its predicate kept as XPath. A small script swaps the readings; notes open as tooltips, and page breaks their image.</p>
+            </xsl:when>
+            <xsl:when test="$enhance = 'islands'">
+              <h3>XSLT + islands Rendering Path</h3>
+              <p><strong>Pipeline:</strong> ODD &#8594; generator &#8594; <code>edition.xsl</code> &#8594; (TEI) &#8594; HTML (Saxon, build time) + the islands runtime</p>
+              <p>Every model is an XSLT branch with its predicate kept as XPath. One small loader finds the readings and the page breaks, and fetches the script of each when the first comes into view. Notes open as tooltips.</p>
             </xsl:when>
             <xsl:otherwise>
               <h3>XSLT Rendering Path (static, zero-JS)</h3>
@@ -74,21 +71,15 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
           </xsl:choose>
         </div>
         <xsl:call-template name="pm:edition"/>
-        <xsl:if test="$interactive = 'true'">
-          <script>
-document.documentElement.classList.add('js');
-document.addEventListener('click', function (e) {
-  var alt = e.target.closest('.tei-alternate');
-  if (alt) {
-    var d = alt.querySelector('.tei-alternate-default');
-    var v = alt.querySelector('.tei-alternate-alt');
-    if (d) { d.hidden = !d.hidden; }
-    if (v) { v.hidden = !v.hidden; }
-  }
-});
-</script>
-          <script><xsl:value-of select="unparsed-text('notes.js')"/></script>
+        <xsl:if test="$enhance = 'script'">
+          <script><xsl:value-of select="unparsed-text('readings.js')"/></script>
           <script><xsl:value-of select="unparsed-text('facsimile.js')"/></script>
+        </xsl:if>
+        <xsl:if test="$enhance = 'islands'">
+          <script src="tei-islands.js" defer="defer"></script>
+        </xsl:if>
+        <xsl:if test="$enhance != 'none'">
+          <script><xsl:value-of select="unparsed-text('notes.js')"/></script>
         </xsl:if>
       </body>
     </html>

@@ -6,92 +6,102 @@
 export const concept =
   "ODD → generate → render · one source, many rendering paths, one edition.";
 
-// Rendering paths, in reading order, grouped by family; a report is what else the build writes.
-//   family    the implementation the path belongs to; label names the path within it
-//   dir       compiler output the page came from (copied to site/<dir>/)
-//   file      the rendered page, relative to that output; {doc} is the document
-//   artefact  the generated file behind the path, linked from the panel
-//   hue       accent of the tab and the info box, one per family (unified green, XSLT blue, CETEIcean pink, build grey)
-//   needsJs   the page renders in the browser, so it is empty with JavaScript off
-//   plain     what the path is for, in a line anyone can read (the tab's tooltip too)
-//   report    not a rendering of the edition: shown apart, and not inspected
-//   interactive  readings swap and notes open in place (check-demo.mjs holds it to the pages)
-//   server    needs a web server, not only files
-//   fetches   what the page downloads besides, weighed in the comparison
-//   loadsLater  a script the page loads when it is needed, weighed with its script
+// The renderings, one per builder and interaction, in reading order; a report is what else the build writes.
+//   builder      who builds the page: a tab. interaction names how it is enhanced: the control beside it
+//   dir          compiler output the page came from (copied to site/<dir>/)
+//   file         the rendered page, relative to that output; {doc} is the document
+//   artefact     the generated file behind the path, linked from the panel
+//   hue          accent of the tab and the info box, one per builder's family (unified green, XSLT blue, CETEIcean pink, build grey)
+//   needsJs      the page renders in the browser, so it is empty with JavaScript off
+//   plain        what the path is for, in a line anyone can read
+//   report       not a rendering of the edition: shown apart, and not inspected; label names its tab
+//   interactive  readings swap, notes and page images open in place (check-demo.mjs holds it to the pages)
+//   server       needs a web server, not only files
+//   fetches      what the page downloads besides its linked stylesheets, weighed in the comparison
+//   loadsLater   scripts the page loads when they are needed, weighed with its script
+const HANDLERS = { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" };
+const XSL = { label: "edition.xsl", file: "xslt/edition.xsl" };
+const UNIFIED = { builder: "unified/xast", hue: "#16a34a", dir: "js" };
+const XSLT = { builder: "XSLT", hue: "#0284c7", dir: "xslt" };
+
 export const paths = [
   {
-    id: "unified", family: "unified/xast", label: "prebuilt", hue: "#16a34a",
+    ...UNIFIED, id: "unified", interaction: "none",
     plain: "A finished page with no JavaScript: the smallest and most robust way to publish.",
-    dir: "js", file: "unified/{doc}.html",
-    artefact: { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" },
+    file: "unified/{doc}.html", artefact: HANDLERS,
   },
   {
-    id: "unified-vue", family: "unified/xast", label: "prebuilt + petite-vue", hue: "#16a34a", interactive: true,
-    plain: "The same finished page, with a small library that swaps readings and opens notes in place.",
-    dir: "js", file: "unified-interactive/{doc}.html",
-    artefact: { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" },
+    ...UNIFIED, id: "unified-script", interaction: "small script", interactive: true,
+    plain: "The same finished page, with a small script for readings, notes and page images. The default: nothing to install or load.",
+    file: "unified-script/{doc}.html", artefact: HANDLERS,
   },
   {
-    id: "islands", family: "unified/xast", label: "prebuilt + islands", hue: "#16a34a", interactive: true,
-    loadsLater: "js/unified-islands/facsimile.js",
-    plain: "The same finished page, where only the parts a reader can click load any script, and only when needed.",
-    dir: "js", file: "unified-islands/{doc}.html",
-    artefact: { label: "tei-islands.js", file: "js/unified-islands/tei-islands.js" },
+    ...UNIFIED, id: "unified-islands", interaction: "islands", interactive: true,
+    loadsLater: ["js/unified-islands/readings.js", "js/unified-islands/facsimile.js"],
+    plain: "The same finished page, where each kind of part a reader can click loads its script when the first comes into view. For pages with several kinds of component, or costly ones.",
+    file: "unified-islands/{doc}.html", artefact: { label: "tei-islands.js", file: "js/unified-islands/tei-islands.js" },
   },
   {
-    id: "xslt", family: "XSLT", label: "prebuilt", hue: "#0284c7",
+    ...UNIFIED, id: "unified-petite-vue", interaction: "petite-vue (example)", interactive: true,
+    plain: "An example of using a framework: the same finished page, with directives written at build time and petite-vue from a CDN. The small script does the same with no dependency.",
+    file: "unified-petite-vue/{doc}.html", artefact: HANDLERS,
+  },
+  {
+    ...XSLT, id: "xslt", interaction: "none",
     plain: "A finished page with no JavaScript, built by a stylesheet generated from the ODD rather than by Node.",
-    dir: "xslt", file: "xslt/{doc}.html",
-    artefact: { label: "edition.xsl", file: "xslt/edition.xsl" },
+    file: "xslt/{doc}.html", artefact: XSL,
   },
   {
-    id: "xslt-js", family: "XSLT", label: "prebuilt + small script", hue: "#0284c7", interactive: true,
-    plain: "The same finished page, with a few lines of plain JavaScript for readings and notes.",
-    dir: "xslt", file: "xslt-interactive/{doc}.html",
-    artefact: { label: "edition.xsl", file: "xslt/edition.xsl" },
+    ...XSLT, id: "xslt-script", interaction: "small script", interactive: true,
+    plain: "The same finished page, with the same small script as the unified path.",
+    file: "xslt-script/{doc}.html", artefact: XSL,
   },
   {
-    id: "saxonjs", family: "XSLT", label: "in the browser (SaxonJS)", hue: "#0284c7", needsJs: true, interactive: true, server: true,
+    ...XSLT, id: "xslt-islands", interaction: "islands", interactive: true,
+    loadsLater: ["xslt/xslt-islands/readings.js", "xslt/xslt-islands/facsimile.js"],
+    plain: "The same finished page, with the same islands as the unified path.",
+    file: "xslt-islands/{doc}.html", artefact: { label: "tei-islands.js", file: "xslt/xslt-islands/tei-islands.js" },
+  },
+  {
+    ...XSLT, id: "saxonjs", builder: "SaxonJS", interaction: "its own (IXSL)", needsJs: true, interactive: true, server: true,
     fetches: "xslt/edition-saxonjs.sef.json",
     plain: "No build for the page: the reader's browser transforms the TEI, at the cost of a large script.",
-    dir: "xslt", file: "saxonjs/{doc}.html",
-    artefact: { label: "edition.xsl", file: "xslt/edition.xsl" },
+    file: "saxonjs/{doc}.html", artefact: XSL,
   },
   {
-    id: "ceteicean", family: "CETEIcean", label: "in the browser", hue: "#db2777", needsJs: true, interactive: true,
+    id: "ceteicean", builder: "CETEIcean", interaction: "small script", hue: "#db2777", needsJs: true, interactive: true,
     plain: "No build for the page: the reader's browser turns the TEI into custom elements as it loads.",
     dir: "js", file: "ceteicean/{doc}.html",
     artefact: { label: "tei-ceteicean-behaviours.js", file: "js/ceteicean/tei-ceteicean-behaviours.js" },
   },
   {
-    id: "findings", family: "Build", label: "findings", hue: "#6b7280", report: true,
+    id: "findings", label: "findings", hue: "#6b7280", report: true,
     plain: "What the ODD does not foresee in this document's encoding, and what it could not compile.",
     dir: "js", file: "findings/{doc}.html",
     artefact: { label: "findings.json", file: "js/findings/findings.json" },
   },
   {
-    id: "plain", family: "Build", label: "plain text", hue: "#6b7280", report: true,
+    id: "plain", label: "plain text", hue: "#6b7280", report: true,
     plain: "The ODD's plain output: the text the search index reads, beside its Pagefind records.",
     dir: "js", file: "plain/{doc}.txt",
     artefact: { label: "the plain text (Pagefind records)", file: "js/plain/records.json" },
   },
   {
     // One index for the whole corpus; its results open in the prebuilt rendering.
-    id: "search", family: "Build", label: "search", hue: "#6b7280", report: true, needsJs: true,
+    id: "search", label: "search", hue: "#6b7280", report: true, needsJs: true,
     plain: "The plain text as a Pagefind index, in the browser: type a word as we spell it today, and it finds the old spelling.",
     dir: "js", file: "search/search.html",
     artefact: { label: "records.json (Pagefind)", file: "js/plain/records.json" },
   },
   {
-    id: "json", family: "Build", label: "records", hue: "#6b7280", report: true,
+    id: "json", label: "records", hue: "#6b7280", report: true,
     plain: "The ODD's decisions as data: every element, naming the model chosen for it.",
     dir: "js", file: "json/{doc}.json",
     artefact: { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" },
   },
   {
     // One report for the whole corpus, so every document shows the same page.
-    id: "coverage", family: "Build", label: "coverage", hue: "#6b7280", report: true,
+    id: "coverage", label: "coverage", hue: "#6b7280", report: true,
     plain: "The ODD read back against all the examples: what it says that never runs, and what they hold that it never handles.",
     dir: "js", file: "coverage/index.html",
     artefact: { label: "coverage.json", file: "js/coverage/coverage.json" },

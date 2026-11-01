@@ -32,27 +32,31 @@ function Invoke-Saxon([string[]]$a) { & java -cp $cp net.sf.saxon.Transform @a }
 
 $teis = if ($Tei.Count) { Get-Item $Tei } else { Get-ChildItem "../examples/simler-*.xml" | Sort-Object Name }
 $names = @($teis | ForEach-Object { $_.Name })
-New-Item -ItemType Directory -Force output/xslt, output/xslt-interactive, output/ceteicean | Out-Null
+New-Item -ItemType Directory -Force output/xslt, output/xslt-script, output/xslt-islands, output/ceteicean | Out-Null
 
 Write-Host "(1) generate edition.xsl  <- $Odd"
 Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-xsl.xsl", "-o:output/edition.xsl")
-Copy-Item ../runtime/notes.js, ../runtime/facsimile.js output/ -Force   # which the interactive pages inline
+Copy-Item ../runtime/readings.js, ../runtime/notes.js, ../runtime/facsimile.js output/ -Force   # which an enhanced page inlines
 Write-Host "(1) generate edition.css  <- $Odd $Tokens"
 Invoke-Saxon (@("-s:$Odd", "-xsl:generate/odd-to-css.xsl", "-o:output/edition.css") + @($(if ($Tokens) { "tokens=$Tokens" })))
-foreach ($dir in "output/xslt", "output/ceteicean") { Copy-Item output/edition.css $dir -Force }
+foreach ($dir in "output/xslt", "output/xslt-script", "output/xslt-islands", "output/ceteicean") { Copy-Item output/edition.css $dir -Force }
+Copy-Item ../runtime/tei-islands.js, ../runtime/readings.js, ../runtime/facsimile.js output/xslt-islands/ -Force
 Write-Host "(1) generate ceteicean/ (behaviours + a page per TEI file)  <- $Odd"
 Invoke-Saxon @("-s:$Odd", "-xsl:generate/odd-to-ceteicean.xsl", "-o:output/ceteicean/tei-ceteicean-behaviours.js", "tei=$($names -join ' ')")
 
-# Each TEI file: a static page (zero-JS) and a progressively enhanced one, plus an
-# index of the enhanced pages, as the JS renderers write them.
-Write-Host "(2) render xslt/, xslt-interactive/  <- $($teis.Count) TEI file(s)"
+# Each TEI file: a static page (zero-JS) and the same page with each enhancer, plus
+# an index of the enhanced pages, as the JS renderers write them.
+Write-Host "(2) render xslt/, xslt-script/, xslt-islands/  <- $($teis.Count) TEI file(s)"
 foreach ($f in $teis) {
   Invoke-Saxon @("-s:$($f.FullName)", "-xsl:output/edition.xsl", "-o:output/xslt/$($f.BaseName).html")
-  Invoke-Saxon @("-s:$($f.FullName)", "-xsl:output/edition.xsl", "-o:output/xslt-interactive/$($f.BaseName).html", "interactive=true")
+  Invoke-Saxon @("-s:$($f.FullName)", "-xsl:output/edition.xsl", "-o:output/xslt-script/$($f.BaseName).html", "enhance=script")
+  Invoke-Saxon @("-s:$($f.FullName)", "-xsl:output/edition.xsl", "-o:output/xslt-islands/$($f.BaseName).html", "enhance=islands")
 }
-$subtitle = "$($names.Count) documents - prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
-Invoke-Saxon @("-s:$($teis[0].FullName)", "-xsl:generate/generate-index.xsl", "-o:output/xslt-interactive/index.html",
-  "files=$($names -join '|')", "title=TEI Edition - XSLT (progressively enhanced)", "subtitle=$subtitle")
+$subtitle = "$($names.Count) documents - prebuilt HTML, degrades to zero-JS"
+foreach ($enhancer in "script", "islands") {
+  Invoke-Saxon @("-s:$($teis[0].FullName)", "-xsl:generate/generate-index.xsl", "-o:output/xslt-$enhancer/index.html",
+    "files=$($names -join '|')", "title=TEI Edition - XSLT + $enhancer", "subtitle=$subtitle")
+}
 
 # (3) SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
 #     File (SEF) and run in the browser. The SEF compiler is xslt3 (SaxonJS, Node):

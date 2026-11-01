@@ -52,8 +52,9 @@ jobs:
         run: |
           npm run build:all
           npm run render:unified
-          npm run render:interactive
+          npm run render:script
           npm run render:islands
+          npm run render:petite-vue
           npm run render:plain
           npm run render:search
           npm run render:json

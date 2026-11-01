@@ -124,6 +124,17 @@ XPath, ODD resolution and diagnostics, by target.
   `ſelig`. An excerpt shows the folded text. The result is a document, not a place
   in it.
 
+## What an enhancer may rely on
+
+An enhancer adds scripts to a finished page, whichever renderer wrote it (`runtime/readings.js`,
+`notes.js`, `facsimile.js`, `tei-islands.js`). A renderer gets them all by writing:
+
+| Written | Means |
+|---|---|
+| `.tei-alternate` with `.tei-alternate-default` and `.tei-alternate-alt[hidden]` as children | two readings, the second hidden |
+| `a.tei-note-ref[href^="#note-"]`, and the element it links to | a note and its marker |
+| `[data-page]`, and `[data-manifest]` around it | a page's image, and where to find it |
+
 ## Extensions
 
 Each is labelled as an extension wherever it is used; see

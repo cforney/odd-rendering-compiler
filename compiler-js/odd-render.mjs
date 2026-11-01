@@ -25,13 +25,8 @@ import { parseArgs, resolveTeiFiles } from "./cli.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const { version } = JSON.parse(readFileSync(join(HERE, "package.json"), "utf8"));
 
-/** The renderer of each tier. The CETEIcean one compiles and renders in one step. */
-const TIERS = {
-  static: "render-unified.mjs",
-  interactive: "render-unified-interactive.mjs",
-  islands: "render-unified-islands.mjs",
-  ceteicean: "odd-to-ceteicean.mjs",
-};
+/** The tiers: the static page, each enhancer of render-unified.mjs, and CETEIcean, which compiles and renders in one step. */
+const TIERS = ["static", "script", "islands", "petite-vue", "ceteicean"];
 /** Options that take a value, so what follows them is not a positional argument. */
 const VALUED = ["--out", "--tokens", "--output", "--tier", "--lang", "--fail-on", "--lock"];
 
@@ -45,7 +40,7 @@ const USAGE = `odd-render ${version} — compile a TEI ODD's Processing Model, a
   --out <dir>       where to write (default: build)
   --tokens <css>    design tokens, prepended to edition.css
   --output <name>   the Processing-Model output to render (default: web; needs --tier static)
-  --tier <name>     ${Object.keys(TIERS).join(" | ")} (default: static)
+  --tier <name>     ${TIERS.join(" | ")} (default: static)
   --lang <code>     the language of the search records, with --reports or --search
   --reports         also write the findings, the plain text, the JSON records and the coverage
   --search          also write a search page over the plain text, search.html, and its
@@ -89,7 +84,7 @@ const strict = cli.has("--strict") && "--strict";
 const search = cli.has("--search") && "--search"; // tells the renderers that the index page may link to it
 
 if (!oddPath || !teiPaths.length) fail(`give an ODD and at least one TEI source\n\n${USAGE}`);
-if (!(tier in TIERS)) fail(`unknown tier "${tier}" — one of ${Object.keys(TIERS).join(", ")}`);
+if (!TIERS.includes(tier)) fail(`unknown tier "${tier}" — one of ${TIERS.join(", ")}`);
 if (output !== "web" && tier !== "static") fail(`--output ${output} needs --tier static; the other tiers render the page`);
 if (!existsSync(oddPath)) fail(`ODD not found: ${oddPath}`);
 
@@ -119,9 +114,9 @@ const failOn = cli.get("--fail-on");
 const lock = cli.get("--lock");
 step("odd-to-unified.mjs", "--odd", oddPath, "--out", artefacts, stamp, strict, failOn && ["--fail-on", failOn], lock && ["--lock", lock]);
 if (tier === "ceteicean") {
-  step(TIERS[tier], "--odd", oddPath, tei, "--css", css, "--out", outDir, stamp, strict, search);
+  step("odd-to-ceteicean.mjs", "--odd", oddPath, tei, "--css", css, "--out", outDir, stamp, strict, search);
 } else {
-  step(TIERS[tier], "--handlers", handlers, tei, "--css", css, "--out", outDir, "--output", output, search);
+  step("render-unified.mjs", tier !== "static" && ["--enhance", tier], "--handlers", handlers, tei, "--css", css, "--out", outDir, "--output", output, search);
 }
 
 if (cli.has("--reports") || search) step("render-plain.mjs", "--handlers", handlers, tei, lang && ["--lang", lang], "--out", join(reports, "plain"));

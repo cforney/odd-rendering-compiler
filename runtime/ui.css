@@ -39,6 +39,8 @@
   background-color: rgb(var(--c-paper, 250 250 250)); color: rgb(var(--c-ink, 34 34 34));
 }
 .tei-tooltip-foot a:hover { background-color: rgb(var(--c-ink, 34 34 34) / 0.05); }
+tei-island { display: contents; }
+.tei-alternate[role="switch"] { cursor: pointer; border-bottom: 1px dotted #999; }
 [data-page][role="button"] { cursor: pointer; }
 [data-page][role="button"]:hover, [data-page][aria-expanded="true"] { color: rgb(var(--c-accent, 45 87 76)); }
 .tei-facsimile {

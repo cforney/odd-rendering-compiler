@@ -324,23 +324,35 @@ test("the handlers can say which model gave each element they rendered", async (
   assert.equal(teiToHast(tree).sources.size, 0, "only when asked");
 });
 
-test("render-unified-interactive leaves the alternate reading hidden, without JS and for the views' CSS", () => {
+test("the petite-vue example leaves the alternate reading hidden, without JS and for the views' CSS", () => {
   const out = join(outDir, "interactive");
-  run("render-unified-interactive.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
+  run("render-unified.mjs", ["--enhance", "petite-vue", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
   const html = readFileSync(join(out, "simler-hausswesen.html"), "utf8");
   assert.match(html, /<span class="tei-alternate-alt normalized-default" hidden :hidden="!alt">/);
   assert.match(html, /<span class="tei-alternate-default normalized-alternate" :hidden="alt">/);
   assert.doesNotMatch(html, /v-show/, "an inline display would beat the view that chooses this reading");
 });
 
-test("render-unified-islands wraps the readings as islands and opens notes as tooltips", () => {
+test("an enhancer adds scripts to a page, and changes nothing of the edition", () => {
+  const render = (name, ...enhance) => {
+    run("render-unified.mjs", [...enhance, "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", join(outDir, name)]);
+    return page(name, "simler-hausswesen");
+  };
+  const edition = (html) => html.slice(html.indexOf('<div class="tei-edition"'), html.indexOf("<script") < 0 ? html.indexOf("</body>") : html.indexOf("<script"));
+  const plain = render("floor");
+  assert.doesNotMatch(plain, /<script/);
+  for (const name of ["script", "islands"]) assert.equal(edition(render(`enhanced-${name}`, "--enhance", name)).trim(), edition(plain).trim(), name);
+  assert.match(page("enhanced-script", "simler-hausswesen"), /tei-alternate-default[\s\S]*a\.tei-note-ref[\s\S]*TeiFacsimile/, "the small script brings all three behaviours inline");
+  assert.equal(spawnSync(process.execPath, ["render-unified.mjs", "--enhance", "nope"], { cwd: pocDir }).status, 1, "an unknown enhancer is an error");
+});
+
+test("the islands enhancer finds its regions in the browser and opens notes as tooltips", () => {
   const out = join(outDir, "islands");
-  run("render-unified-islands.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
+  run("render-unified.mjs", ["--enhance", "islands", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
 
   const html = readFileSync(join(out, "simler-hausswesen.html"), "utf8");
-  assert.match(html, /<tei-island type="choice" on="visible">/, "apparatus region wrapped as an island");
-  assert.match(html, /<tei-island type="facsimile" on="visible"><span[^>]*data-page=/, "a page break too");
-  assert.ok(existsSync(join(out, "facsimile.js")), "whose script waits beside the page");
+  assert.doesNotMatch(html, /<tei-island/, "nothing is marked at build time");
+  for (const script of ["readings.js", "facsimile.js"]) assert.ok(existsSync(join(out, script)), `${script} waits beside the page`);
   assert.doesNotMatch(html, /TeiFacsimile/, "and is not in it");
   assert.match(html, /<a class="tei-note note-anchored tei-note-ref" href="#note-1"/, "a note marker stays a link to its note");
   assert.match(html, /class="tei-footnotes"/, "the notes at the end (works with no JS)");
@@ -349,6 +361,7 @@ test("render-unified-islands wraps the readings as islands and opens notes as to
 
   const runtime = readFileSync(join(out, "tei-islands.js"), "utf8");
   assert.match(runtime, /customElements\.define\("tei-island"/, "runtime defines the island custom element");
+  assert.match(runtime, /mark\("\.tei-alternate", "choice", "visible"\)/, "and marks the readings by their class");
 });
 
 test("odd-render compiles and renders an edition in one command", () => {

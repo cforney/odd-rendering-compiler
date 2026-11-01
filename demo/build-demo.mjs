@@ -100,14 +100,16 @@ const resolved = (await Promise.all(paths.map(async (p) => {
     if (!existsSync(page)) continue;
     if (page.endsWith(".html")) banner = takeBanner(page) ?? banner;
     const js = await measureClientJs(page);
-    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), jsKB: kb(js.bytes + (p.loadsLater ? sizeOf(resolve(SITE, p.loadsLater)) : 0)), jsExternal: js.external };
+    // A linked stylesheet is part of the page, as an inlined one is.
+    const css = [...readFileSync(page, "utf8").matchAll(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].reduce((sum, [, href]) => sum + sizeOf(resolve(dirname(page), href)), 0);
+    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), cssKB: css ? kb(css) : null, jsKB: kb(js.bytes + (p.loadsLater ?? []).reduce((sum, f) => sum + sizeOf(resolve(SITE, f)), 0)), jsExternal: js.external };
   }
   if (!Object.keys(pages).length) {
     console.warn(`[build-demo] skipping ${p.id}: no ${p.dir}/${p.file} found`);
     return [];
   }
   return [{
-    id: p.id, family: p.family, label: p.label, hue: p.hue, pages, needsJs: Boolean(p.needsJs), interactive: Boolean(p.interactive), server: Boolean(p.server),
+    id: p.id, builder: p.builder, interaction: p.interaction, label: p.label, hue: p.hue, pages, needsJs: Boolean(p.needsJs), interactive: Boolean(p.interactive), server: Boolean(p.server),
     fetchesKB: p.fetches ? kb(sizeOf(resolve(SITE, p.fetches))) : null,
     plain: p.plain, report: Boolean(p.report),
     how: banner?.replace(/<h3>[\s\S]*?<\/h3>\s*/, "") ?? null,
@@ -204,13 +206,14 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
     <div class="controls">
       <button type="button" class="compare-open" id="compare-open">Compare the renderings</button>
       <label>Document <select id="doc"></select></label>
+      <label id="interaction-label" title="How the finished page is enhanced">Interaction <select id="interaction"></select></label>
       <label><input type="checkbox" id="js-on" checked> JavaScript</label>
     </div>
   </header>
 
   <div class="navs">
     <nav class="paths" aria-label="Rendering path">
-      <span class="nav-title">One edition, rendered by</span>
+      <span class="nav-title">One edition, built by</span>
       <div class="nav-tabs" id="paths"></div>
     </nav>
     <nav class="paths reports" aria-label="Build reports">
@@ -258,7 +261,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
     </header>
     <p class="muted">They all show the same edition; they differ in what the reader downloads and what the page can do. Sizes are uncompressed, for the document picked, and all bars share one scale; a script inside the page counts in both columns, and the list of page images (454 KB) comes only with the first one opened. <span id="compare-checked"></span></p>
     <table>
-      <thead><tr><th>Rendering</th><th>Page</th><th>Script</th><th>Works without JavaScript</th><th>Needs a server</th><th>Readings, notes and page images in place</th><th>Same as the others</th></tr></thead>
+      <thead><tr><th>Built by · interaction</th><th>Page</th><th>Script</th><th>Works without JavaScript</th><th>Needs a server</th><th>Readings, notes and page images in place</th><th>Same as the others</th></tr></thead>
       <tbody id="compare-rows"></tbody>
     </table>
   </dialog>

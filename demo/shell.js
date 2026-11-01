@@ -21,8 +21,13 @@ const state = {
   js: asked.get("js") !== "off",
   views: new Set((asked.get("views") ?? "").split(",").filter((v) => data.views.some((w) => w.output === v))),
   inspecting: false,
+  interaction: data.paths.find((p) => p.id === asked.get("path"))?.interaction ?? data.paths[0].interaction,
   picked: asked.has("pick") ? Number(asked.get("pick")) : null,
 };
+
+/** The tab of a path: its builder, or as a report its own. */
+const tabOf = (p) => p.builder ?? p.id;
+const nameOf = (p) => (p.builder ? `${p.builder} · ${p.interaction}` : `Build · ${p.label}`);
 
 function remember() {
   const hash = new URLSearchParams({ doc: state.doc, path: state.path.id });
@@ -40,15 +45,21 @@ function render() {
   frame.setAttribute("sandbox", state.js ? "allow-scripts allow-same-origin" : "allow-same-origin");
   frame.src = page ? page.url : "about:blank";
 
-  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.id === state.path.id));
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.id === tabOf(state.path)));
+  const variants = data.paths.filter((p) => tabOf(p) === tabOf(state.path));
+  const interaction = byId("interaction");
+  interaction.replaceChildren(...variants.map((p) => new Option(p.interaction, p.id)));
+  interaction.value = state.path.id;
+  interaction.disabled = variants.length < 2;
+  byId("interaction-label").hidden = Boolean(state.path.report);
   byId("about-box").style.setProperty("--hue", state.path.hue);
-  byId("about-title").textContent = `${state.path.family} · ${state.path.label}`;
+  byId("about-title").textContent = nameOf(state.path);
   byId("about-purpose").textContent = state.path.plain;
   byId("how").hidden = !state.path.how;
   byId("how-text").innerHTML = state.path.how ?? ""; // the compilers' own banner
   byId("notice").hidden = state.js || !state.path.needsJs || state.path.report;
   const ext = page?.jsExternal.length ? ` + ${cdnNames(page)} (CDN)` : "";
-  const also = state.path.fetchesKB ? ` + ${state.path.fetchesKB} KB compiled stylesheet` : "";
+  const also = page ? extras(state.path, page) : "";
   byId("metrics").textContent = !page ? "No page for this document."
     : state.path.report ? `${page.pageKB} KB` : `Page ${page.pageKB} KB${also} · client JS ${page.jsKB} KB${ext}`;
   byId("inspect").hidden = !data.inspect || Boolean(state.path.report);
@@ -91,7 +102,8 @@ let verified = null;
 fetch("verified.json").then((r) => (r.ok ? r.json() : null)).then((v) => { verified = v; renderCompared(); }).catch(() => {});
 
 // --- The comparison of the renderings ---------------------------------------
-const pageKB = (p, page) => Number(page.pageKB) + Number(p.fetchesKB ?? 0);
+const pageKB = (p, page) => Number(page.pageKB) + Number(page.cssKB ?? 0) + Number(p.fetchesKB ?? 0);
+const extras = (p, page) => `${page.cssKB ? ` + ${page.cssKB} KB stylesheet` : ""}${p.fetchesKB ? ` + ${p.fetchesKB} KB compiled` : ""}`;
 const scriptKB = (page) => Number(page.jsKB) + page.jsExternal.reduce((sum, e) => sum + Number(e.kb ?? 0), 0);
 const cdnNames = (page) => page.jsExternal.map((e) => (e.kb ? `${e.name}, ${e.kb} KB` : e.name)).join(" + ");
 
@@ -113,11 +125,11 @@ function renderCompared() {
     const row = make(body, "tr");
     row.dataset.id = p.id;
     const name = make(row, "th");
-    const open = make(name, "button", `${p.family} · ${p.label}`);
-    open.onclick = () => { state.path = p; byId("compare").close(); render(); };
+    const open = make(name, "button", nameOf(p));
+    open.onclick = () => { state.path = p; state.interaction = p.interaction; byId("compare").close(); render(); };
     make(name, "span", p.plain, "muted small");
     if (page) {
-      sizeCell(row, `${page.pageKB} KB${p.fetchesKB ? ` + ${p.fetchesKB} KB stylesheet` : ""}`, pageKB(p, page), max);
+      sizeCell(row, `${page.pageKB} KB${extras(p, page)}`, pageKB(p, page), max);
       sizeCell(row, `${page.jsKB} KB${page.jsExternal.length ? ` + ${cdnNames(page)} (CDN)` : ""}`, scriptKB(page), max);
     } else {
       make(row, "td", "–");
@@ -264,21 +276,24 @@ byId("page").addEventListener("load", async () => {
 byId("inspect-toggle").onclick = () => setInspecting(!state.inspecting);
 
 // --- Build the controls from the manifest -----------------------------------
-function addTabs(nav, paths, grouped) {
-  for (const family of new Set(paths.map((p) => p.family))) {
-    const group = make(nav, "div", undefined, "family");
-    if (grouped) make(group, "span", family, "family-name");
-    for (const p of paths.filter((q) => q.family === family)) {
-      const tab = make(group, "button", p.label, "tab");
-      tab.dataset.id = p.id;
-      tab.title = p.plain;
-      tab.style.setProperty("--hue", p.hue);
-      tab.onclick = () => { state.path = p; render(); };
-    }
+// A tab per builder; its rendering is the one with the interaction last chosen, if it has it.
+function addTabs(nav, paths) {
+  for (const key of new Set(paths.map(tabOf))) {
+    const variants = paths.filter((p) => tabOf(p) === key);
+    const tab = make(nav, "button", variants[0].builder ?? variants[0].label, "tab");
+    tab.dataset.id = key;
+    tab.title = variants[0].plain;
+    tab.style.setProperty("--hue", variants[0].hue);
+    tab.onclick = () => { state.path = variants.find((p) => p.interaction === state.interaction) ?? variants[0]; render(); };
   }
 }
-addTabs(byId("paths"), data.paths.filter((p) => !p.report), true);
-addTabs(byId("reports"), data.paths.filter((p) => p.report), false);
+addTabs(byId("paths"), data.paths.filter((p) => !p.report));
+addTabs(byId("reports"), data.paths.filter((p) => p.report));
+byId("interaction").onchange = (e) => {
+  state.path = data.paths.find((p) => p.id === e.target.value);
+  state.interaction = state.path.interaction;
+  render();
+};
 
 // A switch per view, in the panel: the frame shows the edition alone.
 for (const view of data.views) {

@@ -46,8 +46,9 @@ bash build.sh ../examples/tei_simler.odd ../examples/simler-psalmen.xml  # one e
 
 Outputs: `edition.xsl` and `edition.css` (with the design tokens of `TOKENS`,
 relative to the ODD, by default `simler-tokens.css`), then one page per TEI
-file in each of `xslt/` (Tier 1, zero-JS) and `xslt-interactive/` (Tier 2,
-progressively enhanced, with a linking `index.html` from `generate-index.xsl`),
+file in each of `xslt/` (Tier 1, zero-JS), and `xslt-script/` and `xslt-islands/`
+(Tier 2, the stylesheet's param `enhance`, each with a linking `index.html` from
+`generate-index.xsl`),
 and `ceteicean/`: from `odd-to-ceteicean.xsl`, `tei-ceteicean-behaviours.js` and
 a self-contained page per TEI file next to the ODD that renders it client-side
 with CETEIcean. When Node is available it additionally emits the **SaxonJS**
@@ -125,12 +126,11 @@ as the JS `odd-to-ceteicean.mjs`.
   interleaved columns so: the `#twocol` rendition makes the CSS grid, and the
   `l-twocol` model's params (`--acro`, `--fin`, `--indent`) set each line's
   marginal letters and indent.
-- **The target language shapes the output.** The interactive page does *not* use
-  petite-vue: its directives (`@click`, `:aria-checked`) are not valid XML attribute
-  names, so a standards XSLT generator cannot emit them. The same reading toggle
-  is reached with `class` hooks and a few lines of vanilla JS; the notes open as
-  tooltips by `../runtime/notes.js`, and page breaks their image by
-  `../runtime/facsimile.js`, which the build copies beside `edition.xsl`.
+- **The enhancers are the unified path's.** `enhance=script|islands` adds the same
+  scripts of `../runtime/`, which the build copies beside `edition.xsl`, to the same
+  page. The petite-vue example has no XSLT form: its directives (`@click`,
+  `:aria-checked`) are not valid XML attribute names, so a standards XSLT generator
+  cannot emit them.
 - **Fidelity.** The body of each static page in `xslt/` is **equivalent** to the
   unified render and to that of the stylesheet from `odd-to-xslt.mjs`: identical
   up to attribute order and the whitespace next to a block's tags. `compiler-js`'s `npm test` checks this on

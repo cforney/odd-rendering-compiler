@@ -12,7 +12,7 @@
   odd-to-ceteicean.xsl uses.
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/generate-index.xsl
-              -o:output/xslt-interactive/index.html
+              -o:output/xslt-script/index.html
               files="simler-buchstabwechsel.xml|simler-psalmen.xml"
               title="…" subtitle="…"
 -->

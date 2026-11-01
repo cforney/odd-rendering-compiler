@@ -55,8 +55,6 @@ dialog tbody th button { display: block; padding: 0; font: inherit; font-weight:
 dialog tr.current { background: var(--soft); box-shadow: inset 3px 0 0 var(--link); }
 .size-bar { display: block; width: 6rem; height: 4px; margin-top: 0.3rem; background: var(--line); border-radius: 2px; }
 .size-bar span { display: block; height: 100%; background: var(--muted); border-radius: 2px; }
-.family { display: flex; align-items: center; gap: 0.2rem; }
-.family-name { margin-right: 0.4rem; font-weight: 600; }
 .tab {
   padding: 0.65rem 0.4rem 0.55rem; font: inherit; color: var(--muted); cursor: pointer;
   background: none; border: 0; border-bottom: 2px solid transparent;
@@ -83,7 +81,8 @@ dialog tr.current { background: var(--soft); box-shadow: inset 3px 0 0 var(--lin
 .about p { margin: 0 0 0.5rem; }
 #how-text p { font-size: 0.82rem; }
 .about code { padding: 0 0.2em; background: #fff; border-radius: 3px; font-size: 0.92em; }
-.controls label:has(input:disabled) { opacity: 0.5; }
+.controls label:has(input:disabled), .controls label:has(select:disabled) { opacity: 0.5; }
+.controls label[hidden] { display: none; }
 .about #metrics { margin: 0.6rem 0 0; padding-top: 0.5rem; border-top: 1px solid var(--line); }
 .about .notice { margin: 0.5rem 0 0; font-weight: 600; }
 

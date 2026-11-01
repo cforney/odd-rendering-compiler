@@ -88,8 +88,9 @@ The same ODD feeds three levels, each building on the last:
    its note as a tooltip, by one script on every interactive page
    (`runtime/notes.js`, styled by `runtime/ui.css` in `edition.css`), and a page
    break its image from the IIIF manifest (`runtime/facsimile.js`).
-   Apparatus readings toggle by petite-vue or islands in the JS path, a few lines
-   of vanilla JS in the XSLT path, and IXSL in SaxonJS.
+   Either compiler's page takes the same enhancers: a small script (the default),
+   or islands, which load each behaviour when it is needed. SaxonJS has IXSL, and
+   the JS path has petite-vue as an example of what a framework takes.
 
 The CETEIcean tier renders in the browser instead: the same body, and the same
 tooltips and page images.

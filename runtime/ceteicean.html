@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- The page of the CETEIcean tier; the generators fill in the behaviours, the notes script and the TEI. -->
+<!-- The page of the CETEIcean tier; the generators fill in the behaviours, the shared scripts and the TEI. -->
 <html lang="en" data-mode="light">
 <head>
   <meta charset="UTF-8">
@@ -13,8 +13,6 @@
     .render-info { font-family: system-ui, sans-serif; background: #fce7f3; border: 1px solid #f9a8d4; padding: 1em; border-radius: 6px; margin-bottom: 2em; font-size: 0.85em; }
     .render-info h3 { margin: 0 0 0.5em; color: #db2777; }
     .render-info code { background: #fdf2f8; padding: 0.1em 0.3em; border-radius: 3px; }
-    /* Apparatus toggle; notes: edition.css. */
-    .tei-alternate { cursor: pointer; border-bottom: 1px dotted #999; }
   </style>
 </head>
 <body>
@@ -42,12 +40,9 @@
   <script>
     teiEdition(new CETEI({ omitDefaultBehaviors: true }), JSON.parse(document.getElementById('tei-source').textContent), teiModels, teiViews,
       function (dom) { document.getElementById('TEI').appendChild(dom); });
-
-    // Corrections toggle; event delegation works whenever CETEIcean is done.
-    document.addEventListener('click', function (e) {
-      var alt = e.target.closest('.tei-alternate');
-      if (alt) alt.querySelectorAll('.tei-alternate-default, .tei-alternate-alt').forEach(function (r) { r.hidden = !r.hidden; });
-    });
+  </script>
+  <script>
+{{readings}}
   </script>
   <script>
 {{notes}}

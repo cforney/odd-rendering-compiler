@@ -11,7 +11,7 @@
  *
  * Usage:   node odd-to-xslt.mjs --odd <path> [--out <dir>]
  * Output:  <dir>/edition.xsl (stylesheet params: output, interactive), with
- *          notes.js and facsimile.js, which the interactive page inlines
+ *          the scripts of ../runtime that an enhanced page inlines
  * Read by: render-xslt.mjs (--xsl), or any XSLT 3.0 processor
  */
 
@@ -89,5 +89,5 @@ ${specs.flatMap(template).map((l) => `  ${l}`).join("\n")}
 `;
 
 const xslPath = writeOut(outDir, "edition.xsl", xslt);
-for (const script of ["notes.js", "facsimile.js"]) copyFileSync(new URL(`../runtime/${script}`, import.meta.url), join(outDir, script));
+for (const script of ["readings.js", "notes.js", "facsimile.js"]) copyFileSync(new URL(`../runtime/${script}`, import.meta.url), join(outDir, script));
 log(`✓ ${xslPath} (${specs.length} elements, ${specs.reduce((n, s) => n + s.models.length, 0)} models, ${odd.views.length} views)`);

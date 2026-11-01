@@ -46,32 +46,36 @@ TEIS=("$@")
 TOKENS="${TOKENS-simler-tokens.css}"
 NAMES=()
 for f in "${TEIS[@]}"; do NAMES+=("$(basename "$f")"); done
-mkdir -p output/xslt output/xslt-interactive output/ceteicean
+mkdir -p output/xslt output/xslt-script output/xslt-islands output/ceteicean
 
 echo "① generate  edition.xsl  ← $ODD"
 saxon -s:"$ODD" -xsl:generate/odd-to-xsl.xsl -o:output/edition.xsl
-cp ../runtime/notes.js ../runtime/facsimile.js output/   # which the interactive pages inline
+cp ../runtime/readings.js ../runtime/notes.js ../runtime/facsimile.js output/   # which an enhanced page inlines
 
 echo "① generate  edition.css  ← $ODD${TOKENS:+ + $TOKENS}"
 saxon -s:"$ODD" -xsl:generate/odd-to-css.xsl -o:output/edition.css ${TOKENS:+tokens="$TOKENS"}
-cp output/edition.css output/xslt/
+for dir in xslt xslt-script xslt-islands; do cp output/edition.css "output/$dir/"; done
+cp ../runtime/tei-islands.js ../runtime/readings.js ../runtime/facsimile.js output/xslt-islands/
 cp output/edition.css output/ceteicean/
 
 echo "① generate  ceteicean/ (behaviours + a page per TEI file)  ← $ODD"
 saxon -s:"$ODD" -xsl:generate/odd-to-ceteicean.xsl -o:output/ceteicean/tei-ceteicean-behaviours.js tei="${NAMES[*]}"
 
-# Each TEI file: a static page (zero-JS) and a progressively enhanced one, plus an
-# index of the enhanced pages, as the JS renderers write them.
-echo "② render    xslt/, xslt-interactive/  ← ${#TEIS[@]} TEI file(s)"
+# Each TEI file: a static page (zero-JS) and the same page with each enhancer, plus
+# an index of the enhanced pages, as the JS renderers write them.
+echo "② render    xslt/, xslt-script/, xslt-islands/  ← ${#TEIS[@]} TEI file(s)"
 for f in "${TEIS[@]}"; do
   base="$(basename "$f" .xml)"
   saxon -s:"$f" -xsl:output/edition.xsl -o:"output/xslt/$base.html"
-  saxon -s:"$f" -xsl:output/edition.xsl -o:"output/xslt-interactive/$base.html" interactive=true
+  saxon -s:"$f" -xsl:output/edition.xsl -o:"output/xslt-script/$base.html" enhance=script
+  saxon -s:"$f" -xsl:output/edition.xsl -o:"output/xslt-islands/$base.html" enhance=islands
 done
-saxon -s:"${TEIS[0]}" -xsl:generate/generate-index.xsl -o:output/xslt-interactive/index.html \
-  files="$(IFS='|'; echo "${NAMES[*]}")" \
-  title="TEI Edition — XSLT (progressively enhanced)" \
-  subtitle="${#TEIS[@]} documents · prebuilt HTML, ~12 lines of vanilla JS, degrades to zero-JS"
+for enhancer in script islands; do
+  saxon -s:"${TEIS[0]}" -xsl:generate/generate-index.xsl -o:"output/xslt-$enhancer/index.html" \
+    files="$(IFS='|'; echo "${NAMES[*]}")" \
+    title="TEI Edition — XSLT + $enhancer" \
+    subtitle="${#TEIS[@]} documents · prebuilt HTML, degrades to zero-JS"
+done
 
 # ③ SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
 #    File (SEF) and run in the browser — completing the template-matching axis on
@@ -99,4 +103,4 @@ else
   echo "③ saxonjs   skipped (Node/npx not found — needed to compile the SEF with xslt3)"
 fi
 
-echo "done — output/{edition.xsl, edition.css, xslt/, xslt-interactive/, ceteicean/, saxonjs/ + edition-saxonjs.sef.json}"
+echo "done — output/{edition.xsl, edition.css, xslt/, xslt-script/, xslt-islands/, ceteicean/, saxonjs/ + edition-saxonjs.sef.json}"

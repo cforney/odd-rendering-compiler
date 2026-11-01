@@ -27,7 +27,7 @@ Build each compiler's outputs first, then assemble:
 # 1 · the unified + CETEIcean pages and their artefacts, the plain text, the findings
 cd compiler-js
 npm install
-npm run build:all && npm run render:unified && npm run render:interactive && npm run render:islands
+npm run build:all && npm run render:unified && npm run render:script && npm run render:islands && npm run render:petite-vue
 npm run render:plain && npm run render:search && npm run render:json && npm run coverage && npm run findings
 
 # 2 · the XSLT pages (static, progressively enhanced, in-browser SaxonJS)
@@ -73,7 +73,10 @@ fetches each CDN script to weigh it; without network it stays a name, and out of
 
 ## Using it
 
-The URL holds the document, rendering, views, JavaScript setting and picked element,
+The tabs choose who builds the page; *Interaction* chooses how a prebuilt page is
+enhanced, and stays chosen across tabs. Each combination has its own entry in the URL,
+in `verified.json` and in the comparison table, whose sizes count a linked stylesheet
+as part of the page, as an inlined one is. The URL holds the document, rendering, views, JavaScript setting and picked element,
 so a state can be shared. The views are switched from the panel for every rendering
 at once: the pages' own switches are hidden here, and work as ever elsewhere.
 

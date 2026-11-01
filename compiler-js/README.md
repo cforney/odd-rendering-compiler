@@ -16,8 +16,8 @@ node odd-render.mjs ../examples/tei_simler.odd "../examples/simler-*.xml"   --to
 The pages land in `--out` (default `build/`), what the compiler generated in
 `<out>/artefacts/`, and with `--reports` the plain text, the JSON records, the
 coverage and the findings in `<out>/reports/`. `--search` adds `search.html` and its
-Pagefind index, linked from the index page; the pages themselves stay as they are. `--tier static | interactive |
-islands | ceteicean` picks the rendering tier, `--output` the Processing-Model
+Pagefind index, linked from the index page; the pages themselves stay as they are. `--tier static | script |
+islands | petite-vue | ceteicean` picks the rendering tier, `--output` the Processing-Model
 output, `--strict` fails on XPath outside the subset instead of degrading it. A
 missing ODD, a missing source or a glob that matches nothing is an error before
 anything is written.
@@ -45,9 +45,7 @@ CSS nor a `--…` param defines.
 
 | Script | Source artefact | Output (`npm run …`) |
 |--------|----------------|--------|
-| `render-unified.mjs` | `tei-handlers.mjs` | `unified/` |
-| `render-unified-interactive.mjs` | `tei-handlers.mjs` + petite-vue | `unified-interactive/` |
-| `render-unified-islands.mjs` | `tei-handlers.mjs` + `islands-runtime.js` | `unified-islands/` |
+| `render-unified.mjs` | `tei-handlers.mjs` | `unified/`; with `--enhance`, `unified-script/`, `unified-islands/` or `unified-petite-vue/` |
 | `render-xslt.mjs` | `edition.xsl`, run by SaxonJS (`xslt3`) | `xslt/` |
 | `render-plain.mjs` | `tei-handlers.mjs`, output `plain` | `plain/`: `<basename>.txt` and `records.json`, Pagefind custom records (`render:plain`) |
 | `search-index.mjs` | the records of `render-plain.mjs` | `search/`: `search.html` and a Pagefind index, with text and query folded (`render:search`; needs the optional `pagefind` package, and HTTP to use) |
@@ -100,12 +98,13 @@ else's ODD therefore runs here, with a report of what was dropped. `--strict`
 fails the build instead, and every script that compiles *our* ODDs passes it.
 See [`../docs/predicate-grammar.md`](../docs/predicate-grammar.md).
 
-> **Islands.** `render-unified-islands.mjs` ships the *same* static body, but wraps
-> each interactive region in a `<tei-island>` custom element that one tiny generic
-> runtime (`islands-runtime.js`) hydrates on demand (`on="load|idle|visible|
-> media()"`, mirroring Astro's `client:*`). It is the framework-agnostic
-> generalisation of the petite-vue and vanilla-JS tiers — only the enhancement
-> differs, and the page still reads with no JavaScript.
+> **Enhancers.** `--enhance` adds scripts of `../runtime/` to the finished page, as
+> the XSLT path does, and they read only what every renderer writes (see
+> [conventions](../docs/conventions.md)). `script` is the default choice: the small
+> `readings.js`, inlined. `islands` is `tei-islands.js`, which fetches each kind of
+> behaviour when its first region comes into view (`on="load|idle|visible|media()"`,
+> mirroring Astro's `client:*`). `petite-vue` is a labelled example of what using a
+> framework takes: directives in the hast, and a CDN dependency.
 
 > **SaxonJS.** The *client-side* SaxonJS + IXSL demo lives in
 > [`../compiler-xslt/`](../compiler-xslt/).
@@ -134,7 +133,7 @@ npm run sync:odd -- <commit>   # vendor the Simler ODD and tokens at a commit
 Individual generators (`build`, `build:xslt`, `build:unified`, `build:ceteicean`)
 read `../examples/tei_simler.odd`, and `build` adds its tokens,
 `../examples/simler-tokens.css`. Individual renderers (`render:unified`,
-`render:interactive`, `render:islands`, `render:xslt`, `render:ceteicean`,
+`render:script`, `render:islands`, `render:petite-vue`, `render:xslt`, `render:ceteicean`,
 `render:plain`, `render:json`) render every example.
 
 **Diagnostics.** What an ODD is read despite has a stable code, a severity and a
@@ -170,7 +169,6 @@ compiler-js/
 ├── findings.mjs          # build-time findings
 ├── coverage.mjs          # the records read back against the ODD
 ├── conformance.mjs       # the conformance suite, run against any implementation
-├── islands-runtime.js    # generic <tei-island> hydration runtime
 ├── byte-identity.mjs     # the equivalence check between renders
 ├── test/                 # smoke tests, fixtures, gate (`npm test`)
 ├── tsconfig.json         # `npm run typecheck`: tsc over the JSDoc types

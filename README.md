@@ -19,7 +19,8 @@ The chain is implemented **twice — in JavaScript and in XSLT** — on purpose:
 *generate* step is generic, not tied to one language. The unified handlers and
 the stylesheets of both XSLT generators render an **equivalent static body**
 (identical up to attribute order and the whitespace next to a block's tags), checked in CI on the examples
-and on conformance fixtures.
+and on conformance fixtures. [docs/capabilities.md](docs/capabilities.md) says what
+each target reads, implements and has executed.
 
 > **Note.** This is an experimental implementation: it exists to illustrate
 > the idea and reproduce the article, not as production code.
@@ -30,7 +31,7 @@ and on conformance fixtures.
 |-----------|------------|
 | [`compiler-js/`](compiler-js/) | JavaScript reference implementation (generators, renderers, shared ODD parser, smoke tests) |
 | [`compiler-xslt/`](compiler-xslt/) | XSLT reference implementation (the same chain, built entirely in XSLT + Saxon) |
-| [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `pm-runtime.mjs` + `xpath.mjs` for the unified handlers, `ceteicean.js` (+ page) over those two for the CETEIcean tier, `ui.css` for the renderers' own furniture (the view switches, the notes), and `notes.js` for the notes as tooltips on every interactive page |
+| [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `pm-runtime.mjs` + `xpath.mjs` for the unified handlers, `ceteicean.js` (+ page) over those two for the CETEIcean tier, `ui.css` for the renderers' own furniture (the view switches, the notes), and `notes.js` and `facsimile.js` for the notes as tooltips and the page images on every interactive page |
 | [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a pinned snapshot) with four verbatim excerpts, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an extension that is not TEI |
 
 ## Quick start — JavaScript
@@ -52,7 +53,7 @@ Generated artefacts and rendered pages land in `compiler-js/output/`. See
 **Your own ODD.** One command does the whole pipeline:
 
 ```bash
-node odd-render.mjs <odd> <tei...> [--out dir] [--tier name] [--reports]
+node odd-render.mjs <odd> <tei...> [--out dir] [--tier name] [--reports] [--search]
 ```
 
 It compiles `edition.css` and the handlers, renders every source with them, and
