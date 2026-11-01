@@ -38,7 +38,7 @@ Node is absent the build prints a notice and skips it — everything else still 
 
 ```bash
 bash build.sh                                                            # the Simler ODD, every example
-bash build.sh ../examples/tei_simler-render.odd ../examples/simler-psalmen.xml  # one example
+bash build.sh ../examples/tei_simler.odd ../examples/simler-psalmen.xml  # one example
 ```
 ```powershell
 ./build.ps1                                                              # Windows / PowerShell

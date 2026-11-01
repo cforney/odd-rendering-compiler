@@ -247,6 +247,16 @@ if (search) {
   }
 }
 
+// The comparison opens, with a row per rendering and the builders merged.
+await cdp("Page.navigate", { url: pageUrl("index.html") });
+await sleep(800);
+const compared = await evaluate(`(() => { document.getElementById('compare-open').click(); return { open: document.getElementById('compare').open, rows: document.querySelectorAll('#compare-rows tr').length, builders: document.querySelectorAll('#compare-rows th').length }; })()`);
+const builders = new Set(renderings.map((p) => p.builder)).size;
+if (!compared?.open || compared.rows !== renderings.length || compared.builders !== builders) {
+  results[renderings[0].id].push(`the comparison: ${JSON.stringify(compared)}`);
+  console.log(`✗ the comparison: ${JSON.stringify(compared)}`);
+}
+
 writeFileSync(join(SITE, "verified.json"), JSON.stringify({
   checked: new Date().toISOString().slice(0, 10), browser: (await (await fetch(debugUrl.replace("/json", "/json/version"))).json()).Browser,
   examples: data.docs.length, results,

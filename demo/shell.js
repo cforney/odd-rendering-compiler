@@ -103,15 +103,27 @@ fetch("verified.json").then((r) => (r.ok ? r.json() : null)).then((v) => { verif
 
 // --- The comparison of the renderings ---------------------------------------
 const pageKB = (p, page) => Number(page.pageKB) + Number(page.cssKB ?? 0) + Number(p.fetchesKB ?? 0);
-const extras = (p, page) => `${page.cssKB ? ` + ${page.cssKB} KB stylesheet` : ""}${p.fetchesKB ? ` + ${p.fetchesKB} KB compiled` : ""}`;
+const extras = (p, page) => `${page.cssKB ? ` + ${page.cssKB} KB CSS` : ""}${p.fetchesKB ? ` + ${p.fetchesKB} KB compiled` : ""}`;
 const scriptKB = (page) => Number(page.jsKB) + page.jsExternal.reduce((sum, e) => sum + Number(e.kb ?? 0), 0);
 const cdnNames = (page) => page.jsExternal.map((e) => (e.kb ? `${e.name}, ${e.kb} KB` : e.name)).join(" + ");
+const cdnSize = (page) => page.jsExternal.map((e) => (e.kb ? `${e.kb} KB` : e.name)).join(" + ");
 
 /** A size in its cell: the words, and a bar on the one scale of all the table's bars. */
 function sizeCell(row, text, value, max) {
-  const cell = make(row, "td", text);
+  const cell = make(row, "td", text, "size");
   const track = make(cell, "span", undefined, "size-bar");
   make(track, "span").style.width = value ? `max(1px, ${(value / max) * 100}%)` : "0";
+  return cell;
+}
+
+/** A cell saying yes or no, by its mark as well as its colour; `why` qualifies a no. */
+function verdict(row, yes, why = "") {
+  const cell = make(row, "td");
+  const mark = make(cell, "span", yes ? "✓" : "✗", yes ? "yes" : "no");
+  mark.setAttribute("role", "img");
+  mark.setAttribute("aria-label", yes ? "Yes" : "No");
+  if (why) make(cell, "span", ` ${why}`, "muted small");
+  return cell;
 }
 
 function renderCompared() {
@@ -122,24 +134,32 @@ function renderCompared() {
   byId("compare-checked").textContent = verified ? `Compared in ${verified.browser.split("/")[0]} on ${verified.checked}, on all ${verified.examples} examples.` : "";
   for (const p of rendering) {
     const page = p.pages[state.doc];
+    const variants = rendering.filter((q) => q.builder === p.builder);
     const row = make(body, "tr");
     row.dataset.id = p.id;
-    const name = make(row, "th");
-    const open = make(name, "button", nameOf(p));
+    // What depends on who builds the page stands once, for all its interactions.
+    if (p === variants[0]) {
+      row.className = "first";
+      const name = make(row, "th");
+      make(name, "strong", p.builder);
+      make(name, "span", p.about, "muted small");
+      const merged = [verdict(row, !p.needsJs, p.needsJs ? "empty" : ""), verdict(row, !p.server)];
+      for (const cell of [name, ...merged]) cell.rowSpan = variants.length;
+    }
+    const open = make(make(row, "td"), "button", p.interaction);
+    open.title = p.plain;
     open.onclick = () => { state.path = p; state.interaction = p.interaction; byId("compare").close(); render(); };
-    make(name, "span", p.plain, "muted small");
     if (page) {
       sizeCell(row, `${page.pageKB} KB${extras(p, page)}`, pageKB(p, page), max);
-      sizeCell(row, `${page.jsKB} KB${page.jsExternal.length ? ` + ${cdnNames(page)} (CDN)` : ""}`, scriptKB(page), max);
+      sizeCell(row, `${page.jsKB} KB${page.jsExternal.length ? ` + ${cdnSize(page)} CDN` : ""}`, scriptKB(page), max).title = page.jsExternal.length ? cdnNames(page) : "";
     } else {
       make(row, "td", "–");
       make(row, "td", "–");
     }
-    make(row, "td", p.needsJs ? "No: empty" : "Yes");
-    make(row, "td", p.server ? "Yes" : "No");
-    make(row, "td", p.interactive ? "Yes" : "No: notes at the end, no images");
+    verdict(row, p.interactive).title = p.interactive ? "" : "Notes at the end, readings fixed, no page images";
     const differs = verified?.results[p.id] ?? [];
-    make(row, "td", verified ? (differs.length ? "Differs" : "✓ Same") : "Not checked").title = differs.join("\n");
+    if (verified) verdict(row, !differs.length).title = differs.join("\n");
+    else make(row, "td", "–").title = "Not checked";
   }
   markCompared();
 }

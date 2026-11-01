@@ -1103,7 +1103,10 @@
               <datatype><dataRef key="teidata.text"/></datatype>
             </attDef>
           </attList>
-          <model behaviour="inline"/>
+          <!-- `data-key` names the register entries, which the page may open as a card -->
+          <model behaviour="inline">
+            <param name="data-key" value="@key"/>
+          </model>
           <!-- entity highlighting, colour-coded by type -->
           <model cssClass="entity-person" output="entities" predicate="@type='person'" behaviour="inline">
             <desc>Entitäten</desc>
@@ -1309,11 +1312,12 @@
             <outputRendition>font-family: var(--f-ui); font-size: 0.72em; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(var(--c-muted));</outputRendition>
           </model>
           <!-- printed beside or below the text, a Bible reference or a marginal note: never in the
-               apparatus. `data-margin` puts it in the page's margin, on the printed side, where the
-               window has room; otherwise it stays a small note in the line. -->
+               apparatus. It stands in the page's margin, on the printed side (`data-margin`), where
+               the window has room; otherwise it stays a small note in the line, its own lines run on.
+               The token margin is the room the page leaves for it. -->
           <model cssClass="note-margin" predicate="@place='left' or @place='right' or @type='marginalia' or @type='bibl'" behaviour="inline" useSourceRendition="true">
             <param name="data-margin" value="if (@place='left') then 'left' else 'right'"/>
-            <outputRendition>margin-inline: 0.3em; font-family: var(--f-ui); font-size: 0.85em; line-height: 1.3; color: rgb(var(--c-muted));</outputRendition>
+            <outputRendition>margin-inline: 0.3em; font-family: var(--f-ui); font-size: 0.85em; line-height: 1.3; color: rgb(var(--c-muted)); &amp; br { display: none; } @media (min-width: 58rem) { float: right; clear: right; width: calc(var(--margin) - 1.25rem); margin: 0.15em calc(-1 * var(--margin)) 0 1.25rem; text-align: left; text-indent: 0; &amp; br { display: inline; } &amp;[data-margin='left'] { float: left; clear: left; margin-inline: calc(-1 * var(--margin)) 1.25rem; text-align: right; } }</outputRendition>
           </model>
           <model predicate="@type='remarkResponsibility'" behaviour="omit"/>
           <!-- a range comment: a numbered marker in the text, the note in the apparatus; the range
@@ -1766,14 +1770,17 @@
                hyphenated line end the print shows the hyphen — the source's own, where the
                transcription kept it, or a supplied one, in grey — and the break. The reading text
                joins every line but the title page's, and keeps the space between the words; the
-               search text joins the hyphenated word and needs no space. -->
+               search text joins the hyphenated word and needs no space. `join` says the line joins
+               the next, and which last characters of its text go, as the model sets its own hyphen. -->
           <model cssClass="lb-hyphen" predicate="@break='no' and matches(preceding-sibling::node()[normalize-space()][1], '[-¬⸗&#xAD;&#x2010;&#x2011;]\s*$')" behaviour="break">
             <param name="type" value="'line'"/>
             <param name="label" value="'-'"/>
+            <param name="join" value="'-¬⸗&#xAD;&#x2010;&#x2011;'"/>
           </model>
           <model cssClass="lb-hyphen-supplied" predicate="@break='no'" behaviour="break">
             <param name="type" value="'line'"/>
             <param name="label" value="'-'"/>
+            <param name="join" value="'-¬⸗&#xAD;&#x2010;&#x2011;'"/>
             <outputRendition>color: rgb(var(--c-muted));</outputRendition>
           </model>
           <modelSequence>
@@ -1787,7 +1794,9 @@
             </model>
           </modelSequence>
           <model output="normalized" predicate="@break='no' or not(ancestor::titlePage)" behaviour="omit"/>
-          <model output="plain" predicate="@break='no'" behaviour="omit"/>
+          <model output="plain" predicate="@break='no'" behaviour="omit">
+            <param name="join" value="'-¬⸗&#xAD;&#x2010;&#x2011;'"/>
+          </model>
           <model output="plain" behaviour="break">
             <param name="type" value="'line'"/>
           </model>

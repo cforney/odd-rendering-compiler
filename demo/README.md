@@ -75,7 +75,7 @@ fetches each CDN script to weigh it; without network it stays a name, and out of
 
 The tabs choose who builds the page; *Interaction* chooses how a prebuilt page is
 enhanced, and stays chosen across tabs. Each combination has its own entry in the URL,
-in `verified.json` and in the comparison table, whose sizes count a linked stylesheet
+in `verified.json` and in the comparison table, which nests them by builder, and whose sizes count a linked stylesheet
 as part of the page, as an inlined one is. The URL holds the document, rendering, views, JavaScript setting and picked element,
 so a state can be shared. The views are switched from the panel for every rendering
 at once: the pages' own switches are hidden here, and work as ever elsewhere.

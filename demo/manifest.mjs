@@ -8,6 +8,7 @@ export const concept =
 
 // The renderings, one per builder and interaction, in reading order; a report is what else the build writes.
 //   builder      who builds the page: a tab. interaction names how it is enhanced: the control beside it
+//   about        what the builder is, in a line, for the comparison
 //   dir          compiler output the page came from (copied to site/<dir>/)
 //   file         the rendered page, relative to that output; {doc} is the document
 //   artefact     the generated file behind the path, linked from the panel
@@ -21,8 +22,8 @@ export const concept =
 //   loadsLater   scripts the page loads when they are needed, weighed with its script
 const HANDLERS = { label: "tei-handlers.mjs", file: "js/tei-handlers.mjs" };
 const XSL = { label: "edition.xsl", file: "xslt/edition.xsl" };
-const UNIFIED = { builder: "unified/xast", hue: "#16a34a", dir: "js" };
-const XSLT = { builder: "XSLT", hue: "#0284c7", dir: "xslt" };
+const UNIFIED = { builder: "unified/xast", about: "Finished pages, built by Node.", hue: "#16a34a", dir: "js" };
+const XSLT = { builder: "XSLT", about: "Finished pages, built by a stylesheet generated from the ODD.", hue: "#0284c7", dir: "xslt" };
 
 export const paths = [
   {
@@ -63,13 +64,13 @@ export const paths = [
     file: "xslt-islands/{doc}.html", artefact: { label: "tei-islands.js", file: "xslt/xslt-islands/tei-islands.js" },
   },
   {
-    ...XSLT, id: "saxonjs", builder: "SaxonJS", interaction: "its own (IXSL)", needsJs: true, interactive: true, server: true,
+    ...XSLT, id: "saxonjs", builder: "SaxonJS", about: "That stylesheet, run in the reader's browser.", interaction: "its own (IXSL)", needsJs: true, interactive: true, server: true,
     fetches: "xslt/edition-saxonjs.sef.json",
     plain: "No build for the page: the reader's browser transforms the TEI, at the cost of a large script.",
     file: "saxonjs/{doc}.html", artefact: XSL,
   },
   {
-    id: "ceteicean", builder: "CETEIcean", interaction: "small script", hue: "#db2777", needsJs: true, interactive: true,
+    id: "ceteicean", builder: "CETEIcean", about: "Custom elements, made in the reader's browser.", interaction: "small script", hue: "#db2777", needsJs: true, interactive: true,
     plain: "No build for the page: the reader's browser turns the TEI into custom elements as it loads.",
     dir: "js", file: "ceteicean/{doc}.html",
     artefact: { label: "tei-ceteicean-behaviours.js", file: "js/ceteicean/tei-ceteicean-behaviours.js" },
@@ -112,7 +113,7 @@ export const paths = [
 export const floor = { label: "edition.css", file: "js/edition.css" };
 
 // What the inspector explains the examples by.
-export const inspected = { odd: "examples/tei_simler-render.odd", handlers: "compiler-js/output/tei-handlers.mjs", tei: "examples/{doc}.xml" };
+export const inspected = { odd: "examples/tei_simler.odd", handlers: "compiler-js/output/tei-handlers.mjs", tei: "examples/{doc}.xml" };
 
 // Documents on offer: the examples, each rendered by every path (id = file name).
 export const docs = [

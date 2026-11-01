@@ -109,7 +109,7 @@ const resolved = (await Promise.all(paths.map(async (p) => {
     return [];
   }
   return [{
-    id: p.id, builder: p.builder, interaction: p.interaction, label: p.label, hue: p.hue, pages, needsJs: Boolean(p.needsJs), interactive: Boolean(p.interactive), server: Boolean(p.server),
+    id: p.id, builder: p.builder, about: p.about, interaction: p.interaction, label: p.label, hue: p.hue, pages, needsJs: Boolean(p.needsJs), interactive: Boolean(p.interactive), server: Boolean(p.server),
     fetchesKB: p.fetches ? kb(sizeOf(resolve(SITE, p.fetches))) : null,
     plain: p.plain, report: Boolean(p.report),
     how: banner?.replace(/<h3>[\s\S]*?<\/h3>\s*/, "") ?? null,
@@ -263,7 +263,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
     </header>
     <p class="muted">They all show the same edition; they differ in what the reader downloads and what the page can do. Sizes are uncompressed, for the document picked, and all bars share one scale; a script inside the page counts in both columns, and the list of page images (454 KB) comes only with the first one opened. <span id="compare-checked"></span></p>
     <table>
-      <thead><tr><th>Built by · interaction</th><th>Page</th><th>Script</th><th>Works without JavaScript</th><th>Needs a server</th><th>Readings, notes and page images in place</th><th>Same as the others</th></tr></thead>
+      <thead><tr><th>Built by</th><th>Without JavaScript</th><th>Without a server</th><th>Interaction</th><th>Page</th><th>Script</th><th>Readings, notes, page images in place</th><th>Same as the others</th></tr></thead>
       <tbody id="compare-rows"></tbody>
     </table>
   </dialog>

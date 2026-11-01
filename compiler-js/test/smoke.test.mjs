@@ -21,7 +21,7 @@ import { readOdd, parseXmlToXast } from "../odd-parser.mjs";
 import { loadHandlers } from "../cli.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ODD = "../examples/tei_simler-render.odd";
+const ODD = "../examples/tei_simler.odd";
 const TOKENS = "../examples/simler-tokens.css";
 const EXAMPLES = "../examples/simler-*.xml";
 
@@ -94,7 +94,7 @@ test("render-unified lays the views over the page, each with a switch", () => {
   const columns = page("unified", "simler-buchstabwechsel");
   assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> Entitäten<\/label><label><input type="checkbox" data-view="normalized"> Normalisiert<\/label><\/form>/,
     "a checkbox per view, labelled by its models' <desc>");
-  assert.match(columns, /<span class="tei-rs entity-person">/, "a view's model of the same behaviour adds its classes");
+  assert.match(columns, /<span class="tei-rs entity-person" data-key="person_[0-9]+">/, "a view's model of the same behaviour adds its classes");
 
   const notes = page("unified", "simler-hausswesen");
   assert.match(notes, /<span class="tei-alternate-default normalized-alternate"><span class="tei-sic">f<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden>/,
@@ -258,13 +258,6 @@ test("render-json writes the ODD's decisions as records, with a table of the mod
   assert.match(models["div-1"].predicate, /^preceding-sibling::/, "and its predicate");
   assert.deepEqual(models["lb-3"].parts, ["lb-4", "lb-5"], "a sequence is described with its parts");
   assert.ok(!("l-1" in models), "only the models the document made fire");
-});
-
-test("the chained ODD holds the Simler ODD's models, with only what it declares added", () => {
-  const shape = (spec) => spec.models.map((m) => [m.predicate, m.behaviour, m.output, m.classes, m.parts?.length, m.params.filter((p) => p.name !== "join").map((p) => [p.name, p.value])]);
-  const base = readOdd(resolve(pocDir, "../examples/tei_simler.odd")).specs;
-  const chained = readOdd(resolve(pocDir, ODD)).specs;
-  for (const ident of ["lb", "note"]) assert.deepEqual(shape(chained.find((s) => s.key === ident)), shape(base.find((s) => s.key === ident)), ident);
 });
 
 test("what renders is the ODD's to say: line joins, headings, ranges and the title come from its models", () => {
@@ -479,7 +472,7 @@ test("odd-render compiles and renders an edition in one command", () => {
   for (const report of ["plain", "json", "coverage", "findings"]) {
     assert.ok(readdirSync(join(out, "reports", report)).length, `the ${report} report`);
   }
-  assert.match(log, /1 page\(s\) in .+ — the static tier of tei_simler-render\.odd/, "and one summary line");
+  assert.match(log, /1 page\(s\) in .+ — the static tier of tei_simler\.odd/, "and one summary line");
 
   run("odd-render.mjs", [ODD, "../examples/simler-psalmen.xml", "--out", join(outDir, "cli-islands"), "--tier", "islands"]);
   assert.ok(existsSync(join(outDir, "cli-islands", "tei-islands.js")), "another tier brings its own runtime");

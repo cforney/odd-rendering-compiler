@@ -50,9 +50,15 @@ dialog header button { padding: 0.25rem 0.65rem; font: inherit; cursor: pointer;
 dialog table { width: 100%; margin-top: 0.75rem; border-collapse: collapse; font-size: 0.85rem; }
 dialog thead th { font-size: 0.76rem; color: var(--muted); }
 dialog th, dialog td { padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); font-weight: 400; }
-dialog tbody th { width: 34%; }
-dialog tbody th button { display: block; padding: 0; font: inherit; font-weight: 600; color: var(--link); text-align: left; cursor: pointer; background: none; border: 0; }
-dialog tr.current { background: var(--soft); box-shadow: inset 3px 0 0 var(--link); }
+dialog tbody th { width: 21%; }
+dialog tbody th span { display: block; }
+dialog tbody td button { padding: 0; font: inherit; color: var(--link); text-align: left; white-space: nowrap; cursor: pointer; background: none; border: 0; }
+dialog tr.first > * { border-top: 2px solid var(--muted); }
+dialog tr.current > td { background: var(--soft); }
+dialog tr.current > td button { font-weight: 600; }
+dialog .size { white-space: nowrap; }
+dialog .yes { font-weight: 700; color: #15803d; }
+dialog .no { font-weight: 700; color: #b91c1c; }
 .size-bar { display: block; width: 6rem; height: 4px; margin-top: 0.3rem; background: var(--line); border-radius: 2px; }
 .size-bar span { display: block; height: 100%; background: var(--muted); border-radius: 2px; }
 .tab {

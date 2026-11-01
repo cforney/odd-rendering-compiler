@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Simler Digital, C 1663: Uber Herrn Tichters namen Buchstabwächsel, poem VI of the dedicatory poems (fol. A vii r).
-  Source: DHBern/simler_data at 07ac73d, webdav/data/sources/tei/C_1663_Teil-0.xml,
+  Source: DHBern/simler_data at f7906c8, webdav/data/sources/tei/C_1663_Teil-0.xml,
   lines 529–610, verbatim. Added around them: this comment, the teiHeader, the
   start tags of the enclosing elements (from lines 31, 32) and the closing tags.
   C_1663_dok.xml sets this page as plain lines at that commit; Teil-0 has its two columns.

@@ -1,4 +1,4 @@
-/* Simler Digital's design tokens: DHBern/simler_data, preview/assets/tokens.css at 07ac73d. */
+/* Simler Digital's design tokens: DHBern/simler_data, preview/assets/tokens.css at f7906c8. */
 /**
  * Design tokens.
  *
@@ -16,6 +16,8 @@
  */
 
 :root {
+  /* The room a page leaves for what stands in its margin. */
+  --margin: 7.5rem;
   --f-serif: 'EB Garamond Variable', 'EB Garamond', Cardo, Georgia, 'Times New Roman', serif;
   --f-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
@@ -101,6 +103,8 @@
 
 /* ── The control layer ────────────────────────────────────────────────────── */
 :root {
+  /* The room a page leaves for what stands in its margin. */
+  --margin: 7.5rem;
   --c-ui-bg: var(--c-panel);
   --c-ui-surface: var(--c-paper);
   --c-ui-line: var(--c-line);
