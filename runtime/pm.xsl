@@ -25,7 +25,7 @@
 
   <!-- The PM output to render: its models take precedence, models of another output are skipped. -->
   <xsl:param name="output" as="xs:string" select="'web'"/>
-  <!-- 'true' renders the progressively enhanced page: a small script swaps readings, notes.js (beside the stylesheet) opens notes. -->
+  <!-- 'true' renders the progressively enhanced page: a small script swaps readings, notes.js and facsimile.js (beside the stylesheet) open notes and page images. -->
   <xsl:param name="interactive" as="xs:string" select="'false'"/>
 
   <!-- HTML elements whose content must be phrasing: a block inside becomes a span. -->
@@ -88,6 +88,7 @@ document.addEventListener('click', function (e) {
 });
 </script>
           <script><xsl:value-of select="unparsed-text('notes.js')"/></script>
+          <script><xsl:value-of select="unparsed-text('facsimile.js')"/></script>
         </xsl:if>
       </body>
     </html>
@@ -99,6 +100,8 @@ document.addEventListener('click', function (e) {
     <xsl:variable name="text"><xsl:apply-templates select="$doc/*"/></xsl:variable>
     <div class="tei-edition">
       <xsl:attribute name="data-{$output}" select="'on'"/>
+      <xsl:variable name="manifest" select="string((pm:select($doc/*, 'page')?params?manifest)[1])"/>
+      <xsl:if test="$manifest"><xsl:attribute name="data-manifest" select="$manifest"/></xsl:if>
       <!-- A checkbox per view: CSS lays the view over the page while it is checked. -->
       <xsl:if test="exists($pm:laid)">
         <form class="tei-views">

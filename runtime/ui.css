@@ -1,6 +1,6 @@
 /* The renderers' own furniture: the view switches, the notes collected at the
-   end, and the tooltip notes.js opens from a note marker. The marker itself is
-   styled by the ODD. */
+   end, the tooltip notes.js opens from a note marker, and the panel facsimile.js
+   opens from a page break. The marker itself is styled by the ODD. */
 .tei-views {
   display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin: 0 0 1.5em;
   font: 0.8rem/1.4 var(--f-ui, system-ui, sans-serif); color: rgb(var(--c-muted, 110 110 110));
@@ -39,3 +39,19 @@
   background-color: rgb(var(--c-paper, 250 250 250)); color: rgb(var(--c-ink, 34 34 34));
 }
 .tei-tooltip-foot a:hover { background-color: rgb(var(--c-ink, 34 34 34) / 0.05); }
+[data-page][role="button"] { cursor: pointer; }
+[data-page][role="button"]:hover, [data-page][aria-expanded="true"] { color: rgb(var(--c-accent, 45 87 76)); }
+.tei-facsimile {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 20; display: flex; flex-direction: column; gap: 0.5rem;
+  width: min(30rem, 100vw); padding: 0.75rem 1rem; overflow: auto; background: #fff;
+  border-left: 1px solid rgb(var(--c-line, 221 221 221)); box-shadow: -4px 0 16px rgb(0 0 0 / 0.12);
+  font: 0.85rem/1.5 var(--f-ui, system-ui, sans-serif);
+}
+.tei-facsimile[hidden], .tei-facsimile img[hidden], .tei-facsimile a[hidden] { display: none; }
+.tei-facsimile img { display: block; width: 100%; height: auto; }
+.tei-facsimile-status:empty { display: none; }
+.tei-facsimile p { margin: 0; }
+.tei-facsimile-foot { font-size: 0.8rem; color: rgb(var(--c-muted, 110 110 110)); }
+.tei-facsimile button { font-size: 1.15rem; line-height: 1; cursor: pointer; background: none; border: 0; padding: 0.1rem 0.4rem; }
+.tei-facsimile button[hidden] { display: none; }
+.tei-facsimile button:disabled { opacity: 0.35; cursor: default; }

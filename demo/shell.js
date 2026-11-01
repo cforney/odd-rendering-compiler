@@ -46,7 +46,7 @@ function render() {
   byId("about-purpose").textContent = state.path.plain;
   byId("how").hidden = !state.path.how;
   byId("how-text").innerHTML = state.path.how ?? ""; // the compilers' own banner
-  byId("notice").hidden = state.js || !state.path.needsJs;
+  byId("notice").hidden = state.js || !state.path.needsJs || state.path.report;
   const ext = page?.jsExternal.length ? ` + ${cdnNames(page)} (CDN)` : "";
   const also = state.path.fetchesKB ? ` + ${state.path.fetchesKB} KB compiled stylesheet` : "";
   byId("metrics").textContent = !page ? "No page for this document."
@@ -54,9 +54,9 @@ function render() {
   byId("inspect").hidden = !data.inspect || Boolean(state.path.report);
   byId("views").hidden = !data.views.length || Boolean(state.path.report);
   byId("floor").hidden = Boolean(state.path.report);
-  // A report is the same with or without JavaScript, so the switch would say nothing.
+  // Most reports are the same with or without JavaScript, so the switch would say nothing.
   const jsOn = byId("js-on");
-  jsOn.disabled = Boolean(state.path.report);
+  jsOn.disabled = state.path.report && !state.path.needsJs;
   jsOn.parentElement.title = jsOn.disabled ? "Reports are plain files: JavaScript makes no difference" : "Reload this rendering with or without JavaScript";
   markCompared();
   remember();
@@ -125,7 +125,7 @@ function renderCompared() {
     }
     make(row, "td", p.needsJs ? "No: empty" : "Yes");
     make(row, "td", p.server ? "Yes" : "No");
-    make(row, "td", p.interactive ? "Yes" : "No: notes at the end");
+    make(row, "td", p.interactive ? "Yes" : "No: notes at the end, no images");
     const differs = verified?.results[p.id] ?? [];
     make(row, "td", verified ? (differs.length ? "Differs" : "✓ Same") : "Not checked").title = differs.join("\n");
   }

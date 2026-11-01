@@ -92,7 +92,7 @@ test("render-unified renders every example, with an index", () => {
 
 test("render-unified lays the views over the page, each with a switch", () => {
   const columns = page("unified", "simler-buchstabwechsel");
-  assert.match(columns, /<div class="tei-edition" data-web="on"><form class="tei-views"><label><input type="checkbox" data-view="entities"> entities<\/label><label><input type="checkbox" data-view="normalized"> normalized<\/label><\/form>/,
+  assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> entities<\/label><label><input type="checkbox" data-view="normalized"> normalized<\/label><\/form>/,
     "a checkbox per view, labelled by the output where its models have no <desc>");
   assert.match(columns, /<span class="tei-rs entity-person">/, "a view's model of the same behaviour adds its classes");
 
@@ -105,7 +105,7 @@ test("render-unified lays the views over the page, each with a switch", () => {
 test("render-unified renders another output alone: the entities", () => {
   run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--out", join(outDir, "entities"), "--output", "entities"]);
   const body = page("entities", "simler-buchstabwechsel").split("<body>")[1];
-  assert.match(body, /<div class="tei-edition" data-entities="on">/, "the output is on");
+  assert.match(body, /<div class="tei-edition" data-entities="on"[^>]*>/, "the output is on");
   assert.match(body, /<span class="tei-rs entity-person">/, "the output's model takes precedence");
   assert.doesNotMatch(body, /tei-views|normalized-/, "no views laid over it");
 });
@@ -154,6 +154,47 @@ test("findings reports what the ODD does not foresee", () => {
     "Page images without a IIIF manifest to resolve them",
   ]);
   assert.match(readFileSync(join(out, "flawed.html"), "utf8"), /<li>No model in the ODD, rendered as its content: &lt;foo&gt;<\/li>/, "and a page per document");
+});
+
+test("the facsimile finds a page's image in a IIIF manifest, version 2 or 3", () => {
+  const context = { document: { addEventListener() {}, querySelectorAll: () => [], documentElement: {} }, MutationObserver: class { observe() {} } };
+  context.window = context;
+  vm.runInNewContext(readFileSync(join(pocDir, "../runtime/facsimile.js"), "utf8"), context);
+  const { imageOf } = context.TeiFacsimile;
+
+  const v2 = JSON.parse(readFileSync(join(pocDir, "test/fixtures/iiif/e-rara-4049159.json"), "utf8"));
+  const found = imageOf(v2, "4049203");
+  assert.equal(found.image, "https://www.e-rara.ch/download/webcache/1000/4049203");
+  assert.match(found.credit, /e-rara/);
+  assert.equal(imageOf(v2, "9203"), null, "an identifier is a whole path segment");
+
+  const body = { id: "https://x.org/full/7.jpg", type: "Image", service: [{ id: "https://x.org/img/7", type: "ImageService3" }] };
+  const v3 = { requiredStatement: { label: { en: ["Credit"] }, value: { en: ["A library"] } }, rights: "https://rightsstatements.org/x", items: [{ id: "https://x.org/canvas/a", items: [{ items: [{ body }] }] }] };
+  for (const id of ["a", "7", "https://x.org/canvas/a"]) assert.equal(imageOf(v3, id).image, body.id, id);
+  assert.equal(imageOf(v3, "a").credit, "A library");
+  assert.equal(imageOf(v3, "a").rights, v3.rights);
+});
+
+test("the edition names its manifest, and each example's page breaks are in the stored one", () => {
+  run("odd-to-css.mjs", ["--odd", ODD, "--tokens", TOKENS, "--out", outDir]);
+  const out = join(outDir, "manifest");
+  run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-psalmen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
+  const html = page("manifest", "simler-psalmen");
+  assert.match(html, /class="tei-edition"[^>]*data-manifest="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049159\/manifest"/);
+  assert.match(html, /data-page="4049203"/);
+  assert.doesNotMatch(html, /<script/, "the static page stays without a script");
+  assert.match(readFileSync(join(outDir, "edition.css"), "utf8"), /\.tei-facsimile/);
+});
+
+test("odd-render --search writes a search page and an index, linked from the index page", { skip: !existsSync(join(pocDir, "node_modules/pagefind")) && "pagefind not installed" }, () => {
+  const out = join(outDir, "searched");
+  run("odd-render.mjs", [ODD, EXAMPLES, "--tokens", TOKENS, "--lang", "de", "--search", "--out", out]);
+  assert.ok(existsSync(join(out, "pagefind", "pagefind.js")), "the index");
+  const html = readFileSync(join(out, "search.html"), "utf8");
+  assert.match(html, /<html lang="de">/, "the page's language picks the index");
+  assert.match(html, /const fold = /, "the query is folded as the index is");
+  assert.match(readFileSync(join(out, "index.html"), "utf8"), /<a href="search\.html">/);
+  assert.doesNotMatch(readFileSync(join(out, "simler-psalmen.html"), "utf8"), /<script/, "the pages stay without a script");
 });
 
 test("render-plain writes the plain output as text and as Pagefind records", () => {
@@ -298,6 +339,9 @@ test("render-unified-islands wraps the readings as islands and opens notes as to
 
   const html = readFileSync(join(out, "simler-hausswesen.html"), "utf8");
   assert.match(html, /<tei-island type="choice" on="visible">/, "apparatus region wrapped as an island");
+  assert.match(html, /<tei-island type="facsimile" on="visible"><span[^>]*data-page=/, "a page break too");
+  assert.ok(existsSync(join(out, "facsimile.js")), "whose script waits beside the page");
+  assert.doesNotMatch(html, /TeiFacsimile/, "and is not in it");
   assert.match(html, /<a class="tei-note note-anchored tei-note-ref" href="#note-1"/, "a note marker stays a link to its note");
   assert.match(html, /class="tei-footnotes"/, "the notes at the end (works with no JS)");
   assert.match(html, /a\.tei-note-ref\[href\^="#note-"\]/, "the shared notes script");

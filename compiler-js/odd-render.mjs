@@ -46,8 +46,10 @@ const USAGE = `odd-render ${version} — compile a TEI ODD's Processing Model, a
   --tokens <css>    design tokens, prepended to edition.css
   --output <name>   the Processing-Model output to render (default: web; needs --tier static)
   --tier <name>     ${Object.keys(TIERS).join(" | ")} (default: static)
-  --lang <code>     the language of the search records, with --reports
+  --lang <code>     the language of the search records, with --reports or --search
   --reports         also write the findings, the plain text, the JSON records and the coverage
+  --search          also write a search page over the plain text, search.html, and its
+                    Pagefind index; it must be served over HTTP. Needs the pagefind package
   --strict          fail on XPath the subset cannot evaluate, instead of degrading it
   --fail-on <sev>   fail on a diagnostic of this severity or above: error | warning | info;
                     all are written to artefacts/diagnostics.json
@@ -84,6 +86,7 @@ const tokens = cli.get("--tokens");
 const lang = cli.get("--lang");
 const stamp = cli.has("--no-timestamp") && "--no-timestamp";
 const strict = cli.has("--strict") && "--strict";
+const search = cli.has("--search") && "--search"; // tells the renderers that the index page may link to it
 
 if (!oddPath || !teiPaths.length) fail(`give an ODD and at least one TEI source\n\n${USAGE}`);
 if (!(tier in TIERS)) fail(`unknown tier "${tier}" — one of ${Object.keys(TIERS).join(", ")}`);
@@ -116,17 +119,18 @@ const failOn = cli.get("--fail-on");
 const lock = cli.get("--lock");
 step("odd-to-unified.mjs", "--odd", oddPath, "--out", artefacts, stamp, strict, failOn && ["--fail-on", failOn], lock && ["--lock", lock]);
 if (tier === "ceteicean") {
-  step(TIERS[tier], "--odd", oddPath, tei, "--css", css, "--out", outDir, stamp, strict);
+  step(TIERS[tier], "--odd", oddPath, tei, "--css", css, "--out", outDir, stamp, strict, search);
 } else {
-  step(TIERS[tier], "--handlers", handlers, tei, "--css", css, "--out", outDir, "--output", output);
+  step(TIERS[tier], "--handlers", handlers, tei, "--css", css, "--out", outDir, "--output", output, search);
 }
 
+if (cli.has("--reports") || search) step("render-plain.mjs", "--handlers", handlers, tei, lang && ["--lang", lang], "--out", join(reports, "plain"));
+if (search) step("search-index.mjs", "--records", join(reports, "plain", "records.json"), "--out", outDir);
 if (cli.has("--reports")) {
-  step("render-plain.mjs", "--handlers", handlers, tei, lang && ["--lang", lang], "--out", join(reports, "plain"));
   step("render-json.mjs", "--odd", oddPath, tei, "--output", output, "--out", join(reports, "json"), strict);
   step("coverage.mjs", "--odd", oddPath, "--records", join(reports, "json"), "--out", join(reports, "coverage"));
   step("findings.mjs", "--odd", oddPath, tei, tokens && ["--tokens", tokens], "--out", join(reports, "findings"));
 }
 
-const where = [`artefacts in ${outDir}/artefacts`, cli.has("--reports") && `reports in ${outDir}/reports`].filter(Boolean);
+const where = [`artefacts in ${outDir}/artefacts`, cli.has("--reports") && `reports in ${outDir}/reports`, search && `search in ${outDir}/search.html`].filter(Boolean);
 console.log(`[odd-render] ✓ ${sources.length} page(s) in ${outDir} — the ${tier} tier of ${basename(oddPath)}; ${where.join(", ")}`);

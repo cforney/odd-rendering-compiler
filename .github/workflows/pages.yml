@@ -55,6 +55,7 @@ jobs:
           npm run render:interactive
           npm run render:islands
           npm run render:plain
+          npm run render:search
           npm run render:json
           npm run coverage
           npm run findings

@@ -18,6 +18,7 @@ export const concept =
 //   interactive  readings swap and notes open in place (check-demo.mjs holds it to the pages)
 //   server    needs a web server, not only files
 //   fetches   what the page downloads besides, weighed in the comparison
+//   loadsLater  a script the page loads when it is needed, weighed with its script
 export const paths = [
   {
     id: "unified", family: "unified/xast", label: "prebuilt", hue: "#16a34a",
@@ -33,6 +34,7 @@ export const paths = [
   },
   {
     id: "islands", family: "unified/xast", label: "prebuilt + islands", hue: "#16a34a", interactive: true,
+    loadsLater: "js/unified-islands/facsimile.js",
     plain: "The same finished page, where only the parts a reader can click load any script, and only when needed.",
     dir: "js", file: "unified-islands/{doc}.html",
     artefact: { label: "tei-islands.js", file: "js/unified-islands/tei-islands.js" },
@@ -70,8 +72,15 @@ export const paths = [
   },
   {
     id: "plain", family: "Build", label: "plain text", hue: "#6b7280", report: true,
-    plain: "The ODD's plain output: the text a search index reads, beside its Pagefind records.",
+    plain: "The ODD's plain output: the text the search index reads, beside its Pagefind records.",
     dir: "js", file: "plain/{doc}.txt",
+    artefact: { label: "the plain text (Pagefind records)", file: "js/plain/records.json" },
+  },
+  {
+    // One index for the whole corpus; its results open in the prebuilt rendering.
+    id: "search", family: "Build", label: "search", hue: "#6b7280", report: true, needsJs: true,
+    plain: "The plain text as a Pagefind index, in the browser: type a word as we spell it today, and it finds the old spelling.",
+    dir: "js", file: "search/search.html",
     artefact: { label: "records.json (Pagefind)", file: "js/plain/records.json" },
   },
   {

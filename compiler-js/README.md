@@ -15,7 +15,8 @@ node odd-render.mjs ../examples/tei_simler.odd "../examples/simler-*.xml"   --to
 
 The pages land in `--out` (default `build/`), what the compiler generated in
 `<out>/artefacts/`, and with `--reports` the plain text, the JSON records, the
-coverage and the findings in `<out>/reports/`. `--tier static | interactive |
+coverage and the findings in `<out>/reports/`. `--search` adds `search.html` and its
+Pagefind index, linked from the index page; the pages themselves stay as they are. `--tier static | interactive |
 islands | ceteicean` picks the rendering tier, `--output` the Processing-Model
 output, `--strict` fails on XPath outside the subset instead of degrading it. A
 missing ODD, a missing source or a glob that matches nothing is an error before
@@ -49,6 +50,7 @@ CSS nor a `--…` param defines.
 | `render-unified-islands.mjs` | `tei-handlers.mjs` + `islands-runtime.js` | `unified-islands/` |
 | `render-xslt.mjs` | `edition.xsl`, run by SaxonJS (`xslt3`) | `xslt/` |
 | `render-plain.mjs` | `tei-handlers.mjs`, output `plain` | `plain/`: `<basename>.txt` and `records.json`, Pagefind custom records (`render:plain`) |
+| `search-index.mjs` | the records of `render-plain.mjs` | `search/`: `search.html` and a Pagefind index, with text and query folded (`render:search`; needs the optional `pagefind` package, and HTTP to use) |
 | `render-json.mjs` | the ODD itself | `json/`: `<basename>.json`, the ODD's decisions as records (`render:json`) |
 | `findings.mjs` | the ODD itself | `findings/`: a page per source and `findings.json` (`findings`) |
 | `coverage.mjs` | the ODD + the JSON records | `coverage/`: `coverage.json` and a page (`coverage`) |
@@ -229,6 +231,11 @@ renders by it:
   interactive pages a marker opens its note as a tooltip, by
   `../runtime/notes.js` (styled by `../runtime/ui.css`, which the CSS
   generators append to `edition.css`).
+- **Page images.** On the interactive pages a page break with a `data-page` opens
+  its image beside the text, by `../runtime/facsimile.js`, from the IIIF manifest
+  on the edition's `data-manifest` (see
+  [conventions](../docs/conventions.md)). The islands tier loads the script when the
+  first break comes into view.
 
 The generated stylesheet does the same with `../runtime/pm.xsl`, so the unified
 and XSLT renders have an equivalent body. A CETEIcean page chooses models by the

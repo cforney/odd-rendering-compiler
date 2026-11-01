@@ -1,0 +1,177 @@
+{
+ "@context": "http://iiif.io/api/presentation/2/context.json",
+ "@id": "https://www.e-rara.ch/i3f/v20/4049159/manifest",
+ "@type": "sc:Manifest",
+ "label": "Johann-Wilhelm Simlers teutscher Getichten die dritte, von ihme selbsten um einen Drittheil vermehrt- und verbesserte Aussfertigung",
+ "attribution": "e-rara, the platform for digitized rare books from Swiss institutions",
+ "sequences": [
+  {
+   "@id": "https://www.e-rara.ch/i3f/v20/4049159/sequence/normal",
+   "@type": "sc:Sequence",
+   "canvases": [
+    {
+     "height": 2525,
+     "width": 1685,
+     "images": [
+      {
+       "resource": {
+        "service": {
+         "profile": "http://iiif.io/api/image/2/level2.json",
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://www.e-rara.ch/i3f/v20/4049188"
+        },
+        "format": "image/jpeg",
+        "height": 1498,
+        "width": 1000,
+        "@id": "https://www.e-rara.ch/download/webcache/1000/4049188",
+        "@type": "dctypes:Image"
+       },
+       "on": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049188",
+       "motivation": "sc:painting",
+       "@id": "https://www.e-rara.ch/i3f/v20/4049159/annotation/4049188",
+       "@type": "oa:Annotation"
+      }
+     ],
+     "label": "28",
+     "@id": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049188",
+     "@type": "sc:Canvas"
+    },
+    {
+     "height": 2525,
+     "width": 1685,
+     "images": [
+      {
+       "resource": {
+        "service": {
+         "profile": "http://iiif.io/api/image/2/level2.json",
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://www.e-rara.ch/i3f/v20/4049203"
+        },
+        "format": "image/jpeg",
+        "height": 1498,
+        "width": 1000,
+        "@id": "https://www.e-rara.ch/download/webcache/1000/4049203",
+        "@type": "dctypes:Image"
+       },
+       "on": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049203",
+       "motivation": "sc:painting",
+       "@id": "https://www.e-rara.ch/i3f/v20/4049159/annotation/4049203",
+       "@type": "oa:Annotation"
+      }
+     ],
+     "label": "43",
+     "@id": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049203",
+     "@type": "sc:Canvas"
+    },
+    {
+     "height": 2525,
+     "width": 1685,
+     "images": [
+      {
+       "resource": {
+        "service": {
+         "profile": "http://iiif.io/api/image/2/level2.json",
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://www.e-rara.ch/i3f/v20/4049204"
+        },
+        "format": "image/jpeg",
+        "height": 1498,
+        "width": 1000,
+        "@id": "https://www.e-rara.ch/download/webcache/1000/4049204",
+        "@type": "dctypes:Image"
+       },
+       "on": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049204",
+       "motivation": "sc:painting",
+       "@id": "https://www.e-rara.ch/i3f/v20/4049159/annotation/4049204",
+       "@type": "oa:Annotation"
+      }
+     ],
+     "label": "44",
+     "@id": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049204",
+     "@type": "sc:Canvas"
+    },
+    {
+     "height": 2525,
+     "width": 1685,
+     "images": [
+      {
+       "resource": {
+        "service": {
+         "profile": "http://iiif.io/api/image/2/level2.json",
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://www.e-rara.ch/i3f/v20/4049520"
+        },
+        "format": "image/jpeg",
+        "height": 1498,
+        "width": 1000,
+        "@id": "https://www.e-rara.ch/download/webcache/1000/4049520",
+        "@type": "dctypes:Image"
+       },
+       "on": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049520",
+       "motivation": "sc:painting",
+       "@id": "https://www.e-rara.ch/i3f/v20/4049159/annotation/4049520",
+       "@type": "oa:Annotation"
+      }
+     ],
+     "label": "360",
+     "@id": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049520",
+     "@type": "sc:Canvas"
+    },
+    {
+     "height": 2525,
+     "width": 1685,
+     "images": [
+      {
+       "resource": {
+        "service": {
+         "profile": "http://iiif.io/api/image/2/level2.json",
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://www.e-rara.ch/i3f/v20/4049521"
+        },
+        "format": "image/jpeg",
+        "height": 1498,
+        "width": 1000,
+        "@id": "https://www.e-rara.ch/download/webcache/1000/4049521",
+        "@type": "dctypes:Image"
+       },
+       "on": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049521",
+       "motivation": "sc:painting",
+       "@id": "https://www.e-rara.ch/i3f/v20/4049159/annotation/4049521",
+       "@type": "oa:Annotation"
+      }
+     ],
+     "label": "361",
+     "@id": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049521",
+     "@type": "sc:Canvas"
+    },
+    {
+     "height": 2525,
+     "width": 1685,
+     "images": [
+      {
+       "resource": {
+        "service": {
+         "profile": "http://iiif.io/api/image/2/level2.json",
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://www.e-rara.ch/i3f/v20/4049548"
+        },
+        "format": "image/jpeg",
+        "height": 1498,
+        "width": 1000,
+        "@id": "https://www.e-rara.ch/download/webcache/1000/4049548",
+        "@type": "dctypes:Image"
+       },
+       "on": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049548",
+       "motivation": "sc:painting",
+       "@id": "https://www.e-rara.ch/i3f/v20/4049159/annotation/4049548",
+       "@type": "oa:Annotation"
+      }
+     ],
+     "label": "388",
+     "@id": "https://www.e-rara.ch/i3f/v20/4049159/canvas/4049548",
+     "@type": "sc:Canvas"
+    }
+   ]
+  }
+ ]
+}

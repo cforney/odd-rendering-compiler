@@ -170,7 +170,8 @@ export function htmlPageName(teiFile) {
  * Build a small, self-contained index page linking the per-source editions
  * produced in multi-file mode. `entries` is `[{ href, title, meta?, page? }]`;
  * `page`, what the ODD's model for output "page" gives, adds the title, the
- * number of page images and the IIIF manifest.
+ * number of page images and the IIIF manifest. With --search, as odd-render passes
+ * it, the page links to search.html.
  */
 export function buildIndexPage({ title = "Edition", subtitle = "", entries = [] }) {
   const items = entries.map(({ href, title, meta, page = {} }) => {
@@ -209,6 +210,7 @@ export function buildIndexPage({ title = "Edition", subtitle = "", entries = [] 
 <body>
   <h1>${escapeXml(title)}</h1>
   ${subtitle ? `<p class="subtitle">${escapeXml(subtitle)}</p>` : ""}
+  ${parseArgs().has("--search") ? `<p><a href="search.html">Search the edition</a></p>` : ""}
   <ul>
 ${items}
   </ul>

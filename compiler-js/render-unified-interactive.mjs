@@ -5,7 +5,8 @@
  * tei-handlers.mjs but post-processes the hast tree to inject petite-vue
  * (https://github.com/vuejs/petite-vue) directives: choice/alternate elements
  * toggle between readings on click. Notes open as tooltips, by the shared
- * ../runtime/notes.js. The page is fully rendered at build time and stays
+ * ../runtime/notes.js; page breaks open their image, by ../runtime/facsimile.js.
+ * The page is fully rendered at build time and stays
  * readable without JS (graceful degradation); petite-vue (~7 KB) adds the
  * interactivity at load.
  *
@@ -46,6 +47,7 @@ log(`CSS:      ${cssPath}`);
 
 const teiToHast = await loadHandlers(handlersPath);
 const notesJs = readFileSync(new URL("../runtime/notes.js", import.meta.url), "utf-8");
+const facsimileJs = readFileSync(new URL("../runtime/facsimile.js", import.meta.url), "utf-8");
 
 // ---------------------------------------------------------------------------
 // Read the ODD-generated stylesheet (odd-to-css.mjs) once, to inline below.
@@ -182,6 +184,9 @@ ${editionCss}
   <!-- The notes, as on every interactive page -->
   <script>
 ${notesJs}
+  </script>
+  <script>
+${facsimileJs}
   </script>
 
   <!-- No-JS fallback: show everything if petite-vue doesn't load -->

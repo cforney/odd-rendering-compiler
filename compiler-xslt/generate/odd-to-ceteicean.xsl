@@ -82,7 +82,7 @@
       <xsl:variable name="teiText" select="if (unparsed-text-available($uri)) then replace(unparsed-text($uri), '^&lt;\?xml[^>]*\?>\s*', '') else ''"/>
       <xsl:result-document href="{replace(tokenize(., '/')[last()], '\.xml$', '')}.html" method="text">
         <xsl:value-of select="unparsed-text('../../runtime/ceteicean.html')
-          => replace('{{behaviours}}', $behaviours, 'q') => replace('{{notes}}', unparsed-text('../../runtime/notes.js'), 'q')
+          => replace('{{behaviours}}', $behaviours, 'q') => replace('{{notes}}', unparsed-text('../../runtime/notes.js'), 'q') => replace('{{facsimile}}', unparsed-text('../../runtime/facsimile.js'), 'q')
           => replace('{{tei}}', serialize($teiText, map { 'method': 'json' }) => replace('&lt;', '\\u003c'), 'q')"/>
       </xsl:result-document>
     </xsl:for-each>

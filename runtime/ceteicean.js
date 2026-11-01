@@ -236,14 +236,17 @@ function teiEdition(ct, source, models, views, done) {
       if (c) apply(el, c);
     }])),
   });
-  ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom)));
+  const root = { node: teiXast(doc.documentElement), up: [] };
+  const page = resolver.select(root, "page");
+  ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom, page?.params.manifest ? str(page.params.manifest(root)) : "")));
 }
 
 /** The edition's root: a checkbox per view, which CSS lays over the page while it is checked, then the text. */
-function teiRoot(views, dom) {
+function teiRoot(views, dom, manifest) {
   const root = document.createElement("div");
   root.className = "tei-edition";
   root.dataset.web = "on";
+  if (manifest) root.dataset.manifest = manifest;
   if (views.length) {
     const form = root.appendChild(document.createElement("form"));
     form.className = "tei-views";

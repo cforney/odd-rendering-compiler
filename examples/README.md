@@ -59,7 +59,9 @@ reusing these files.**
 - **Simler Digital** — <https://www.simler.unibe.ch/> — Johann Wilhelm Simler,
   *Teutsche Gedichte* (1663). The ODD, the design tokens and the excerpts come
   from the project's repository, [DHBern/simler_data](https://github.com/DHBern/simler_data);
-  facsimiles from e-rara (<https://www.e-rara.ch/>), CC BY-SA.
+  facsimiles from e-rara (<https://www.e-rara.ch/>), CC BY-SA. The tests and the
+  demo's check use `compiler-js/test/fixtures/iiif/e-rara-4049159.json`, e-rara's
+  IIIF manifest of the book cut down to the pages of the excerpts.
 - **TEI Consortium** — `tei_simplePrint.odd` is the TEI's SimplePrint exemplar
   (<https://github.com/TEIC/TEI>), redistributed here for testing.
 

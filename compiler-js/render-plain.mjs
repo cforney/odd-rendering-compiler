@@ -10,7 +10,7 @@
  *
  * Usage:   node render-plain.mjs --handlers <path> --tei <path|dir|glob> [--lang <code>] [--out <dir>]
  * Output:  <dir>/<basename>.txt, <dir>/records.json
- * Read by: Pagefind, as custom records
+ * Read by: search-index.mjs, which gives them to Pagefind
  */
 
 import { readFileSync } from "fs";

@@ -14,7 +14,9 @@ else the build writes for the example: its findings, what the ODD does not
 foresee in the encoding (the XPath it degraded included), its plain text with
 the Pagefind records beside it, its JSON records, every element naming the
 model the ODD chose for it, and the corpus coverage those records give — one
-report for all the examples, so the tab shows the same page whichever is picked.
+report for all the examples, so the tab shows the same page whichever is picked; and a Pagefind search over the
+plain text, whose results open in the prebuilt rendering. On the interactive paths a
+click on a page break opens that page's image.
 Nothing is re-rendered here: apart from the banner, the page only frames existing files.
 
 ## Build it
@@ -26,7 +28,7 @@ Build each compiler's outputs first, then assemble:
 cd compiler-js
 npm install
 npm run build:all && npm run render:unified && npm run render:interactive && npm run render:islands
-npm run render:plain && npm run render:json && npm run coverage && npm run findings
+npm run render:plain && npm run render:search && npm run render:json && npm run coverage && npm run findings
 
 # 2 · the XSLT pages (static, progressively enhanced, in-browser SaxonJS)
 cd ../compiler-xslt
@@ -61,7 +63,8 @@ npm run check:demo       # needs Chrome (CHROME names it) and network for the CD
 opens, with the views on, and without JavaScript. The visible text and each text
 run's place, font and colour must equal the first rendering's, and the pixels
 nearly so. It also holds the manifest's claims to the pages (`interactive`,
-`needsJs`) and the inspector's records to the elements rendered. It writes
+`needsJs`) and the inspector's records to the elements rendered, opens a page image
+on each path against a stored copy of the IIIF manifest, and runs the search. It writes
 `site/verified.json`, which the comparison table reads, and exits 1 on a difference.
 CI runs it; a demo built without it says "Not checked" there.
 

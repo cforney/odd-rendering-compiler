@@ -18,11 +18,12 @@
 
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
-  <!-- TEI document to render, the compiled SEF, edition.css, notes.js, and the page title; relative to the page. -->
+  <!-- TEI document to render, the compiled SEF, edition.css, notes.js, facsimile.js, and the page title; relative to the page. -->
   <xsl:param name="tei" as="xs:string" select="'simler-psalmen.xml'"/>
   <xsl:param name="sef" as="xs:string" select="'edition-saxonjs.sef.json'"/>
   <xsl:param name="css" as="xs:string" select="'edition.css'"/>
   <xsl:param name="notes" as="xs:string" select="'notes.js'"/>
+  <xsl:param name="facsimile" as="xs:string" select="'facsimile.js'"/>
   <xsl:param name="title" as="xs:string" select="'TEI Edition — SaxonJS (client-side)'"/>
   <!-- The SaxonJS 2 browser runtime. build.sh self-hosts it next to this page
        (output/SaxonJS2.rt.js, gitignored) so the demo works offline and matches
@@ -59,6 +60,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
         </div>
         <script src="{$runtime}"></script>
         <script src="{$notes}"></script>
+        <script src="{$facsimile}"></script>
         <script>
           window.addEventListener('DOMContentLoaded', function () {
             function fail(msg) {

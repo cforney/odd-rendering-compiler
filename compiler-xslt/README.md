@@ -64,7 +64,8 @@ in the browser with the SaxonJS runtime. So the **same** template-matching
 stylesheet has two entry points — **Saxon HE at build time, SaxonJS in the
 browser** — and the reading toggle is *interactive XSLT* (IXSL), the
 SaxonJS-native counterpart of the build path's small script. Notes open as
-tooltips by `notes.js`, as on every interactive page.
+tooltips by `notes.js`, and page breaks their image by `facsimile.js`, as on every
+interactive page.
 
 Two tool notes: the SEF compiler is **`xslt3`** (the Node SaxonJS compiler), not
 Saxon HE — Saxon HE cannot emit a SaxonJS-runnable SEF, and only `xslt3`
@@ -128,7 +129,8 @@ as the JS `odd-to-ceteicean.mjs`.
   petite-vue: its directives (`@click`, `:aria-checked`) are not valid XML attribute
   names, so a standards XSLT generator cannot emit them. The same reading toggle
   is reached with `class` hooks and a few lines of vanilla JS; the notes open as
-  tooltips by `../runtime/notes.js`, which the build copies beside `edition.xsl`.
+  tooltips by `../runtime/notes.js`, and page breaks their image by
+  `../runtime/facsimile.js`, which the build copies beside `edition.xsl`.
 - **Fidelity.** The body of each static page in `xslt/` is **equivalent** to the
   unified render and to that of the stylesheet from `odd-to-xslt.mjs`: identical
   up to attribute order and the whitespace next to a block's tags. `compiler-js`'s `npm test` checks this on

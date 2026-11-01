@@ -63,6 +63,13 @@
     });
   });
 
+  // A page break: the first in view loads the facsimile, which then serves them all.
+  var facsimile = new URL("facsimile.js", document.currentScript.src).href;
+  register("facsimile", function () {
+    if (document.querySelector('script[src="' + facsimile + '"]')) return;
+    document.head.appendChild(document.createElement("script")).src = facsimile;
+  });
+
   window.TeiIslands = { register: register };
 
   // Defined last, so the registry is populated before any element upgrades.

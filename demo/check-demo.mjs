@@ -6,7 +6,8 @@
  * without the views on, and without JavaScript where a rendering can do without,
  * the visible text and each text run's place, font and colour must equal those of
  * the first rendering, and the pixels nearly so. It also holds the manifest's other
- * claims to what the pages do, and the inspector's records to what they render.
+ * claims to what the pages do, the inspector's records to what they render, and the
+ * search to what it should find. The IIIF manifest comes from a stored copy.
  *
  * Writes site/verified.json, which the demo's comparison reads, and exits 1 on a difference.
  *
@@ -22,6 +23,7 @@ import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SITE = resolve(dirname(fileURLToPath(import.meta.url)), "site");
+const MANIFEST = readFileSync(resolve(SITE, "../../compiler-js/test/fixtures/iiif/e-rara-4049159.json")).toString("base64");
 const VIEWPORT = { width: 1100, height: 900 };
 const RENDER_TIMEOUT = 20_000;
 /** Text split differently across nodes rasterises a little differently; more than this is a real difference. */
@@ -77,6 +79,9 @@ const waiting = new Map();
 socket.onmessage = (m) => {
   const d = JSON.parse(m.data);
   if (d.id) { waiting.get(d.id)(d); waiting.delete(d.id); }
+  if (d.method === "Fetch.requestPaused") {
+    cdp("Fetch.fulfillRequest", { requestId: d.params.requestId, responseCode: 200, body: MANIFEST, responseHeaders: [{ name: "Access-Control-Allow-Origin", value: "*" }, { name: "Content-Type", value: "application/json" }] });
+  }
 };
 const cdp = (method, params = {}) => new Promise((r) => {
   waiting.set(++lastId, r);
@@ -85,6 +90,7 @@ const cdp = (method, params = {}) => new Promise((r) => {
 const evaluate = async (expression) => (await cdp("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true })).result?.result?.value;
 await cdp("Page.enable");
 await cdp("Runtime.enable");
+await cdp("Fetch.enable", { patterns: [{ urlPattern: "*/manifest" }] });
 await cdp("Emulation.setDeviceMetricsOverride", { ...VIEWPORT, deviceScaleFactor: 1, mobile: false });
 
 /** Open a page and wait until it has rendered; without JavaScript there is nothing to wait for. */
@@ -190,7 +196,10 @@ for (const doc of data.docs) {
       const ref = document.querySelector('a.tei-note-ref');
       let tooltip = null;
       if (ref) { ref.click(); await wait(150); tooltip = !!document.querySelector('.tei-tooltip:not([hidden])')?.getClientRects().length; ref.blur(); document.body.click(); }
-      return { swaps, tooltip };
+      const page = document.querySelector('[data-page]');
+      let facsimile = null;
+      if (page) { page.scrollIntoView(); await wait(500); page.click(); await wait(400); facsimile = !!document.querySelector('.tei-facsimile:not([hidden]) img')?.src.endsWith('/' + page.dataset.page); }
+      return { swaps, tooltip, facsimile };
     })()`);
     for (const [name, did] of Object.entries(acts)) {
       if (did !== null && did !== path.interactive) report(path, doc, name, `the manifest says ${path.interactive ? "it does" : "it does not"}`);
@@ -213,6 +222,28 @@ for (const doc of data.docs) {
     if (shown === base) continue;
     const apart = await pixelsApart(base.shot, shown.shot);
     if (apart === null || apart > shown.clip.width * shown.clip.height * PIXEL_TOLERANCE) report(path, doc, state, `${apart ?? "all"} pixels differ`);
+  }
+}
+
+// The search: a word as spelled today finds the old spelling, and as spelled then; its result opens.
+const search = data.paths.find((p) => p.id === "search");
+if (search) {
+  const corpus = { id: "corpus", label: "All examples" };
+  results[search.id] = [];
+  await cdp("Page.navigate", { url: pageUrl(Object.values(search.pages)[0].url) });
+  await sleep(1000);
+  for (const word of ["selig", "ſelig", "waſſerfluß", "wasserfluss"]) {
+    const hit = await evaluate(`(async () => {
+      const input = document.getElementById('query');
+      input.value = ${JSON.stringify(word)};
+      input.dispatchEvent(new Event('input'));
+      for (let i = 0; i < 40 && !document.querySelector('#results a'); i++) await new Promise((r) => setTimeout(r, 100));
+      const link = document.querySelector('#results a')?.href;
+      const opens = link && (await fetch(link)).ok;
+      document.getElementById('results').replaceChildren();
+      return { link, opens };
+    })()`);
+    if (!hit?.opens) report(search, corpus, `searching "${word}"`, hit?.link ? `${hit.link} does not open` : "nothing found");
   }
 }
 

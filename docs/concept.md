@@ -86,16 +86,18 @@ The same ODD feeds three levels, each building on the last:
    notes and apparatus baked in; readable with JavaScript off.
 3. **Interactive.** The static page, progressively enhanced. A note marker opens
    its note as a tooltip, by one script on every interactive page
-   (`runtime/notes.js`, styled by `runtime/ui.css` in `edition.css`).
+   (`runtime/notes.js`, styled by `runtime/ui.css` in `edition.css`), and a page
+   break its image from the IIIF manifest (`runtime/facsimile.js`).
    Apparatus readings toggle by petite-vue or islands in the JS path, a few lines
    of vanilla JS in the XSLT path, and IXSL in SaxonJS.
 
 The CETEIcean tier renders in the browser instead: the same body, and the same
-tooltips.
+tooltips and page images.
 
 Beside the pages, the same build reports what the ODD does not foresee in the
 encoding (`compiler-js/findings.mjs`), writes the `plain` output as text and as
-Pagefind records for a search index (`compiler-js/render-plain.mjs`), and writes
+Pagefind records (`compiler-js/render-plain.mjs`), which become a search page
+(`compiler-js/search-index.mjs`), and writes
 the decisions themselves as data — every element naming the model that won
 (`compiler-js/render-json.mjs`), the injection point for other toolchains. Read
 those records back against the ODD and they answer the ODD author's two

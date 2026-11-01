@@ -50,7 +50,7 @@ mkdir -p output/xslt output/xslt-interactive output/ceteicean
 
 echo "① generate  edition.xsl  ← $ODD"
 saxon -s:"$ODD" -xsl:generate/odd-to-xsl.xsl -o:output/edition.xsl
-cp ../runtime/notes.js output/   # the notes, which the interactive pages inline
+cp ../runtime/notes.js ../runtime/facsimile.js output/   # which the interactive pages inline
 
 echo "① generate  edition.css  ← $ODD${TOKENS:+ + $TOKENS}"
 saxon -s:"$ODD" -xsl:generate/odd-to-css.xsl -o:output/edition.css ${TOKENS:+tokens="$TOKENS"}
@@ -88,7 +88,7 @@ if command -v npx >/dev/null 2>&1; then
     base="$(basename "$f" .xml)"
     cp "$f" output/saxonjs/   # each page fetches its TEI at view time
     saxon -s:"$ODD" -xsl:generate/generate-saxonjs-page.xsl -o:"output/saxonjs/$base.html" \
-      tei="$base.xml" sef=../edition-saxonjs.sef.json runtime=../SaxonJS2.rt.js css=../edition.css notes=../notes.js
+      tei="$base.xml" sef=../edition-saxonjs.sef.json runtime=../SaxonJS2.rt.js css=../edition.css notes=../notes.js facsimile=../facsimile.js
   done
   RT="output/SaxonJS2.rt.js"              # SaxonJS 2 runtime, matching xslt3 2.7
   if [ ! -f "$RT" ]; then

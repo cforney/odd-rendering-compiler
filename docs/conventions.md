@@ -70,6 +70,9 @@ the first model whose predicate holds wins.
 The first two are ours: to a behaviour elsewhere, a param it does not define
 means nothing.
 
+On page breaks, `data-page` names the page's image, and the root's model for output
+`page` may name a `manifest`; see *Page images* below.
+
 ## Classes
 
 Every renderer stamps the same classes, so one `edition.css` styles every tier:
@@ -109,6 +112,17 @@ XPath, ODD resolution and diagnostics, by target.
 - **Whitespace.** Whitespace-only text at the edge of a block, or next to one, is
   indentation and is dropped. Other whitespace collapses, unless the nearest
   `xml:space` says `preserve`.
+
+- **Page images.** The param `manifest` of the root's model for output `page` goes
+  on the edition as `data-manifest`, in every target. On an interactive page, an
+  element with `data-page` opens its image, found in that IIIF manifest (Presentation
+  2 or 3) by the end of a canvas, image or image service id; with no manifest, a
+  `data-page` that is itself a URL is the image. A project with another scheme
+  replaces `TeiFacsimile.resolve`. A static page keeps the plain marker.
+- **Search.** `search-index.mjs` indexes the `plain` output, with text and query
+  folded: compatibility forms and marks removed, `ß` as `ss`, so `selig` finds
+  `ſelig`. An excerpt shows the folded text. The result is a document, not a place
+  in it.
 
 ## Extensions
 

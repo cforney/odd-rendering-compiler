@@ -202,7 +202,7 @@ const strings = (v) => seq(v).map((item) => str([item]));
  * teiToHast(tree, { output, trace }) → { hast, notes, page, sources }. The page,
  * output "web", has the views laid over it and a switch for each; another output
  * renders alone. `page` holds the params of the root's model for output "page", as
- * strings. With `trace`, `sources` maps each element rendered to the position and
+ * strings; its `manifest`, for the facsimile, goes on the edition too. With `trace`, `sources` maps each element rendered to the position and
  * the model that gave it.
  * @param {Record<string, Model[]>} models  by element name
  * @param {View[]} [views]
@@ -357,6 +357,6 @@ export function createRenderer(models, views = []) {
     const meta = root && select(root, "page");
     const page = meta ? Object.fromEntries(Object.entries(meta.params).map(([k, f]) => [k, strings(f(root))])) : {};
 
-    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on" }, [...switches, ...body, ...sections]), notes: ends, page, sources };
+    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on", ...(page.manifest?.[0] && { "data-manifest": page.manifest[0] }) }, [...switches, ...body, ...sections]), notes: ends, page, sources };
   };
 }

@@ -8,12 +8,14 @@
  * framework, no per-element components — the principled generalisation of the
  * petite-vue and vanilla-JS interactive tiers (see islands-runtime.js for the
  * model, which mirrors Astro's <astro-island> + client:* directives). Notes open
- * as tooltips, by the shared ../runtime/notes.js, as on every interactive page.
+ * as tooltips, by the shared ../runtime/notes.js, as on every interactive page. A
+ * page break is an island too: when the first comes into view, the runtime loads
+ * ../runtime/facsimile.js, shipped beside the page, so a page with none loads nothing.
  *
  * --tei accepts the same inputs as the other renderers, with the same pages.
  *
  * Usage:   node render-unified-islands.mjs --handlers <path> --tei <path|dir|glob> [--css <path>] [--out <dir>]
- * Output:  <dir>/<basename>.html, <dir>/tei-islands.js, and for several sources <dir>/index.html
+ * Output:  <dir>/<basename>.html, <dir>/tei-islands.js, <dir>/facsimile.js, and for several sources <dir>/index.html
  * Read by: a browser
  */
 
@@ -57,6 +59,7 @@ function markIslands(node) {
   if (node.type !== "element") return node;
   const cls = node.properties?.className || [];
   if (cls.includes("tei-alternate")) return island("choice", "visible", node);
+  if (node.properties?.["data-page"]) return island("facsimile", "visible", node);
   node.children = node.children.map(markIslands);
   return node;
 }
@@ -134,6 +137,7 @@ ${notesJs}
 // Render each input; ship the runtime; in multi-file mode also emit an index.
 // ---------------------------------------------------------------------------
 writeOut(outDir, "tei-islands.js", runtime);
+writeOut(outDir, "facsimile.js", readFileSync(new URL("../runtime/facsimile.js", import.meta.url), "utf-8"));
 
 const indexEntries = [];
 for (const teiFile of teiFiles) {

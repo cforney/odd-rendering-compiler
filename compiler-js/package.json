@@ -4,7 +4,9 @@
   "description": "Build-time pipeline: TEI ODD Processing Model → CSS, XSLT, unified/xast handlers, and CETEIcean behaviours — with end-to-end HTML rendering for static editions",
   "type": "module",
   "main": "odd-to-css.mjs",
-  "bin": { "odd-render": "odd-render.mjs" },
+  "bin": {
+    "odd-render": "odd-render.mjs"
+  },
   "scripts": {
     "build": "node odd-to-css.mjs --odd ../examples/tei_simler.odd --tokens ../examples/simler-tokens.css --out output",
     "build:xslt": "node odd-to-xslt.mjs --odd ../examples/tei_simler.odd --out output",
@@ -18,7 +20,8 @@
     "render:ceteicean": "npm run build:ceteicean",
     "render:plain": "node render-plain.mjs --handlers output/tei-handlers.mjs --tei \"../examples/simler-*.xml\" --lang de --out output/plain",
     "render:json": "node render-json.mjs --odd ../examples/tei_simler.odd --tei \"../examples/simler-*.xml\" --out output/json --strict",
-    "render:all": "npm run render:xslt && npm run render:unified && npm run render:interactive && npm run render:islands && npm run render:plain && npm run render:json",
+    "render:search": "node search-index.mjs --records output/plain/records.json --pages ../unified/ --out output/search",
+    "render:all": "npm run render:xslt && npm run render:unified && npm run render:interactive && npm run render:islands && npm run render:plain && npm run render:search && npm run render:json",
     "coverage": "node coverage.mjs --odd ../examples/tei_simler.odd --records output/json --out output/coverage",
     "findings": "node findings.mjs --odd ../examples/tei_simler.odd --tei \"../examples/simler-*.xml\" --tokens ../examples/simler-tokens.css --out output/findings",
     "demo": "npm run build && npm run build:unified && npm run render:unified && npm run render:interactive",
@@ -42,5 +45,8 @@
     "typescript": "5.9.3"
   },
   "license": "BSD-2-Clause",
-  "author": "Christian Forney"
+  "author": "Christian Forney",
+  "optionalDependencies": {
+    "pagefind": "1.5.2"
+  }
 }

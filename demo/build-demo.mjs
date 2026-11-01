@@ -100,7 +100,7 @@ const resolved = (await Promise.all(paths.map(async (p) => {
     if (!existsSync(page)) continue;
     if (page.endsWith(".html")) banner = takeBanner(page) ?? banner;
     const js = await measureClientJs(page);
-    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), jsKB: kb(js.bytes), jsExternal: js.external };
+    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), jsKB: kb(js.bytes + (p.loadsLater ? sizeOf(resolve(SITE, p.loadsLater)) : 0)), jsExternal: js.external };
   }
   if (!Object.keys(pages).length) {
     console.warn(`[build-demo] skipping ${p.id}: no ${p.dir}/${p.file} found`);
@@ -256,9 +256,9 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
       <h2 id="compare-title">Which rendering should I use?</h2>
       <button type="button" id="compare-close">Close</button>
     </header>
-    <p class="muted">They all show the same edition; they differ in what the reader downloads and what the page can do. Sizes are uncompressed, for the document picked, and all bars share one scale; a script inside the page counts in both columns. <span id="compare-checked"></span></p>
+    <p class="muted">They all show the same edition; they differ in what the reader downloads and what the page can do. Sizes are uncompressed, for the document picked, and all bars share one scale; a script inside the page counts in both columns, and the list of page images (454 KB) comes only with the first one opened. <span id="compare-checked"></span></p>
     <table>
-      <thead><tr><th>Rendering</th><th>Page</th><th>Script</th><th>Works without JavaScript</th><th>Needs a server</th><th>Readings and notes in place</th><th>Same as the others</th></tr></thead>
+      <thead><tr><th>Rendering</th><th>Page</th><th>Script</th><th>Works without JavaScript</th><th>Needs a server</th><th>Readings, notes and page images in place</th><th>Same as the others</th></tr></thead>
       <tbody id="compare-rows"></tbody>
     </table>
   </dialog>
