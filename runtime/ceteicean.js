@@ -215,7 +215,7 @@ function teiEdition(ct, source, models, views, done) {
       case "index": {
         const heads = [];
         (function walk(n) {
-          for (const k of n.children) k.localName === "tei-head" ? heads.push(k.textContent.replace(/\s+/g, " ").trim()) : walk(k);
+          for (const k of n.children) choices[k.getAttribute("data-pm")]?.models[0]?.m.behaviour === "heading" ? heads.push(k.textContent.replace(/\s+/g, " ").trim()) : walk(k);
         })(el);
         if (heads.length < 2) return [];
         const nav = document.createElement("nav");
@@ -238,6 +238,7 @@ function teiEdition(ct, source, models, views, done) {
   });
   const root = { node: teiXast(doc.documentElement), up: [] };
   const page = resolver.select(root, "page");
+  if (page?.params.title) document.title = str(page.params.title(root));
   ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom, page?.params.manifest ? str(page.params.manifest(root)) : "")));
 }
 

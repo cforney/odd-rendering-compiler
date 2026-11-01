@@ -20,10 +20,9 @@
  */
 
 import { basename, extname } from "path";
-import { allModels, writtenAt, templateTree } from "./odd-parser.mjs";
-import { checkXPath, reportUnsupported } from "./unsupported.mjs";
+import { allModels } from "./odd-parser.mjs";
+import { checkXPath, compileModels, reportUnsupported } from "./unsupported.mjs";
 import { createRenderer } from "../runtime/pm-runtime.mjs";
-import { xpath } from "../runtime/xpath.mjs";
 import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles, readTei } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -41,15 +40,7 @@ const odd = loadOdd(oddPath, "render-json");
 const grammar = checkXPath(odd.specs);
 reportUnsupported(grammar.entries, { scope: "render-json", strict: cli.has("--strict") });
 
-/** The models as the generated handlers hold them: XPath compiled, templates parsed. */
-const compile = (m) => ({
-  ...m,
-  predicate: m.predicate ? xpath(grammar.predicate(m.predicate), writtenAt(m.id, m)) : undefined,
-  params: Object.fromEntries(m.params.map((p) => [p.name, xpath(grammar.param(p.value), writtenAt(m.id, p))])),
-  template: m.template && templateTree(m.template),
-  parts: m.parts?.map(compile),
-});
-const models = Object.fromEntries(odd.specs.filter((s) => s.models.length).map((s) => [s.key, s.models.map(compile)]));
+const models = compileModels(odd.specs, grammar);
 const byId = new Map(allModels(odd.specs).map((m) => [m.id, m]));
 
 const teiToHast = createRenderer(models, odd.views);

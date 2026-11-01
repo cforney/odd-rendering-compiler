@@ -77,6 +77,7 @@
           <model predicate="@break = 'no'" behaviour="break" cssClass="lb-hyphen">
             <param name="type" value="'line'"/>
             <param name="label" value="'-'"/>
+            <param name="join" value="'-'"/>
           </model>
           <model behaviour="break">
             <param name="type" value="'line'"/>

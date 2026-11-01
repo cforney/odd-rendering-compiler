@@ -27,7 +27,7 @@
 
 import { readFileSync, copyFileSync, mkdirSync } from "fs";
 import { resolve, basename } from "path";
-import { parseXmlToXast, extractTeiTitle, pageOf, writtenAt } from "./odd-parser.mjs";
+import { parseXmlToXast, pageOf, writtenAt } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import {
   parseArgs, loadOdd, createLogger, writeOut, generatedStamp,
@@ -95,7 +95,7 @@ for (const teiFile of teiFiles) {
   const pagePath = writeOut(outDir, htmlPageName(teiFile), page);
   log(`✓ ${pagePath} (${Object.keys(models).length} elements)`);
   const tree = parseXmlToXast(tei);
-  entries.push({ href: htmlPageName(teiFile), title: extractTeiTitle(tree) || htmlPageName(teiFile), meta: "CETEIcean (in the browser)", page: pageOf(specs, tree) });
+  entries.push({ href: htmlPageName(teiFile), title: htmlPageName(teiFile), meta: "CETEIcean (in the browser)", page: pageOf(specs, tree) });
 }
 if (entries.length > 1) {
   writeOut(outDir, "index.html", buildIndexPage({ title: "TEI Edition — CETEIcean", subtitle: `${entries.length} documents · rendered in the browser`, entries }));

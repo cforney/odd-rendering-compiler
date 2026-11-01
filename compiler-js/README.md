@@ -10,7 +10,7 @@ Everything below, composed in the order the steps depend on each other:
 
 ```bash
 node odd-render.mjs <odd> <tei...> [options]          # --help lists them all
-node odd-render.mjs ../examples/tei_simler.odd "../examples/simler-*.xml"   --tokens ../examples/simler-tokens.css --out build --reports
+node odd-render.mjs ../examples/tei_simler-render.odd "../examples/simler-*.xml"   --tokens ../examples/simler-tokens.css --out build --reports
 ```
 
 The pages land in `--out` (default `build/`), what the compiler generated in
@@ -134,7 +134,7 @@ npm run sync:odd -- <commit>   # vendor the Simler ODD, tokens and excerpts at a
 ```
 
 Individual generators (`build`, `build:xslt`, `build:unified`, `build:ceteicean`)
-read `../examples/tei_simler.odd`, and `build` adds its tokens,
+read `../examples/tei_simler-render.odd`, and `build` adds its tokens,
 `../examples/simler-tokens.css`. Individual renderers (`render:unified`,
 `render:script`, `render:islands`, `render:petite-vue`, `render:xslt`, `render:ceteicean`,
 `render:plain`, `render:json`) render every example.
@@ -225,9 +225,9 @@ renders by it:
   custom properties.
 - **Flow:** block or inline decides where TEI indentation is dropped and where a
   line break is already implied.
-- **Joined line ends:** at an `lb break="no"` the encoded hyphen and the spaces
-  around the break are dropped from the text, so the `lb`'s model sets the one
-  hyphen the print shows.
+- **Joined line ends:** where an element's model has a param `join`, the line joins
+  the next: the spaces around the break go, and a last character the param names, so
+  the model sets the one hyphen the print shows.
 - **Notes** are numbered in document order and collected by place. On the
   interactive pages a marker opens its note as a tooltip, by
   `../runtime/notes.js` (styled by `../runtime/ui.css`, which the CSS

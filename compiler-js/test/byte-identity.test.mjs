@@ -63,7 +63,7 @@ for (const doc of examples) {
       t.skip(`needs the renders — missing ${missing.join(", ")}`);
       return;
     }
-    const built = newest([...SOURCES, resolve(pocDir, "../examples/tei_simler.odd"), resolve(pocDir, `../examples/${doc}.xml`)]);
+    const built = newest([...SOURCES, resolve(pocDir, "../examples/tei_simler.odd"), resolve(pocDir, "../examples/tei_simler-render.odd"), resolve(pocDir, `../examples/${doc}.xml`)]);
     for (const [name, file] of files) assert.ok(statSync(file).mtimeMs >= built, `${name} is older than what it is built from: rebuild it (${file})`);
     const [[firstName, firstFile], ...rest] = files;
     const html = (file) => readFileSync(file, "utf8");

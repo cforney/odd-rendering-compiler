@@ -13,7 +13,7 @@
 # directory (download: https://www.saxonica.com/download/java.xml). With none set,
 # ./vendor/SaxonHE12-9J is tried.
 param(
-  [string]$Odd = "../examples/tei_simler.odd",
+  [string]$Odd = "../examples/tei_simler-render.odd",
   [string[]]$Tei = @(),
   [string]$Tokens = "simler-tokens.css"
 )

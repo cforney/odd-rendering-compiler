@@ -17,7 +17,7 @@ excerpt one level up, `../../simler-psalmen.xml`.
 
 | File | What it is |
 |------|------------|
-| `tei_simler-nested-pb.odd` | the extension: chains to `../../tei_simler.odd` (`schemaSpec/@source`) and replaces the models of `pb` |
+| `tei_simler-nested-pb.odd` | the extension: chains to `../../tei_simler-render.odd` (`schemaSpec/@source`) and replaces the models of `pb` |
 | `poc_odds.odd` | the ODD language (`tei_odds`) with one change: a `<model>` may hold a `<modelSequence>` |
 | `validate.sh` | compiles `poc_odds.odd` with the TEI Stylesheets and validates the extension against it |
 

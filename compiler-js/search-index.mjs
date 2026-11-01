@@ -14,7 +14,7 @@
  * Read by: a browser
  */
 
-import { readFileSync } from "fs";
+import { existsSync, readFileSync, rmSync, statSync } from "fs";
 import { join, resolve } from "path";
 import { parseArgs, createLogger, writeOut, escapeXml } from "./cli.mjs";
 
@@ -41,9 +41,16 @@ for (const { url, content, meta } of records) {
   const added = await index.addCustomRecord({ url, content: fold(content), language, meta });
   if (added.errors.length) throw new Error(`Pagefind, ${url}: ${added.errors.join("; ")}`);
 }
-const written = await index.writeFiles({ outputPath: resolve(outDir, "pagefind") });
+// Pagefind adds to what a folder holds, and closing can outrun its last write, which leaves a page that finds nothing.
+const bundle = resolve(outDir, "pagefind");
+rmSync(bundle, { recursive: true, force: true });
+const written = await index.writeFiles({ outputPath: bundle });
 if (written.errors.length) throw new Error(`Pagefind: ${written.errors.join("; ")}`);
+const entry = join(bundle, "pagefind-entry.json");
+const complete = () => existsSync(entry) && statSync(entry).size > 0;
+for (let tries = 0; tries < 100 && !complete(); tries++) await new Promise((r) => setTimeout(r, 100));
 await pagefind.close();
+if (!complete()) throw new Error(`Pagefind wrote no index: ${entry} is empty`);
 
 const html = `<!DOCTYPE html>
 <html lang="${escapeXml(language)}">

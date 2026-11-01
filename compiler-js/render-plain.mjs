@@ -15,7 +15,6 @@
 
 import { readFileSync } from "fs";
 import { resolve, basename, extname } from "path";
-import { extractTeiTitle } from "./odd-parser.mjs";
 import { parseArgs, createLogger, writeOut, loadHandlers, readTei, resolveTeiFiles, htmlPageName } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -46,7 +45,7 @@ for (const teiFile of resolveTeiFiles(teiArg.length ? teiArg : "../examples/siml
     url: htmlPageName(teiFile),
     content: text.replace(/\n/g, " "),
     ...(lang && { language: lang }),
-    meta: { title: page.title?.[0] || extractTeiTitle(tree) || basename(teiFile) },
+    meta: { title: page.title?.[0] || basename(teiFile) },
   });
 }
 log(`✓ ${writeOut(outDir, "records.json", JSON.stringify(records, null, 2) + "\n")} (Pagefind custom records)`);

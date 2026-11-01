@@ -31,7 +31,7 @@
   <xsl:param name="runtime" as="xs:string" select="'SaxonJS2.rt.js'"/>
 
   <xsl:template match="/">
-    <html lang="en" data-mode="light">
+    <html data-mode="light">
       <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>

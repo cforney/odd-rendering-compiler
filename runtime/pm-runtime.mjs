@@ -157,35 +157,47 @@ export function createResolver(models, output, views = []) {
   }
 
   /**
+   * What an element's model says of the printed line: "join:<characters>" where its
+   * param `join` says the line joins the next, "stop" where it breaks the line
+   * (`type` "line"), undefined otherwise. A sequence says it in a part.
+   */
+  function lineEnd(pos) {
+    const m = modelOf(pos);
+    const said = m ? [m, ...(m.parts ?? [])] : [];
+    const join = said.find((x) => "join" in x.params);
+    if (join) return `join:${str(join.params.join(pos))}`;
+    return said.some((x) => "type" in x.params && str(x.params.type(pos)) === "line") ? "stop" : undefined;
+  }
+
+  /**
    * What a walk along the printed line meets from list[i] on (step 1 forward, -1
-   * back): "join" at a joined line end (lb break="no"), "stop" at text, another
-   * line end or a block, "" where it passes whitespace and inline elements.
+   * back): "join:<characters>" at a joined line end, "stop" at text, another line
+   * end or a block, "" where it passes whitespace and inline elements.
    */
   function along(list, i, step) {
     for (; i >= 0 && i < list.length; i += step) {
       const { node } = list[i];
       const met = isText(node) ? (blank(node.value) ? "" : "stop")
-        : node.name === "lb" ? (node.attributes.break === "no" ? "join" : "stop")
-        : flow(list[i]) === "block" ? "stop"
-        : along(children(list[i]), step > 0 ? 0 : children(list[i]).length - 1, step);
+        : lineEnd(list[i]) ?? (flow(list[i]) === "block" ? "stop" : along(children(list[i]), step > 0 ? 0 : children(list[i]).length - 1, step));
       if (met) return met;
     }
     return "";
   }
 
-  /** Whether a text node's line joins the next (step 1) or the previous one (-1); the walk leaves inline elements. */
+  /** "join:<characters>" where a text node's line joins the next (step 1) or the previous one (-1), else ""; the walk leaves inline elements. */
   function joined(pos, step) {
-    if (!pos.up.length) return false;
+    if (!pos.up.length) return "";
     const parent = parentOf(pos);
     const siblings = children(parent);
     const met = along(siblings, indexOf(pos) + step, step);
-    return met ? met === "join" : flow(parent) !== "block" && joined(parent, step);
+    if (met) return met === "stop" ? "" : met;
+    return flow(parent) !== "block" ? joined(parent, step) : "";
   }
 
   /**
    * A text node as it renders ("" drops it): whitespace collapsed; at a joined
-   * line end the lb's model sets the hyphen, so the encoded one goes, and so do
-   * the spaces around the break.
+   * line end the spaces around the break go, and a last character the model's
+   * `join` names, as the model sets its own hyphen.
    */
   function renderedText(pos) {
     const { node, up } = pos;
@@ -195,7 +207,10 @@ export function createResolver(models, output, views = []) {
     if (blank(node.value)) return before || after || indentation(pos) ? "" : " ";
     let value = collapse(node.value);
     if (before) value = value.replace(/^ /, "");
-    if (after) value = value.replace(/ ?[-\u00AD¬\u2010\u2011\u2E17]? ?$/, "");
+    if (after) {
+      value = value.replace(/ $/, "");
+      if (value && after.slice(5).includes(value.at(-1))) value = value.slice(0, -1).replace(/ $/, "");
+    }
     return value;
   }
 
@@ -203,7 +218,7 @@ export function createResolver(models, output, views = []) {
 }
 
 /** Behaviours that render nothing, by what the model says. */
-const SILENT = ["omit", "metadata"];
+export const SILENT = ["omit", "metadata"];
 
 /** A param's value as strings, one per item. */
 const strings = (v) => seq(v).map((item) => str([item]));
@@ -361,9 +376,9 @@ export function createRenderer(models, views = []) {
         }
         case "index": {
           const heads = [];
-          (function walk(n) {
-            for (const c of (n.children ?? []).filter(isElement)) c.name === "head" ? heads.push(textOf(c)) : walk(c);
-          })(node);
+          (function walk(p) {
+            for (const c of children(p).filter((k) => isElement(k.node))) modelOf(c)?.behaviour === "heading" ? heads.push(textOf(c.node)) : walk(c);
+          })(pos);
           if (heads.length < 2) return [];
           return [h("nav", { className: ["tei-toc"] }, [h("ul", {}, heads.map((t) => h("li", {}, shown(collapse(t).trim()))))])];
         }

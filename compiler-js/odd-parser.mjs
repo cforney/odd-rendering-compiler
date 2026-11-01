@@ -236,6 +236,7 @@ function readSpec(spec, file) {
       source: inherited("useSourceRendition") === "true",
       template: templateOf(m),
       label: elements(m, "desc").map((d) => normalize(textOf(d)))[0],
+      help: elements(m, "desc").map((d) => normalize(textOf(d)))[1],
       parts,
       ...file.at(m.start),
     };
@@ -267,12 +268,15 @@ export function allModels(specs) {
   return specs.flatMap((s) => s.models.flatMap(flatten).map((m) => ({ element: s.key, ...m })));
 }
 
-/** The outputs laid over the page, in document order, each labelled by the first <desc> of its models. */
+/** The outputs laid over the page, in document order, each labelled by the first <desc> of its models, and explained by the second. */
 function viewsOf(specs) {
   const models = allModels(specs).filter((m) => m.output);
   return [...new Set(models.map((m) => m.output))]
     .filter((output) => !CHANNELS.includes(output) && !output.startsWith("opm-"))
-    .map((output) => ({ output, label: models.find((m) => m.output === output && m.label)?.label ?? output }));
+    .map((output) => {
+      const said = models.find((m) => m.output === output && m.label);
+      return { output, label: said?.label ?? output, help: said?.help };
+    });
 }
 
 /** What a view's model cannot lay over the page: only an omit, or classes on the same behaviour, can be. */
@@ -382,12 +386,4 @@ export function pageOf(specs, tree) {
   const models = specs.find((s) => s.key === root.node.name)?.models ?? [];
   const page = models.find((m) => m.output === "page" && (!m.predicate || bool(xpath(m.predicate)(root))));
   return Object.fromEntries((page?.params ?? []).map((p) => [p.name, seq(xpath(p.value)(root)).map((item) => str([item]))]));
-}
-
-/** The text of the first `<title>` in an xast tree, for page titles; "" if none. */
-export function extractTeiTitle(tree) {
-  const find = (n) => (n.name === "title" ? n : (n.children ?? []).map(find).find(Boolean));
-  const title = find(tree);
-  const textOf = (n) => (n.type === "text" ? n.value : n.children.map(textOf).join(""));
-  return title ? normalize(textOf(title)) : "";
 }

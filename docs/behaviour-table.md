@@ -93,10 +93,10 @@ view omits and swaps the readings, and the view's model CSS applies. So the
 views work on the CSS floor, without JavaScript.
 
 **Joined line ends.** The text is rendered as encoded, with one exception that
-lets a `break` model set the hyphen of a word the print divides: at an
-`lb break="no"`, a hyphen that ends the line's text and the spaces around the
-break are dropped. The line's text is found across inline elements, not across
-a block.
+lets a model set the hyphen of a word the print divides: where an element's model
+has a param `join`, the spaces around it go, and a last character of the line's text
+that the param names. A model of `type` `line` ends the line without joining. The
+line's text is found across inline elements, not across a block.
 
 **Compound (Boot 2024), an extension.** A `<model>` that holds a
 `<modelSequence>` is not TEI. The PoC renders it as its parts, with a `link` part

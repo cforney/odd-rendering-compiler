@@ -41,7 +41,7 @@
     <html data-mode="light">
       <head>
         <meta charset="UTF-8"/>
-        <title><xsl:value-of select="(pm:select(/*, 'page')?params?title ! string(), normalize-space((//title)[1]))[.][1]"/></title>
+        <title><xsl:value-of select="(pm:select(/*, 'page')?params?title ! string(), replace(tokenize(base-uri(/), '/')[last()], '\.xml$', ''))[.][1]"/></title>
         <link rel="stylesheet" href="edition.css"/>
         <style>
 body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; line-height: 1.7; color: #222; background: #fefefe; }
@@ -184,7 +184,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
   </xsl:function>
 
   <!-- Text: indentation is dropped, other whitespace collapsed. -->
-  <!-- At a joined line end the lb's model sets the hyphen: the encoded one goes, and so do the spaces. -->
+  <!-- At a joined line end the spaces go, and a last character the model's join names, as the model sets its own hyphen. -->
   <xsl:template match="text()">
     <xsl:choose>
       <!-- The nearest xml:space decides. -->
@@ -192,34 +192,52 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
       <xsl:when test="normalize-space()">
         <xsl:variable name="collapsed" select="replace(., '[ \t\n\r]+', ' ')"/>
         <xsl:variable name="start" select="if (pm:joined(., -1)) then replace($collapsed, '^ ', '') else $collapsed"/>
-        <xsl:value-of select="if (pm:joined(., 1)) then replace($start, '( ?[\-&#xAD;¬&#x2010;&#x2011;&#x2E17;] ?| )$', '') else $start"/>
+        <xsl:variable name="after" select="pm:joined(., 1)"/>
+        <xsl:variable name="end" select="replace($start, ' $', '')"/>
+        <xsl:variable name="last" select="substring($end, string-length($end))"/>
+        <xsl:value-of select="if (not($after)) then $start
+          else if ($last and contains(substring-after($after, 'join:'), $last)) then replace(substring($end, 1, string-length($end) - 1), ' $', '')
+          else $end"/>
       </xsl:when>
       <xsl:when test="not(pm:joined(., -1) or pm:joined(., 1) or pm:indentation(.))"><xsl:text> </xsl:text></xsl:when>
     </xsl:choose>
   </xsl:template>
 
-  <!-- What a walk along the printed line meets from $n on ($step 1 forward, -1 back): 'join' at a
-       joined line end (lb break="no"), 'stop' at text, another line end or a block, '' where it
-       passes whitespace and inline elements. -->
+  <!-- What an element's model says of the printed line: 'join:characters' where its param join says the
+       line joins the next, 'stop' where it breaks the line (type 'line'), else ''. A sequence says it in a part. -->
+  <xsl:function name="pm:line-end" as="xs:string">
+    <xsl:param name="e" as="element()"/>
+    <xsl:variable name="m" select="pm:choose($e)"/>
+    <xsl:variable name="said" select="$m, $m?parts"/>
+    <xsl:variable name="params" select="$said ! ?params"/>
+    <xsl:variable name="join" select="$params[map:contains(., 'join')][1]"/>
+    <xsl:sequence select="if (exists($join)) then 'join:' || string($join?join)
+      else if ($params ! .?type ! string(.) = 'line') then 'stop' else ''"/>
+  </xsl:function>
+
+  <!-- What a walk along the printed line meets from $n on ($step 1 forward, -1 back): 'join:characters' at a
+       joined line end, 'stop' at text, another line end or a block, '' where it passes whitespace and inline elements. -->
   <xsl:function name="pm:along" as="xs:string">
     <xsl:param name="n" as="node()?"/>
     <xsl:param name="step" as="xs:integer"/>
     <xsl:variable name="met" as="xs:string" select="
       if (empty($n)) then ''
       else if ($n instance of text()) then (if (normalize-space($n)) then 'stop' else '')
-      else if ($n/self::lb) then (if ($n/@break = 'no') then 'join' else 'stop')
+      else if (not($n instance of element())) then ''
+      else if (pm:line-end($n)) then pm:line-end($n)
       else if (pm:flow($n) = 'block') then 'stop'
       else pm:along(if ($step gt 0) then $n/node()[1] else $n/node()[last()], $step)"/>
     <xsl:sequence select="if ($met or empty($n)) then $met
       else pm:along(if ($step gt 0) then $n/following-sibling::node()[1] else $n/preceding-sibling::node()[1], $step)"/>
   </xsl:function>
 
-  <!-- Whether the line of $n joins the next ($step 1) or the previous one (-1); the walk leaves inline elements. -->
-  <xsl:function name="pm:joined" as="xs:boolean">
+  <!-- 'join:characters' where the line of $n joins the next ($step 1) or the previous one (-1), else ''; the walk leaves inline elements. -->
+  <xsl:function name="pm:joined" as="xs:string">
     <xsl:param name="n" as="node()"/>
     <xsl:param name="step" as="xs:integer"/>
     <xsl:variable name="met" select="pm:along(if ($step gt 0) then $n/following-sibling::node()[1] else $n/preceding-sibling::node()[1], $step)"/>
-    <xsl:sequence select="if ($met) then $met = 'join' else exists($n/parent::*) and pm:flow($n/..) ne 'block' and pm:joined($n/.., $step)"/>
+    <xsl:sequence select="if ($met) then (if ($met = 'stop') then '' else $met)
+      else if (exists($n/parent::*) and pm:flow($n/..) ne 'block') then pm:joined($n/.., $step) else ''"/>
   </xsl:function>
 
   <!-- Whitespace-only text at the edge of a block, or next to one, is indentation. -->
@@ -498,7 +516,8 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
       </xsl:when>
       <!-- A table of contents: the headings within, not nested in one another. -->
       <xsl:when test="$behaviour = 'index'">
-        <xsl:variable name="heads" select="descendant::head except descendant::head//head"/>
+        <xsl:variable name="all" select="descendant::*[pm:choose(.)?behaviour = 'heading']"/>
+        <xsl:variable name="heads" select="$all except $all//*"/>
         <xsl:if test="count($heads) ge 2">
           <nav class="tei-toc"><ul><xsl:for-each select="$heads"><li><xsl:value-of select="normalize-space(.)"/></li></xsl:for-each></ul></nav>
         </xsl:if>

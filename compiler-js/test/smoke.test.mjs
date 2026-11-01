@@ -21,7 +21,7 @@ import { readOdd, parseXmlToXast } from "../odd-parser.mjs";
 import { loadHandlers } from "../cli.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ODD = "../examples/tei_simler.odd";
+const ODD = "../examples/tei_simler-render.odd";
 const TOKENS = "../examples/simler-tokens.css";
 const EXAMPLES = "../examples/simler-*.xml";
 
@@ -149,7 +149,7 @@ test("findings reports what the ODD does not foresee", () => {
     "Rendition not declared in the ODD: #nowhere",
     "No model in the ODD, rendered as its content: <foo>",
     `Value not in the ODD's list: <rs> type="alien"`,
-    `Note range without its start: targetEnd="missing"`,
+    `Note range without its start: missing`,
     "Anchor no note range starts at: lonely",
     "Page images without a IIIF manifest to resolve them",
   ]);
@@ -190,6 +190,7 @@ test("odd-render --search writes a search page and an index, linked from the ind
   const out = join(outDir, "searched");
   run("odd-render.mjs", [ODD, EXAMPLES, "--tokens", TOKENS, "--lang", "de", "--search", "--out", out]);
   assert.ok(existsSync(join(out, "pagefind", "pagefind.js")), "the index");
+  assert.equal(Object.keys(JSON.parse(readFileSync(join(out, "pagefind", "pagefind-entry.json"), "utf8")).languages).join(), "de", "whole, in the language asked for");
   const html = readFileSync(join(out, "search.html"), "utf8");
   assert.match(html, /<html lang="de">/, "the page's language picks the index");
   assert.match(html, /const fold = /, "the query is folded as the index is");
@@ -257,6 +258,50 @@ test("render-json writes the ODD's decisions as records, with a table of the mod
   assert.match(models["div-1"].predicate, /^preceding-sibling::/, "and its predicate");
   assert.deepEqual(models["lb-3"].parts, ["lb-4", "lb-5"], "a sequence is described with its parts");
   assert.ok(!("l-1" in models), "only the models the document made fire");
+});
+
+test("the chained ODD holds the Simler ODD's models, with only what it declares added", () => {
+  const shape = (spec) => spec.models.map((m) => [m.predicate, m.behaviour, m.output, m.classes, m.parts?.length, m.params.filter((p) => p.name !== "join").map((p) => [p.name, p.value])]);
+  const base = readOdd(resolve(pocDir, "../examples/tei_simler.odd")).specs;
+  const chained = readOdd(resolve(pocDir, ODD)).specs;
+  for (const ident of ["lb", "note"]) assert.deepEqual(shape(chained.find((s) => s.key === ident)), shape(base.find((s) => s.key === ident)), ident);
+});
+
+test("what renders is the ODD's to say: line joins, headings, ranges and the title come from its models", () => {
+  const out = join(outDir, "declared");
+  mkdirSync(out, { recursive: true });
+  const specs = {
+    TEI: `<model behaviour="document"/><model output="page" behaviour="metadata"><param name="title" value="string(@n)"/></model>`,
+    div: `<model behaviour="block"/>`,
+    p: `<model behaviour="paragraph"/>`,
+    list: `<model behaviour="index"/>`,
+    item: `<model behaviour="heading"/>`,
+    head: `<model behaviour="block"/>`,
+    milestone: `<model behaviour="anchor"/>`,
+    seg: `<model behaviour="inline"><param name="range" value="@corresp"/></model>`,
+    lb: `<model predicate="@break='no'" behaviour="break"><param name="type" value="'line'"/></model><model behaviour="break"><param name="type" value="'line'"/></model>`,
+    ptr: `<model behaviour="break"><param name="type" value="'line'"/><param name="join" value="'~'"/></model>`,
+  };
+  const odd = join(out, "d.odd");
+  writeFileSync(odd, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="d">${Object.entries(specs).map(([k, v]) => `<elementSpec ident="${k}" mode="change">${v}</elementSpec>`).join("")}</schemaSpec></body></text></TEI>`);
+  const tei = join(out, "d.xml");
+  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0" n="Declared"><div><p>kept-<lb break="no"/>word gone~<ptr/>joined kept-<ptr/>x</p>
+    <list><item>One</item><head>Not one</head><item>Two</item></list><milestone xml:id="m1"/><milestone xml:id="m2"/><seg corresp="#m1">s</seg><seg corresp="#m9">t</seg></div></TEI>`);
+  run("odd-to-unified.mjs", ["--odd", odd, "--out", out]);
+  run("render-unified.mjs", ["--handlers", join(out, "tei-handlers.mjs"), "--tei", tei, "--css", join(outDir, "edition.css"), "--out", out]);
+  const html = readFileSync(join(out, "d.html"), "utf8");
+  assert.match(html, /<title>Declared<\/title>/, "the title of the page model");
+  assert.doesNotMatch(html, /<html lang=/, "no language the ODD did not give");
+  assert.match(html, /kept-<br class="tei-lb">word/, "a break with no join keeps its line's hyphen, even as lb break=no");
+  assert.match(html, /gone<br class="tei-ptr">joined/, "any element's model can join, with the characters it names");
+  assert.match(html, /kept-<br class="tei-ptr">x/, "and only those");
+  assert.match(html, /<li>One<\/li><li>Two<\/li>/, "an index lists what a model says is a heading, whatever the element");
+  run("findings.mjs", ["--odd", odd, "--tei", tei, "--out", join(out, "findings")]);
+  const [found] = Object.values(JSON.parse(readFileSync(join(out, "findings", "findings.json"), "utf8")).documents ?? {});
+  const text = JSON.stringify(found ?? JSON.parse(readFileSync(join(out, "findings", "findings.json"), "utf8")));
+  assert.match(text, /Note range without its start: m9/, "a range is the param's, whatever the attribute");
+  assert.match(text, /Anchor no note range starts at: m2/, "an anchor the behaviour's, whatever the element");
+  assert.doesNotMatch(text, /starts at: m1/);
 });
 
 test("the records are the render: what a page shows, no more and no less", () => {
@@ -434,7 +479,7 @@ test("odd-render compiles and renders an edition in one command", () => {
   for (const report of ["plain", "json", "coverage", "findings"]) {
     assert.ok(readdirSync(join(out, "reports", report)).length, `the ${report} report`);
   }
-  assert.match(log, /1 page\(s\) in .+ — the static tier of tei_simler\.odd/, "and one summary line");
+  assert.match(log, /1 page\(s\) in .+ — the static tier of tei_simler-render\.odd/, "and one summary line");
 
   run("odd-render.mjs", [ODD, "../examples/simler-psalmen.xml", "--out", join(outDir, "cli-islands"), "--tier", "islands"]);
   assert.ok(existsSync(join(outDir, "cli-islands", "tei-islands.js")), "another tier brings its own runtime");

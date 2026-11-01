@@ -20,7 +20,9 @@ import { readFileSync } from "fs";
 import { resolve, basename } from "path";
 import { pathToFileURL } from "url";
 import { parseXmlToXast, pageOf, allModels } from "./odd-parser.mjs";
-import { checkXPath } from "./unsupported.mjs";
+import { checkXPath, compileModels } from "./unsupported.mjs";
+import { createResolver, SILENT } from "../runtime/pm-runtime.mjs";
+import { seq, str } from "../runtime/xpath.mjs";
 import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles, htmlPageName, buildReportPage } from "./cli.mjs";
 
 /** Custom properties the ODD's CSS reads that neither the tokens, the ODD's CSS nor a `--…` param defines. */
@@ -37,15 +39,20 @@ export function documentFindings({ specs, renditions }, tree) {
   const found = [];
   const spec = Object.fromEntries(specs.map((s) => [s.key, s]));
   const declared = new Set(renditions.map((r) => r.id));
+  const { modelOf } = createResolver(compileModels(specs, checkXPath(specs)), "web");
   const all = [];
-  (function walk(node, up) {
+  /** What the page renders: what a model leaves out, it does not foresee in any detail. */
+  const inText = [];
+  (function walk(node, up, reached) {
     if (node.type !== "element") return;
-    all.push({ node, up });
-    node.children.forEach((c) => walk(c, [...up, node]));
-  })(tree.children.find((n) => n.type === "element"), []);
+    const pos = { node, up };
+    all.push(pos);
+    if (reached) inText.push(pos);
+    const left = reached && SILENT.includes(modelOf(pos)?.behaviour);
+    node.children.forEach((c) => walk(c, [...up, node], reached && !left));
+  })(tree.children.find((n) => n.type === "element"), [], true);
 
-  if (all[0].node.name.startsWith("{")) found.push(`Root element not in the TEI namespace, so no model applies: <${all[0].node.name}>`);
-  const inText = all.filter(({ node, up }) => node.name === "text" || up.some((a) => a.name === "text"));
+  if (all[0].node.name.startsWith("{")) return [`Root element not in the TEI namespace, so no model applies: <${all[0].node.name}>`];
   for (const { node } of inText) {
     const { models = [], values = {} } = spec[node.name] ?? {};
     if (!models.length) found.push(`No model in the ODD, rendered as its content: <${node.name}>`);
@@ -58,11 +65,13 @@ export function documentFindings({ specs, renditions }, tree) {
   }
 
   const ids = new Set(all.map(({ node }) => node.attributes["xml:id"]).filter(Boolean));
-  const ends = inText.flatMap(({ node }) => (node.attributes.targetEnd ?? "").split(/\s+/).filter(Boolean).map((t) => t.replace(/^#/, "")));
-  for (const end of ends) if (!ids.has(end)) found.push(`Note range without its start: targetEnd="${end}"`);
-  for (const { node } of inText) {
-    const id = node.attributes["xml:id"];
-    if (node.name === "anchor" && id && !ends.includes(id)) found.push(`Anchor no note range starts at: ${id}`);
+  // A range is what a model's param says, an anchor what a model's behaviour says.
+  const modelsAt = (pos) => { const m = modelOf(pos); return m ? [m, ...(m.parts ?? [])] : []; };
+  const ends = inText.flatMap((pos) => modelsAt(pos).filter((m) => "range" in m.params).flatMap((m) => seq(m.params.range(pos)).flatMap((v) => str([v]).split(/\s+/)))).filter(Boolean).map((t) => t.replace(/^#/, ""));
+  for (const end of ends) if (!ids.has(end)) found.push(`Note range without its start: ${end}`);
+  for (const pos of inText) {
+    const id = pos.node.attributes["xml:id"];
+    if (id && modelsAt(pos).some((m) => m.behaviour === "anchor") && !ends.includes(id)) found.push(`Anchor no note range starts at: ${id}`);
   }
 
   const { pages = [], manifest = [] } = pageOf(specs, tree);

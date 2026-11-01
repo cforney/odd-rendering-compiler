@@ -18,8 +18,7 @@
  */
 
 import { readFileSync } from "fs";
-import { resolve } from "path";
-import { extractTeiTitle } from "./odd-parser.mjs";
+import { resolve, basename, extname } from "path";
 import {
   parseArgs, createLogger, writeOut, toHtml, loadHandlers, readTei,
   resolveTeiFiles, htmlPageName, buildIndexPage,
@@ -110,11 +109,11 @@ function renderPage(teiFile) {
   const body = toHtml(enhancer?.transform?.(hast) ?? hast);
 
   const html = `<!DOCTYPE html>
-<html lang="en" data-mode="light">
+<html data-mode="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${name} Rendering — TEI Edition</title>
+  <title>${page.title?.[0] || basename(teiFile, extname(teiFile))}</title>
 
   <!-- ODD-generated stylesheet (odd-to-css.mjs), inlined for a self-contained file. -->
   <style id="edition-css">
@@ -152,18 +151,18 @@ ${editionCss}
 </body>
 </html>`;
 
-  return { html, notes, title: extractTeiTitle(tree), page };
+  return { html, notes, page };
 }
 
 for (const file of enhancer?.beside ?? []) writeOut(outDir, file, runtime(file));
 
 const indexEntries = [];
 for (const teiFile of teiFiles) {
-  const { html, notes, title, page } = renderPage(teiFile);
+  const { html, notes, page } = renderPage(teiFile);
   const pageName = htmlPageName(teiFile);
   const outFile = writeOut(outDir, pageName, html);
   log(`✓ ${teiFile} → ${outFile} (${notes.length} note(s))`);
-  indexEntries.push({ href: pageName, title: title || pageName, meta: `${notes.length} note(s)`, page });
+  indexEntries.push({ href: pageName, title: pageName, meta: `${notes.length} note(s)`, page });
 }
 
 if (multi) {

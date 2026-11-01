@@ -24,7 +24,7 @@
         renders it.</p>
       <p>The ODD chains to the Simler ODD (<att>source</att> on <gi>schemaSpec</gi>): its specs are
         the Simler ODD's, with the models of <gi>pb</gi> replaced.</p>
-      <schemaSpec ident="tei_simler_nested_pb" start="TEI" source="../../tei_simler.odd">
+      <schemaSpec ident="tei_simler_nested_pb" start="TEI" source="../../tei_simler-render.odd">
         <elementSpec ident="pb" mode="change">
           <!-- With a @facs: a compound of a link and a graphic, the link wrapping the graphic.
                @facs is the image id; the IIIF image root is the manifest's, without its last

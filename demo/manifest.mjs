@@ -111,14 +111,8 @@ export const paths = [
 // The shared visual floor every path renders against — shown beside each tab.
 export const floor = { label: "edition.css", file: "js/edition.css" };
 
-// The views of the ODD, in words: what its output names leave unsaid.
-export const views = {
-  normalized: { label: "Normalized text", help: "The corrected readings, with the printed lines run together." },
-  entities: { label: "Names", help: "Marks people, places, works and other named things in colour." },
-};
-
 // What the inspector explains the examples by.
-export const inspected = { odd: "examples/tei_simler.odd", handlers: "compiler-js/output/tei-handlers.mjs", tei: "examples/{doc}.xml" };
+export const inspected = { odd: "examples/tei_simler-render.odd", handlers: "compiler-js/output/tei-handlers.mjs", tei: "examples/{doc}.xml" };
 
 // Documents on offer: the examples, each rendered by every path (id = file name).
 export const docs = [

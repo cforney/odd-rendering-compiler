@@ -8,6 +8,7 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 | File | What it is |
 |------|------------|
 | `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data) at <!-- sync-odd -->[`07ac73d`](https://github.com/DHBern/simler_data/tree/07ac73d8b7b3489a06a2c262805d101c763d4431) (2026-10-31)<!-- /sync-odd -->, unchanged; the primary example. The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the same file |
+| `tei_simler-render.odd` | chains to `tei_simler.odd` and declares what its rendering needs and the Simler ODD does not yet say: the param `join` on `lb`, and the margin's place in `note-margin`. Every build here reads it. It goes once the Simler ODD says the same |
 | `simler-tokens.css` | the design tokens the ODD's CSS reads (`preview/assets/tokens.css`, same commit); the CSS generators put them at the top of `edition.css` |
 | `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–V: a range note set inside a word, running headers, page numbers and a catchword, a page break inside a stanza, joined line ends |
 | `simler-buchstabwechsel.xml` | poem VI of the dedicatory poems: the interleaved two-column page, whose acrostics (JOHANN, WILHELM, SIMMLER) the `l-twocol` params lay out; and named entities (`rs`) |

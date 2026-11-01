@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>TEI Simler, with what its rendering needs declared</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Part of the ODD Rendering Compiler proof of concept.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Changes two elements of tei_simler.odd, which stays as Simler Digital has it.</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>What a page renders is the ODD's to say, and two things in Simler's rendering are not yet
+        in its ODD: the preview's code holds them. So this ODD chains to it (<att>source</att> on
+        <gi>schemaSpec</gi>) and declares them, with the models of <gi>lb</gi> and <gi>note</gi>
+        otherwise copied; a test holds the copies to the original. Once the Simler ODD says the
+        same, this file goes.</p>
+      <schemaSpec ident="tei_simler_render" start="TEI" source="tei_simler.odd">
+        <elementSpec ident="lb" mode="change">
+          <!-- added: the param join, the characters a joined line's text may end in, which go -->
+          <model cssClass="lb-hyphen" predicate="@break='no' and matches(preceding-sibling::node()[normalize-space()][1], '[-¬⸗&#xAD;&#x2010;&#x2011;]\s*$')" behaviour="break">
+            <param name="type" value="'line'"/>
+            <param name="label" value="'-'"/>
+            <param name="join" value="'-¬⸗&#xAD;&#x2010;&#x2011;'"/>
+          </model>
+          <model cssClass="lb-hyphen-supplied" predicate="@break='no'" behaviour="break">
+            <param name="type" value="'line'"/>
+            <param name="label" value="'-'"/>
+            <param name="join" value="'-¬⸗&#xAD;&#x2010;&#x2011;'"/>
+            <outputRendition>color: rgb(var(--c-muted));</outputRendition>
+          </model>
+          <modelSequence>
+            <model behaviour="break">
+              <param name="type" value="'line'"/>
+            </model>
+            <!-- the line end is a word boundary, except a forme work line's: the text's own line
+                 end before it already is one, and a word joined across the page goes on after it -->
+            <model behaviour="text" predicate="not(preceding-sibling::node()[normalize-space() or self::*][1][self::fw])">
+              <param name="content" value="' '"/>
+            </model>
+          </modelSequence>
+          <model output="normalized" predicate="@break='no' or not(ancestor::titlePage)" behaviour="omit"/>
+          <model output="plain" predicate="@break='no'" behaviour="omit">
+            <param name="join" value="'-¬⸗&#xAD;&#x2010;&#x2011;'"/>
+          </model>
+          <model output="plain" behaviour="break">
+            <param name="type" value="'line'"/>
+          </model>
+        </elementSpec>
+        <elementSpec ident="note" mode="change">
+          <!-- added: where the margin is, in the rendition of note-margin -->
+          <model cssClass="note-speaker" predicate="@type='speaker'" behaviour="inline" useSourceRendition="true">
+            <outputRendition>font-family: var(--f-ui); font-size: 0.72em; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(var(--c-muted));</outputRendition>
+          </model>
+          <!-- printed beside or below the text, a Bible reference or a marginal note: never in the
+               apparatus. `data-margin` puts it in the page's margin, on the printed side, where the
+               window has room; otherwise it stays a small note in the line. -->
+          <model cssClass="note-margin" predicate="@place='left' or @place='right' or @type='marginalia' or @type='bibl'" behaviour="inline" useSourceRendition="true">
+            <param name="data-margin" value="if (@place='left') then 'left' else 'right'"/>
+            <outputRendition>margin-inline: 0.3em; font-family: var(--f-ui); font-size: 0.85em; line-height: 1.3; color: rgb(var(--c-muted)); &amp; br { display: none; } @media (min-width: 58rem) { float: right; clear: right; width: 7rem; margin: 0.15em -7.5rem 0 0.5rem; text-align: left; text-indent: 0; &amp; br { display: inline; } &amp;[data-margin='left'] { float: left; clear: left; margin-inline: -7.5rem 0.5rem; text-align: right; } }</outputRendition>
+          </model>
+          <model predicate="@type='remarkResponsibility'" behaviour="omit"/>
+          <!-- a range comment: a numbered marker in the text, the note in the apparatus; the range
+               runs from the anchor @targetEnd names to the marker -->
+          <model cssClass="note-anchored" predicate="@targetEnd" behaviour="note" useSourceRendition="true">
+            <param name="place" value="'end'"/>
+            <param name="range" value="@targetEnd"/>
+            <outputRendition>font-family: var(--f-ui); font-size: 0.62em; font-weight: 600; vertical-align: super; line-height: 0; padding: 0 0.12em; color: rgb(var(--c-accent)); text-decoration: none; scroll-margin-top: 6rem;</outputRendition>
+          </model>
+          <!-- a comment on the whole division: no marker, shown above the text; any other note is unmapped -->
+          <model predicate="@type='annotation'" behaviour="note" useSourceRendition="true">
+            <param name="place" value="'overview'"/>
+          </model>
+          <model output="plain" predicate="@targetEnd" behaviour="omit"/>
+        </elementSpec>
+      </schemaSpec>
+    </body>
+  </text>
+</TEI>

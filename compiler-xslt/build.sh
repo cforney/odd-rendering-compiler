@@ -38,7 +38,7 @@ RESOLVER="$(ls "$SAXON_HOME"/lib/xmlresolver-*.jar 2>/dev/null | tr '\n' "$SEP" 
 CP="$SAXON_JAR$SEP$RESOLVER"
 saxon() { java -cp "$CP" net.sf.saxon.Transform "$@"; }
 
-ODD="${1:-../examples/tei_simler.odd}"
+ODD="${1:-../examples/tei_simler-render.odd}"
 [ $# -gt 0 ] && shift
 shopt -s nullglob
 TEIS=("$@")

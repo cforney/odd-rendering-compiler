@@ -70,8 +70,7 @@ the first model whose predicate holds wins.
 The first two are ours: to a behaviour elsewhere, a param it does not define
 means nothing.
 
-`data-margin`, `left` or `right`, sets an element in the page's margin where there is
-room, by `runtime/ui.css`; otherwise it stays in the line. On page breaks, `data-page` names the page's image, and the root's model for output
+On page breaks, `data-page` names the page's image, and the root's model for output
 `page` may name a `manifest`; see *Page images* below.
 
 ## Classes
@@ -101,8 +100,13 @@ XPath, ODD resolution and diagnostics, by target.
   `section.tei-notes[data-place]`, without a marker. A note's `xml:id` goes on its
   marker, or without one on its body, so links into the source keep a target.
 - **Line breaks.** A `break` of type `line` where a line already starts renders
-  nothing. At an `lb break="no"`, the hyphen that ends the line's text and the
-  spaces around the break go; the break's model sets the hyphen.
+  nothing. Where a model has a param `join`, on any element and of any behaviour, the
+  line joins: the spaces around it go, and a last character of the line's text that
+  `join` names; the model sets the hyphen. Without `join`, no text changes.
+- **Page metadata.** The params of the root's model for output `page`: `title` names the
+  page, or else its file does, and `manifest` goes on the edition. An `index` lists
+  what a model renders as `heading`. Findings read a note's range from a param `range`,
+  and an anchor from the behaviour `anchor`.
 - **Namespaces.** Names resolve by namespace, not by spelling, in the ODD and in
   the source. A model applies to TEI's element of its `@ident`, or with
   `elementSpec/@ns` to that namespace's, under the same class `tei-<ident>`. Any

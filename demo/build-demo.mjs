@@ -21,7 +21,7 @@ import {
 } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { concept, paths, floor, docs, inspected, views } from "./manifest.mjs";
+import { concept, paths, floor, docs, inspected } from "./manifest.mjs";
 import { parseXmlToXast, readOdd, allModels } from "../compiler-js/odd-parser.mjs";
 import { seq, str } from "../runtime/xpath.mjs";
 
@@ -137,10 +137,12 @@ async function writeInspection() {
   if (!existsSync(handlers)) return false;
   const { teiToHast } = await import(pathToFileURL(handlers).href);
   const odd = readOdd(resolve(ROOT, inspected.odd));
-  const oddLines = readFileSync(resolve(ROOT, inspected.odd), "utf8").split(/\r?\n/);
+  // A chain's models are written in its several files, beside each other.
+  const linesOf = (name) => readFileSync(resolve(ROOT, dirname(inspected.odd), name), "utf8").split(/\r?\n/);
   const byId = new Map(allModels(odd.specs).map((m) => [m.id, m]));
   /** A model as the ODD wrote it, without its indentation. */
-  const written = ({ line }) => {
+  const written = ({ odd: file, line }) => {
+    const oddLines = linesOf(file);
     const end = oddLines.findIndex((l, i) => i >= line - 1 && /\/>\s*$|<\/model(Sequence)?>\s*$/.test(l));
     const lines = oddLines.slice(line - 1, end + 1);
     const indent = lines[0].match(/^\s*/)[0].length;
@@ -179,7 +181,7 @@ async function writeInspection() {
 const floorFile = resolve(SITE, floor.file);
 const data = {
   concept, paths: resolved, inspect: await writeInspection(), notElements: NOT_ELEMENTS,
-  views: readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: views[v.output]?.label ?? v.label, help: views[v.output]?.help ?? "" })),
+  views: readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.label, help: v.help ?? "" })),
   docs: docs.filter((d) => resolved.some((p) => p.pages[d.id])),
   floor: { label: floor.label, url: floor.file, sizeKB: kb(sizeOf(floorFile)) },
 };

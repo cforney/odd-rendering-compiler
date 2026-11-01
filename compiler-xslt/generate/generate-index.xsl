@@ -82,7 +82,7 @@
     <xsl:for-each select="$names">
       <xsl:variable name="doc" select="doc(resolve-uri(., $base))"/>
       <xsl:variable name="page" select="pm:select($doc/*, 'page')?params"/>
-      <xsl:variable name="t" select="($page?title ! string(), normalize-space(string(($doc//tei:titleStmt/tei:title)[1])))[.][1]"/>
+      <xsl:variable name="t" select="($page?title ! string(), .)[.][1]"/>
       <xsl:variable name="manifest" select="string(head($page?manifest))"/>
       <xsl:variable name="n" select="count($doc//tei:note)"/>
       <xsl:variable name="href" select="replace(., '\.xml$', '.html')"/>
