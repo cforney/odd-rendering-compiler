@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * Render the ODD's decisions as data: for each TEI source a tree of records,
- * every element naming the model the Processing Model chose for it, and a side
- * table giving each of those models its predicate, its <desc> and the ODD it
- * was written in. Downstream tools — a site generator, a search index, a
- * coverage report — read what the ODD decided without re-implementing it.
+ * Render the ODD's decisions as data: for each TEI source the render itself as a
+ * tree of records, from the runtime's trace, and a side table giving each model
+ * that ran its predicate, its <desc> and the ODD it was written in. Downstream
+ * tools — a site generator, a search index, a coverage report — read what the
+ * ODD decided without re-implementing it.
  *
- * A record is { element, model, behaviour, classes, params, children }; a child
- * is a record, or the text as it renders. An element the ODD has no model for
- * keeps its record with `model: null`, and what a model omits has no children.
+ * A record is PmRecord in ../runtime/pm-runtime.mjs: { element, model, behaviour,
+ * classes, params, parts, outcome, children }; a child is a record, or the text as
+ * it renders. Only what the render reached has a record: an element a `content`
+ * param leaves out has none, and one it selects twice has two.
  * Predicates and params the XPath subset cannot evaluate are degraded as in the
  * other generators, and listed under `unsupported`.
  *
@@ -18,13 +19,12 @@
  * Read by: coverage.mjs (--records), and any tool that wants the decisions as data
  */
 
-import { readFileSync } from "fs";
-import { resolve, basename, extname } from "path";
-import { parseXmlToXast, allModels, writtenAt } from "./odd-parser.mjs";
+import { basename, extname } from "path";
+import { allModels, writtenAt, templateTree } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
-import { createResolver } from "../runtime/pm-runtime.mjs";
-import { xpath, seq, str } from "../runtime/xpath.mjs";
-import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles } from "./cli.mjs";
+import { createRenderer } from "../runtime/pm-runtime.mjs";
+import { xpath } from "../runtime/xpath.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles, readTei } from "./cli.mjs";
 
 const cli = parseArgs();
 const log = createLogger("render-json");
@@ -41,41 +41,24 @@ const odd = loadOdd(oddPath, "render-json");
 const grammar = checkXPath(odd.specs);
 reportUnsupported(grammar.entries, { scope: "render-json", strict: cli.has("--strict") });
 
-/** The models with their XPath compiled, as the generated handlers hold them. */
+/** The models as the generated handlers hold them: XPath compiled, templates parsed. */
 const compile = (m) => ({
   ...m,
   predicate: m.predicate ? xpath(grammar.predicate(m.predicate), writtenAt(m.id, m)) : undefined,
   params: Object.fromEntries(m.params.map((p) => [p.name, xpath(grammar.param(p.value), writtenAt(m.id, p))])),
+  template: m.template && templateTree(m.template),
   parts: m.parts?.map(compile),
 });
 const models = Object.fromEntries(odd.specs.filter((s) => s.models.length).map((s) => [s.key, s.models.map(compile)]));
 const byId = new Map(allModels(odd.specs).map((m) => [m.id, m]));
 
-const { modelOf, renderedText } = createResolver(models, output, output === "web" ? odd.views : []);
-const localName = (name) => name.replace(/^\{.*\}/, "");
-/** Behaviours that render nothing, so the record stops there too. */
-const SILENT = ["omit", "metadata"];
+const teiToHast = createRenderer(models, odd.views);
 
-/** One element as a record; `used` collects the models the document made fire. */
-function record(pos, used) {
-  const { node, up } = pos;
-  const element = node.name;
-  const model = modelOf(pos);
-  if (model) used.add(model.id);
-  const params = Object.fromEntries(Object.entries(model?.params ?? {}).map(([name, f]) => [name, seq(f(pos)).map((item) => str([item]))]));
-  const children = SILENT.includes(model?.behaviour) ? [] : (node.children ?? [])
-    .filter((c) => c.type === "element" || c.type === "text")
-    .map((c) => ({ node: c, up: [...up, node] }))
-    .map((c) => (c.node.type === "text" ? renderedText(c) : record(c, used)))
-    .filter((c) => c !== "");
-  return {
-    element,
-    model: model?.id ?? null,
-    behaviour: model?.behaviour ?? null,
-    classes: [`tei-${localName(element)}`, ...(model?.classes ?? [])],
-    ...(Object.keys(params).length && { params }),
-    children,
-  };
+/** The models a record and those below it ran, a sequence's parts too. */
+function collect(record, used) {
+  if (record.model) used.add(record.model);
+  record.parts?.forEach((id) => used.add(id));
+  for (const c of record.children) if (typeof c === "object") collect(c, used);
 }
 
 /** What the ODD says of the models a document used, a sequence's parts described with it. */
@@ -97,9 +80,9 @@ function describe(used) {
 }
 
 for (const teiFile of resolveTeiFiles(cli.getAll("--tei").length ? cli.getAll("--tei") : "../examples/simler-*.xml")) {
-  const tree = parseXmlToXast(readFileSync(resolve(teiFile), "utf8"));
+  const { record: root } = teiToHast(/** @type {any} */ (readTei(teiFile)), { output, trace: true });
   const used = new Set();
-  const root = record({ node: tree.children.find((n) => n.type === "element"), up: [] }, used);
+  collect(root, used);
   const data = {
     document: basename(teiFile),
     output,
@@ -108,5 +91,5 @@ for (const teiFile of resolveTeiFiles(cli.getAll("--tei").length ? cli.getAll("-
     root,
   };
   const outFile = writeOut(outDir, `${basename(teiFile, extname(teiFile))}.json`, JSON.stringify(data, null, 2) + "\n");
-  log(`✓ ${teiFile} → ${outFile} (${used.size} models fired)`);
+  log(`✓ ${teiFile} → ${outFile} (${used.size} models ran)`);
 }

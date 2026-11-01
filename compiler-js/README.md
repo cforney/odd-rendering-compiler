@@ -61,13 +61,15 @@ over it, each with a switch, and the index shows each page's title, page images
 and IIIF manifest as the ODD's model for output `page` gives them (see
 [`../docs/behaviour-table.md`](../docs/behaviour-table.md)).
 
-**JSON records.** `render-json.mjs` writes what the Processing Model decided, as
-data: a tree in which every element names the model that won — `{ element,
-model, behaviour, classes, params, children }`, a child a record or the text as
-it renders — and a side table giving each of those models its predicate, its
-`<desc>` and the ODD it was written in. An element the ODD has no model for
-keeps its record, with `model: null`; what a model omits has no children. It is
-the injection point for other toolchains, which read the ODD's decisions without
+**JSON records.** `render-json.mjs` writes the render itself, as data, from the
+runtime's trace: a tree in which every element reached names the model that won —
+`{ element, model, behaviour, classes, params, parts, outcome, children }`, a child a
+record or the text as it renders — and a side table giving each model that ran its
+predicate, its `<desc>` and the ODD it was written in. So an element a `content`
+param leaves out has no record, and one it selects twice has two. `parts` names the
+parts of a sequence that ran. `outcome` is `rendered`; `omitted`, as the model says;
+`empty`, the model ran and gave nothing; or `passed-through`, no model applied, so its
+content renders in its place, with `model: null`. It is the injection point for other toolchains, which read the ODD's decisions without
 re-implementing them.
 
 **Findings.** `findings.mjs` reports, and prints in the build log, what the ODD
@@ -79,16 +81,17 @@ without a IIIF manifest; in the ODD, custom properties defined nowhere (with
 evaluate.
 
 **Coverage.** `coverage.mjs` rolls the records up over the corpus and reads them
-back against the ODD, which answers the two questions an ODD author has. *What
-did I write that never runs?* — models no document made fire, models that can
-never fire because an earlier model of the same output has no predicate, and
-elements the ODD has models for that no record names. *What is in my documents
+back against the ODD, which answers the two questions an ODD author has. Because the
+records are the render, it counts what ran, not what the source holds. *What
+did I write that never runs?* — models and sequence parts no document ran, models
+that can never run because an earlier model of the same output has no predicate,
+and elements the ODD has models for that no document rendered. *What is in my documents
 that I never handled?* — elements with no model at all, and the silent case:
 elements whose spec has models of which none applied, whose content passes
-through without a warning. Models a chained ODD wrote are reported apart, and unhandled
+through without a warning. It lists apart what renders nothing: left out as a model
+says, or a model that ran and gave nothing. Models a chained ODD wrote are reported apart, and unhandled
 elements below an `alternate` are not reported, where leaving a reading
-unrendered is a decision. Coverage is per output, and a sequence counts as the
-one model the records name.
+unrendered is a decision. Coverage is per output.
 
 **Unrunnable XPath degrades.** A predicate or param outside the XPath subset is
 not a build error: it compiles to what a failing evaluation returns — `false()`

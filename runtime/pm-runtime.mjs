@@ -32,6 +32,13 @@ import { xpath, bool, str, seq, isPos } from "./xpath.mjs";
  * @typedef {string | { name: string, attributes: Record<string, string>, children: TemplateNode[] }} TemplateNode
  * @typedef {{ output: string, label: string }} View  an output laid over the page
  */
+/**
+ * An element as it rendered. Its outcome: "rendered"; "omitted", as its model says;
+ * "empty", its model ran and gave nothing; or "passed-through", no model applied, so
+ * its content renders in its place. A sequence names the parts that ran.
+ * @typedef {{ element: string, model: string | null, behaviour: string | null, classes: string[], params?: Record<string, string[]>,
+ *   parts?: string[], outcome: "rendered" | "omitted" | "empty" | "passed-through", children: (PmRecord | string)[] }} PmRecord
+ */
 
 /** @type {(tagName: string, properties?: Record<string, any>, children?: HastNode[]) => HastElement} */
 export const h = (tagName, properties = {}, children = []) => ({ type: "element", tagName, properties, children });
@@ -195,15 +202,20 @@ export function createResolver(models, output, views = []) {
   return { select, modelOf, overlay, readings, atLineStart, renderedText };
 }
 
+/** Behaviours that render nothing, by what the model says. */
+const SILENT = ["omit", "metadata"];
+
 /** A param's value as strings, one per item. */
 const strings = (v) => seq(v).map((item) => str([item]));
 
 /**
- * teiToHast(tree, { output, trace }) → { hast, notes, page, sources }. The page,
+ * teiToHast(tree, { output, trace }) → { hast, notes, page, sources, record }. The page,
  * output "web", has the views laid over it and a switch for each; another output
  * renders alone. `page` holds the params of the root's model for output "page", as
  * strings; its `manifest`, for the facsimile, goes on the edition too. With `trace`, `sources` maps each element rendered to the position and
- * the model that gave it.
+ * the model that gave it, and `record` is the render itself as data: a record for
+ * each element it reached, as often as it reached it, whose children are the
+ * records and the text it rendered inside; see Record.
  * @param {Record<string, Model[]>} models  by element name
  * @param {View[]} [views]
  */
@@ -211,11 +223,17 @@ export function createRenderer(models, views = []) {
   /**
    * @param {XastNode} tree
    * @param {{ output?: string, trace?: boolean }} [options]
-   * @returns {{ hast: HastElement, notes: HastElement[], page: Record<string, string[]>, sources: Map<HastNode, { pos: any, model: Model }> }}
+   * @returns {{ hast: HastElement, notes: HastElement[], page: Record<string, string[]>, sources: Map<HastNode, { pos: any, model: Model }>, record?: PmRecord }}
    */
   return function teiToHast(tree, { output = "web", trace = false } = {}) {
     const notes = [];
     const sources = new Map();
+    const open = [{ children: [] }]; // the records being written, innermost last
+    /** Text the page shows, as a node. */
+    const shown = (value) => {
+      if (trace) open.at(-1).children.push(value);
+      return [text(value)];
+    };
     const laidViews = output === "web" ? views : [];
     const { select, modelOf, overlay, readings, atLineStart, renderedText } = createResolver(models, output, laidViews);
 
@@ -223,16 +241,33 @@ export function createRenderer(models, views = []) {
       const { node } = pos;
       if (isText(node)) {
         const value = renderedText(pos);
-        return value ? [text(value)] : [];
+        return value ? shown(value) : [];
       }
       const model = modelOf(pos);
+      if (!trace) return renderBy(model, pos, phrasing);
+      const params = Object.entries(model?.params ?? {}).map(([name, f]) => [name, strings(f(pos))]);
+      const record = {
+        element: node.name, model: model?.id ?? null, behaviour: model?.behaviour ?? null,
+        classes: [`tei-${localName(node.name)}`, ...(model?.classes ?? [])],
+        ...(params.length && { params: Object.fromEntries(params) }),
+        outcome: "rendered", children: [],
+      };
+      open.at(-1).children.push(record);
+      open.push(record);
+      const rendered = renderBy(model, pos, phrasing);
+      open.pop();
+      if (!model) record.outcome = "passed-through";
+      else if (SILENT.includes(model.behaviour)) record.outcome = "omitted";
+      else if (!rendered.length) record.outcome = "empty";
+      return rendered;
+    }
+
+    function renderBy(model, pos, phrasing) {
       if (!model) return children(pos).flatMap((c) => render(c, phrasing));
-      if (model.behaviour === "sequence") {
-        let rendered = 0;
-        return model.parts.flatMap((p, k) =>
-          p.predicate && !bool(p.predicate(pos)) ? [] : apply(p, pos, phrasing, rendered++ === 0, undefined, k));
-      }
-      return apply(model, pos, phrasing, true);
+      if (model.behaviour !== "sequence") return apply(model, pos, phrasing, true);
+      const running = model.parts.filter((p) => !p.predicate || bool(p.predicate(pos)));
+      if (trace) open.at(-1).parts = running.map((p) => p.id);
+      return running.flatMap((p) => apply(p, pos, phrasing, p === running[0], undefined, model.parts.indexOf(p)));
     }
 
     function apply(m, pos, phrasing, first, inner, k = 0) {
@@ -255,12 +290,12 @@ export function createRenderer(models, views = []) {
       /** A param's value: the nodes it selects rendered by their own models (the element itself by its content), anything else as text. */
       const value = (v, ph) =>
         seq(v).flatMap((item) =>
-          !isPos(item) ? (String(item) ? [text(String(item))] : []) : item.node === node ? kids(ph) : render(item, ph),
+          !isPos(item) ? (String(item) ? shown(String(item)) : []) : item.node === node ? kids(ph) : render(item, ph),
         );
       /** A template filled in: each `[[name]]` the value of that param, in an attribute its strings. */
       const fill = (nodes, ph) =>
         nodes.flatMap((n) => typeof n === "string"
-          ? n.split(PLACEHOLDER).flatMap((s, i) => (i % 2 ? (s in params ? value(params[s], ph) : []) : s ? [text(s)] : []))
+          ? n.split(PLACEHOLDER).flatMap((s, i) => (i % 2 ? (s in params ? value(params[s], ph) : []) : s ? shown(s) : []))
           : [h(n.name,
             Object.fromEntries(Object.entries(n.attributes).map(([k, v]) =>
               [k === "class" ? "className" : k, v.replace(PLACEHOLDER, (_, s) => strings(params[s] ?? []).join(" "))])),
@@ -330,7 +365,7 @@ export function createRenderer(models, views = []) {
             for (const c of (n.children ?? []).filter(isElement)) c.name === "head" ? heads.push(textOf(c)) : walk(c);
           })(node);
           if (heads.length < 2) return [];
-          return [h("nav", { className: ["tei-toc"] }, [h("ul", {}, heads.map((t) => h("li", {}, [text(collapse(t).trim())])))])];
+          return [h("nav", { className: ["tei-toc"] }, [h("ul", {}, heads.map((t) => h("li", {}, shown(collapse(t).trim()))))])];
         }
         default:
           return wrap(m.tag);
@@ -357,6 +392,6 @@ export function createRenderer(models, views = []) {
     const meta = root && select(root, "page");
     const page = meta ? Object.fromEntries(Object.entries(meta.params).map(([k, f]) => [k, strings(f(root))])) : {};
 
-    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on", ...(page.manifest?.[0] && { "data-manifest": page.manifest[0] }) }, [...switches, ...body, ...sections]), notes: ends, page, sources };
+    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on", ...(page.manifest?.[0] && { "data-manifest": page.manifest[0] }) }, [...switches, ...body, ...sections]), notes: ends, page, sources, record: open[0].children[0] };
   };
 }

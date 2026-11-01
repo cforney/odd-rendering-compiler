@@ -243,20 +243,81 @@ test("render-json writes the ODD's decisions as records, with a table of the mod
 
   assert.deepEqual([document, output], ["simler-psalmen.xml", "web"]);
   assert.equal(root.element, "TEI");
-  assert.deepEqual(root.children[0], { element: "teiHeader", model: "teiHeader-1", behaviour: "metadata", classes: ["tei-teiHeader"], children: [] },
+  assert.deepEqual(root.children[0], { element: "teiHeader", model: "teiHeader-1", behaviour: "metadata", classes: ["tei-teiHeader"], outcome: "omitted", children: [] },
     "what the ODD omits is recorded, and stops there");
 
   const find = (node, element) =>
     node.element === element ? node : node.children.reduce((hit, c) => hit ?? (typeof c === "string" ? null : find(c, element)), null);
   assert.deepEqual(find(root, "pb"), {
     element: "pb", model: "pb-2", behaviour: "break", classes: ["tei-pb", "pb-group", "pb-rule"],
-    params: { type: ["page"], "data-page": ["4049203"], label: ["[4]"] }, children: [],
+    params: { type: ["page"], "data-page": ["4049203"], label: ["[4]"] }, outcome: "rendered", children: [],
   }, "a record names the model that won, its classes and its params as evaluated");
 
   assert.equal(models["pb-2"].odd, "tei_simler.odd", "the side table says which ODD the model came from");
   assert.match(models["div-1"].predicate, /^preceding-sibling::/, "and its predicate");
   assert.deepEqual(models["lb-3"].parts, ["lb-4", "lb-5"], "a sequence is described with its parts");
   assert.ok(!("l-1" in models), "only the models the document made fire");
+});
+
+test("the records are the render: what a page shows, no more and no less", () => {
+  const out = join(outDir, "traced");
+  mkdirSync(out, { recursive: true });
+  const specs = {
+    p: `<model behaviour="paragraph"><param name="content" value="'REPLACED'"/></model>`,
+    ab: `<model behaviour="block"><param name="content" value="(hi[2], hi[1], hi[2])"/></model>`,
+    hi: `<model behaviour="inline"/>`,
+    del: `<model behaviour="omit"/>`,
+    lb: `<model behaviour="break"><param name="type" value="'line'"/></model>`,
+    seg: `<modelSequence><model predicate="@n" behaviour="inline"/><model predicate="not(@n)" behaviour="block"/></modelSequence>`,
+    term: `<model predicate="@n" behaviour="inline"/>`,
+    title: `<model behaviour="inline"><pb:template xmlns:pb="http://teipublisher.com/1.0">see [[content]] end</pb:template><param name="content" value="'T'"/></model>`,
+    note: `<model behaviour="note"><param name="place" value="'foot'"/></model>`,
+    choice: `<model behaviour="alternate"><param name="default" value="sic"/><param name="alternate" value="corr"/></model>`,
+  };
+  const odd = join(out, "t.odd");
+  writeFileSync(odd, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="t">${Object.entries(specs).map(([k, v]) => `<elementSpec ident="${k}" mode="change">${v}</elementSpec>`).join("")}</schemaSpec></body></text></TEI>`);
+  const tei = join(out, "d.xml");
+  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><p><hi>GONE</hi></p><ab><hi>one</hi><hi>two</hi><del>skip</del></ab><div><lb/>a<del>out</del><seg n="1">s</seg><term>kept</term><title/><note>in <hi>n</hi></note><choice><sic>x</sic><corr>y</corr><del>not a reading</del></choice></div></TEI>`);
+  run("render-json.mjs", ["--odd", odd, "--tei", tei, "--out", out]);
+  const { models, root } = JSON.parse(readFileSync(join(out, "d.json"), "utf8"));
+  const [p, ab, div] = root.children;
+  const named = (name) => div.children.filter((c) => c.element === name);
+
+  assert.deepEqual(p.children, ["REPLACED"], "a literal content: its text, and nothing of what it replaces");
+  assert.deepEqual(ab.children.map((c) => c.children[0]), ["two", "one", "two"], "selected content in its own order, as often as selected");
+  assert.equal(root.outcome, "passed-through", "no model: its content renders in its place");
+  assert.deepEqual([named("lb")[0].outcome, named("del")[0].outcome], ["empty", "omitted"], "a model that gave nothing is not one that left out");
+  assert.deepEqual(named("seg")[0].parts, ["seg-2"], "a sequence names the parts that ran");
+  assert.deepEqual([named("term")[0].model, named("term")[0].outcome, named("term")[0].children], [null, "passed-through", ["kept"]], "no model applied");
+  assert.deepEqual(named("title")[0].children, ["see ", "T", " end"], "a template's text");
+  assert.deepEqual(named("note")[0].children.map((c) => c.element ?? c), ["in ", "hi"], "a note's body where the note is");
+  assert.deepEqual(named("choice")[0].children.map((c) => c.element), ["sic", "corr"], "both readings of an alternate, and nothing else of it");
+  assert.ok("del-1" in models, "what left it out did run");
+
+  run("coverage.mjs", ["--odd", odd, "--records", out, "--out", join(out, "report")]);
+  const { written, encoded } = JSON.parse(readFileSync(join(out, "report", "coverage.json"), "utf8"));
+  assert.deepEqual(written.never.map((e) => e.model), ["seg-3", "term-1"], "the part of a sequence that stayed behind, and a model that never applied");
+  assert.deepEqual(encoded.omitted, [{ element: "del", count: 1 }], "left out: of three, those a content param or an alternate passed over are not counted");
+  assert.deepEqual(encoded.empty, [{ element: "lb", count: 1 }], "rendered as nothing");
+  assert.deepEqual(encoded.silent, [{ element: "term", count: 1 }], "passed through");
+  const page = readFileSync(join(out, "report", "index.html"), "utf8");
+  for (const heading of ["Encoded, silent", "Left out", "Rendered as nothing"]) assert.ok(page.includes(`<h2>${heading}</h2>`), heading);
+});
+
+test("the records agree with the page on every example: the same text, notes in place of at the end", async () => {
+  const out = join(outDir, "agree");
+  run("render-json.mjs", ["--odd", ODD, "--tei", EXAMPLES, "--out", out]);
+  const teiToHast = await loadHandlers(join(outDir, "tei-handlers.mjs"));
+  const recordText = (r) => (typeof r === "string" ? r : r.children.map(recordText).join(""));
+  const squeeze = (s) => [...s.replace(/\s+/g, "")].sort().join("");
+  for (const file of readdirSync(out)) {
+    const { root } = JSON.parse(readFileSync(join(out, file), "utf8"));
+    const { hast } = teiToHast(parseXmlToXast(readFileSync(join(pocDir, "../examples", file.replace(".json", ".xml")), "utf8")));
+    // What the renderer adds, or a param gives, is not text of the render.
+    const added = (n) => n.tagName === "form" || n.properties.className?.some((c) => ["tei-note-ref", "tei-note-num", "tei-pb", "tei-lb", "tei-cb", "tei-milestone"].includes(c));
+    const body = (n) => (n.type === "text" ? n.value : added(n) ? "" : n.children.map(body).join(""));
+    assert.equal(squeeze(recordText(root)), squeeze(body(hast)), file);
+  }
 });
 
 test("coverage reads the ODD back against the records of a corpus", () => {
