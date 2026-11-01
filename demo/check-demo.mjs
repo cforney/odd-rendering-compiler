@@ -26,7 +26,7 @@ const SITE = resolve(dirname(fileURLToPath(import.meta.url)), "site");
 const MANIFEST = readFileSync(resolve(SITE, "../../compiler-js/test/fixtures/iiif/e-rara-4049159.json")).toString("base64");
 const VIEWPORT = { width: 1100, height: 900 };
 const RENDER_TIMEOUT = 20_000;
-/** Text split differently across nodes rasterises a little differently; more than this is a real difference. */
+/** Text rasterises a little differently from one page load to the next; more than this is a real difference. */
 const PIXEL_TOLERANCE = 0.0005;
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",

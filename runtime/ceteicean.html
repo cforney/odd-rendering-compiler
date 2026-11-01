@@ -23,7 +23,7 @@
     <p>CETEIcean registers TEI elements as <code>tei-</code> custom elements. Each
       element's model is chosen in the browser, by the XPath and the runtime the
       unified handlers use; its behaviour reshapes the element into the HTML the
-      other renderers emit, with the same classes, so the shared
+      other renderers emit, and the custom element then goes, so the shared
       <code>edition.css</code> applies. Notes open as tooltips; click corrections to
       toggle readings.</p>
   </div>
@@ -39,7 +39,7 @@
   </script>
   <script>
     teiEdition(new CETEI({ omitDefaultBehaviors: true }), JSON.parse(document.getElementById('tei-source').textContent), teiModels, teiViews,
-      function (dom) { document.getElementById('TEI').appendChild(dom); });
+      function (dom) { teiUnwrap(document.getElementById('TEI').appendChild(dom)); });
   </script>
   <script>
 {{readings}}

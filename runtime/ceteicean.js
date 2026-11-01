@@ -10,7 +10,9 @@
  * text is set as it renders. The behaviours then reshape every custom element
  * into the HTML the other renderers emit, with the same classes, so edition.css
  * styles it alike; the notes are collected after the text, as they collect
- * them, and a switch for each view goes before it.
+ * them, and a switch for each view goes before it. Reshaped, a custom element is
+ * only a wrapper, which would split the text the other renderers keep in one piece
+ * and so place its glyphs a little differently: teiUnwrap takes them out.
  */
 
 const TEI_PHRASING = ["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"];
@@ -240,6 +242,13 @@ function teiEdition(ct, source, models, views, done) {
   const page = resolver.select(root, "page");
   if (page?.params.title) document.title = str(page.params.title(root));
   ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom, page?.params.manifest ? str(page.params.manifest(root)) : "")));
+}
+
+/** Replace each custom element by its content, the innermost first, and join the text that leaves apart. */
+function teiUnwrap(root) {
+  const wrappers = Array.from(root.querySelectorAll("*")).filter((el) => el.localName.startsWith("tei-"));
+  for (const el of wrappers.reverse()) el.replaceWith(...el.childNodes);
+  root.normalize();
 }
 
 /** The edition's root: a checkbox per view, which CSS lays over the page while it is checked, then the text. */
