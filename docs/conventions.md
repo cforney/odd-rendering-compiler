@@ -70,7 +70,8 @@ the first model whose predicate holds wins.
 The first two are ours: to a behaviour elsewhere, a param it does not define
 means nothing.
 
-On page breaks, `data-page` names the page's image, and the root's model for output
+`data-margin`, `left` or `right`, sets an element in the page's margin where there is
+room, by `runtime/ui.css`; otherwise it stays in the line. On page breaks, `data-page` names the page's image, and the root's model for output
 `page` may name a `manifest`; see *Page images* below.
 
 ## Classes

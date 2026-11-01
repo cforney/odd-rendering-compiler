@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Simler Digital, C 1663: Chriſtenliches Haußweſen, a wedding poem, stanzas 1–4 (pp. 321–322).
-  Source: DHBern/simler_data at 7e02398, webdav/data/sources/tei/C_1663_dok.xml,
-  lines 20207–20327, verbatim. Added around them: this comment, the teiHeader, the
-  start tags of the enclosing elements (from lines 23, 24, 13498) and the closing tags.
+  Source: DHBern/simler_data at 07ac73d, webdav/data/sources/tei/C_1663_dok.xml,
+  lines 20222–20339, verbatim. Added around them: this comment, the teiHeader, the
+  start tags of the enclosing elements (from lines 25, 1502, 1503, 13433) and the closing tags.
   Valid against the schema of ../tei_simler.odd. Schematron warnings, the source's own:
   [S-LBC] on the lb after the catchword, which the excerpt is here to show, and [S-LB] on
   the three lb that end an lg, after its Bible note.
@@ -23,19 +23,18 @@
     </fileDesc>
   </teiHeader>
   <text>
-    <body>
-      <div>
-        <div n="1">
+  <body>
+  <div n="1">
+  <div n="1">
             <fw place="bottom" type="catch">Chriſten-</fw>
-            <lb break="no"/>
+            <lb/>
             <pb facs="4049520" n="321"/>
             <fw place="top" type="pageNum">321</fw>
-            <lb/>
             <fw place="top" type="header">von Chriſtlichem Haußweſen.</fw>
             <lb/>
             
             <div n="2" xml:id="n66">
-            <head>Chriſtenliches Haußweſen:
+            <head rendition="#b #c">Chriſtenliches Haußweſen:
             <lb/>
             Auf eine Ehrenhochzeit; auß heiliger Schrifft
             <lb/>
@@ -61,7 +60,7 @@
             <l rendition="#et">daß meine ſtim&#x342; ohn ſtim&#x342; ſol werden offenbar.</l>
             </lg>
             <lb/>
-            <note place="bottom" type="bibl" rendition="#et #smaller">1Sam.6.v.5.</note>
+            <note place="bottom" type="bibl" rendition="#smaller #et">1 Sam.6.v.5.</note>
             <lb/>
             </lg>
             <lg>
@@ -87,17 +86,15 @@
             <l rendition="#et">vom Herꝛen aber komt ein frommes weibe dir.</l>
             </lg>
             <lb/>
-            <note place="bottom" type="bibl" rendition="#et #smaller">Tob.1. und 8. 1.Tim.4.8. 1.Theſſ.5.<anchor xml:id="a119"/><unclear>17</unclear><note type="annotation" targetEnd="a119"><p>Auch in den Vergleichsexemplaren Wien und Zürich ist ein Punkt zwischen 1 und 7 möglich. In A, B und D steht aber eindeutig 17</p></note>. Eph.5.4. Syr.26.3. und 17.
+            <note place="bottom" type="bibl" rendition="#smaller #et">Tob.1. und 8. 1.Tim.4.8. 1.Theſſ.5.<anchor xml:id="a119"/><unclear>17</unclear><note type="annotation" targetEnd="a119"><p>Auch in den Vergleichsexemplaren Wien und Zürich ist ein Punkt zwischen 1 und 7 möglich. In A, B und D steht aber eindeutig 17</p></note>. Eph.5.4. Syr.26.3. und 17.
             <lb/>
             Prov.19.14.</note>
             <lb/>
             <fw place="bottom" type="pageNum">Y</fw>
-            <lb/>
             <fw place="bottom" type="catch">Na&#x364;chſt</fw>
             <lb/>
             <pb facs="4049521" n="322"/>
             <fw place="top" type="pageNum">322</fw>
-            <lb/>
             <fw place="top" type="header">Hochzeitgeticht.</fw>
             <lb/>
             <lg n="3">
@@ -118,7 +115,7 @@
             <l rendition="#et">wilſt daß gelinge dir/ ſo frey nicht in das blu&#x364;t.</l>
             </lg>
             <lb/>
-            <note place="bottom" type="bibl" rendition="#et #smaller">Gen.21. Exod.20/12. De<anchor xml:id="a120"/>u<note type="annotation" targetEnd="a120"><p>In den Vergleichsexemplaren ist das u besser erkennbar</p></note>t 15/16. Coloſſ.3/20. Prov.6/20/ꝛc.
+            <note place="bottom" type="bibl" rendition="#smaller #et">Gen.21. Exod.20/12. De<anchor xml:id="a120"/>u<note type="annotation" targetEnd="a120"><p>In den Vergleichsexemplaren ist das u besser erkennbar</p></note>t 15/16. Coloſſ.3/20. Prov.6/20/ꝛc.
             <lb/>
             Syr.7/29. Gen.29. Syr.13. Levit.18. Matth.14.</note>
             <lb/>
@@ -144,13 +141,13 @@
             <l rendition="#et">die ma&#x364;ngel deines weibs: das ſchaffet frid und rhu.</l>
             </lg>
             <lb/>
-            <note place="bottom" type="bibl" rendition="#et #smaller">Ephe<choice><sic>f</sic><corr>ſ</corr></choice>.5.26/27/28/29/30<supplied>/</supplied>31.32. Prov.10. 1.Pet.4/</note>
+            <note place="bottom" type="bibl" rendition="#smaller #et">Ephe<choice><sic>f</sic><corr>ſ</corr></choice>.5.26/27/28/29/30<supplied>/</supplied>31.32. Prov.10. 1.Pet.4/</note>
             <lb/>
             </lg>
-            </lg>
-          </div>
-        </div>
-      </div>
-    </body>
+  </lg>
+  </div>
+  </div>
+  </div>
+  </body>
   </text>
 </TEI>

@@ -7,14 +7,14 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 
 | File | What it is |
 |------|------------|
-| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data) at <!-- sync-odd -->[`7e02398`](https://github.com/DHBern/simler_data/tree/7e0239802869f9118d39dbdc67f73825fa62411f) (2026-09-13)<!-- /sync-odd -->, unchanged; the primary example. The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the same file |
+| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data) at <!-- sync-odd -->[`07ac73d`](https://github.com/DHBern/simler_data/tree/07ac73d8b7b3489a06a2c262805d101c763d4431) (2026-10-31)<!-- /sync-odd -->, unchanged; the primary example. The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the same file |
 | `simler-tokens.css` | the design tokens the ODD's CSS reads (`preview/assets/tokens.css`, same commit); the CSS generators put them at the top of `edition.css` |
 | `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–V: a range note set inside a word, running headers, page numbers and a catchword, a page break inside a stanza, joined line ends |
 | `simler-buchstabwechsel.xml` | poem VI of the dedicatory poems: the interleaved two-column page, whose acrostics (JOHANN, WILHELM, SIMMLER) the `l-twocol` params lay out; and named entities (`rs`) |
-| `simler-hausswesen.xml` | *Chriſtenliches Haußweſen*: printed Bible notes with editorial range notes inside them, `choice`, `supplied` and `unclear` in a note, nested `lg` |
+| `simler-hausswesen.xml` | *Chriſtenliches Haußweſen*: printed Bible notes, which the ODD sets in the margin, with editorial range notes inside them, `choice`, `supplied` and `unclear` in a note, nested `lg` |
 | `simler-regenten-kleinodt.xml` | *Regenten Kleinodt*, Psalm 72: printed marginal glosses with joined line ends, a melody line, numbered stanzas |
 | `tei_simplePrint.odd` | the TEI's SimplePrint exemplar (a real-world ODD composed via `<specGrpRef>`), a second ODD to test the compilers on |
-| `sync-odd.mjs` | vendors the ODD and the tokens at a commit and records it above: `npm run sync:odd -- <commit>` from `compiler-js/` |
+| `sync-odd.mjs` | vendors the ODD, the tokens and the excerpts at a commit and records it above and in each excerpt: `npm run sync:odd -- <commit>` from `compiler-js/`. It finds an excerpt by its text, as line numbers move |
 | `validate.sh` | validates each excerpt against the schema and the Schematron compiled from the ODD; CI runs it |
 | `extensions/nested-pb/` | **an extension**: the Simler ODD with Boot's (2024) nested page-break model, a facsimile thumbnail linking to the full scan; with its own ODD-language customisation (`poc_odds.odd`) to validate it. See its [README](extensions/nested-pb/README.md) |
 

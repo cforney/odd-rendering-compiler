@@ -49,7 +49,7 @@ test("odd-to-css adds the design tokens and reports custom properties nothing de
 
   const css = readFileSync(join(outDir, "edition.css"), "utf8");
   assert.match(css, /--c-muted: 106 102 95;/, "the tokens come first");
-  assert.equal((css.match(/^\.r-/gm) || []).length, 20, "the 20 source renditions of <tagsDecl>");
+  assert.equal((css.match(/^\.r-/gm) || []).length, 22, "the 22 source renditions of <tagsDecl>");
   assert.match(css, /^\.r-twocol \{[^}]*display: grid/m, "the two-column grid rendition");
   assert.match(css, /^\.pb-group \{[^}]*display: flex/m, "a model group's rendition on its class");
   assert.match(css, /^\.pb-rule::before \{/m, "a scoped rendition as a pseudo-element");
@@ -76,10 +76,10 @@ test("render-unified renders every example, with an index", () => {
   assert.match(columns, /<div class="tei-l l-twocol" style="--acro: 1; --fin: 0; --indent: 1">/, "an indented line in a column with acrostics");
 
   const notes = page("unified", "simler-hausswesen");
-  assert.match(notes, /<span class="tei-note note-bibl r-et r-smaller">Tob\.[^<]*<span class="tei-anchor" id="a119"><\/span><span class="tei-unclear">17<\/span><a [^>]*href="#note-1"/,
+  assert.match(notes, /<span class="tei-note note-margin r-smaller r-et" data-margin="right">Tob\.[^<]*<span class="tei-anchor" id="a119"><\/span><span class="tei-unclear">17<\/span><a [^>]*href="#note-1"/,
     "a range note inside a printed Bible note");
 
-  assert.match(page("unified", "simler-regenten-kleinodt"), /<div class="tei-note note-marginalia r-smaller">David bit<span class="tei-lb lb-hyphen normalized-omit">-<\/span>/,
+  assert.match(page("unified", "simler-regenten-kleinodt"), /<span class="tei-note note-margin r-smaller" data-margin="right">David bit<span class="tei-lb lb-hyphen normalized-omit">-<\/span>/,
     "a marginal gloss, with its joined line ends");
 
   const index = readFileSync(join(outDir, "unified", "index.html"), "utf8");
@@ -92,8 +92,8 @@ test("render-unified renders every example, with an index", () => {
 
 test("render-unified lays the views over the page, each with a switch", () => {
   const columns = page("unified", "simler-buchstabwechsel");
-  assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> entities<\/label><label><input type="checkbox" data-view="normalized"> normalized<\/label><\/form>/,
-    "a checkbox per view, labelled by the output where its models have no <desc>");
+  assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> Entitäten<\/label><label><input type="checkbox" data-view="normalized"> Normalisiert<\/label><\/form>/,
+    "a checkbox per view, labelled by its models' <desc>");
   assert.match(columns, /<span class="tei-rs entity-person">/, "a view's model of the same behaviour adds its classes");
 
   const notes = page("unified", "simler-hausswesen");

@@ -39,7 +39,8 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@rgrove/parse-xml": "4.2.0"
+    "@rgrove/parse-xml": "4.2.0",
+    "parse5": "7.3.0"
   },
   "devDependencies": {
     "@types/node": "20.19.43",

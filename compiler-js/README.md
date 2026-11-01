@@ -130,7 +130,7 @@ npm run render:all         # every renderer on every example, the plain text and
 npm run findings           # what the Simler ODD does not foresee in the examples
 npm run render:json && npm run coverage   # the decisions as data, read back against the corpus
 npm run build:extension && npm run render:extension   # the nested page-break extension
-npm run sync:odd -- <commit>   # vendor the Simler ODD and tokens at a commit
+npm run sync:odd -- <commit>   # vendor the Simler ODD, tokens and excerpts at a commit
 ```
 
 Individual generators (`build`, `build:xslt`, `build:unified`, `build:ceteicean`)
