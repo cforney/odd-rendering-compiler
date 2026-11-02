@@ -175,6 +175,21 @@ test("the facsimile finds a page's image in a IIIF manifest, version 2 or 3", ()
   assert.equal(imageOf(v3, "a").rights, v3.rights);
 });
 
+test("the facsimile asks again after a failed manifest", async () => {
+  let asked = 0;
+  const context = {
+    document: { addEventListener() {}, querySelectorAll: () => [], documentElement: {} }, MutationObserver: class { observe() {} }, Promise,
+    fetch: async () => (++asked === 1 ? { ok: false, status: 500 } : { ok: true, json: async () => ({ items: [] }) }),
+  };
+  context.window = context;
+  vm.runInNewContext(readFileSync(join(pocDir, "../runtime/facsimile.js"), "utf8"), context);
+  await assert.rejects(context.TeiFacsimile.resolve("p", "https://x.org/manifest"));
+  assert.equal(await context.TeiFacsimile.resolve("p", "https://x.org/manifest"), null, "the second opening reaches the manifest");
+  assert.equal(asked, 2);
+  await context.TeiFacsimile.resolve("p", "https://x.org/manifest");
+  assert.equal(asked, 2, "and one that loaded stays loaded");
+});
+
 test("the edition names its manifest, and each example's page breaks are in the stored one", () => {
   run("odd-to-css.mjs", ["--odd", ODD, "--tokens", TOKENS, "--out", outDir]);
   const out = join(outDir, "manifest");

@@ -198,7 +198,7 @@ for (const doc of data.docs) {
       if (ref) { ref.click(); await wait(150); tooltip = !!document.querySelector('.tei-tooltip:not([hidden])')?.getClientRects().length; ref.blur(); document.body.click(); }
       const page = document.querySelector('[data-page]');
       let facsimile = null;
-      if (page) { page.scrollIntoView(); await wait(500); page.click(); await wait(400); facsimile = !!document.querySelector('.tei-facsimile:not([hidden]) img')?.src.endsWith('/' + page.dataset.page); }
+      if (page) { page.scrollIntoView(); await wait(500); page.click(); await wait(400); const src = document.querySelector('.tei-facsimile:not([hidden]) img')?.src; facsimile = !!src && (page.dataset.image ? src === page.dataset.image : src.endsWith('/' + page.dataset.page)); }
       return { swaps, tooltip, facsimile };
     })()`);
     for (const [name, did] of Object.entries(acts)) {

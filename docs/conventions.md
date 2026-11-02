@@ -120,7 +120,7 @@ XPath, ODD resolution and diagnostics, by target.
 
 - **Page images.** The param `manifest` of the root's model for output `page` goes
   on the edition as `data-manifest`, in every target. On an interactive page, an
-  element with `data-page` opens its image, found in that IIIF manifest (Presentation
+  element with `data-page` opens its image: the one its param `data-image` names, or else one found in that IIIF manifest (Presentation
   2 or 3) by the end of a canvas, image or image service id; with no manifest, a
   `data-page` that is itself a URL is the image. A project with another scheme
   replaces `TeiFacsimile.resolve`. A static page keeps the plain marker.

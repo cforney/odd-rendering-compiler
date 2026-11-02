@@ -2,9 +2,10 @@
  * facsimile.js — a page's image beside its text, the same on every interactive
  * page. A click on a page break ([data-page], from the ODD) opens a panel with its
  * image, which steps to the previous or next page; Escape closes it. Without
- * JavaScript the break stays a plain marker. The image comes from the IIIF manifest
- * the edition names (data-manifest), version 2 or 3, fetched at the first opening;
- * the page's identifier is the end of its canvas, image or image service id.
+ * JavaScript the break stays a plain marker. The image is the one the ODD names
+ * (data-image); else it comes from the IIIF manifest the edition names (data-manifest),
+ * version 2 or 3, fetched at the first opening, where the page's identifier is the end
+ * of its canvas, image or image service id.
  * TeiFacsimile.resolve(id, manifestUrl) may be replaced, for another way to find an
  * image: it returns a promise of { image, credit, rights }, or of null. The page may
  * render its text later (SaxonJS, CETEIcean), so breaks are watched for.
@@ -46,6 +47,9 @@
     manifests[manifestUrl] = manifests[manifestUrl] || fetch(manifestUrl).then(function (r) {
       if (!r.ok) throw new Error(r.status);
       return r.json();
+    }).catch(function (e) {
+      delete manifests[manifestUrl]; // the next opening tries again
+      throw e;
     });
     return manifests[manifestUrl].then(function (m) { return imageOf(m, id); });
   }
@@ -98,7 +102,11 @@
     panel.hidden = false;
     panel.focus({ preventScroll: true });
     var edition = marker.closest("[data-manifest]");
-    window.TeiFacsimile.resolve(marker.dataset.page, edition && edition.dataset.manifest).then(function (found) {
+    var named = marker.dataset.image;
+    var finding = named
+      ? Promise.resolve({ image: named, credit: new URL(named, location.href).hostname })
+      : window.TeiFacsimile.resolve(marker.dataset.page, edition && edition.dataset.manifest);
+    finding.then(function (found) {
       if (shown !== marker) return;
       if (!found) { status.textContent = "No image is known for this page."; return; }
       image.alt = "Page " + label;
