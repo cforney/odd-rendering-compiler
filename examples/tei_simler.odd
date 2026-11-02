@@ -1613,18 +1613,20 @@
             </attDef>
           </attList>
           <!-- a ruled marker across the column, `—— [16] ——`; inside a paragraph, a verse line or a
-               heading it stays in the line. `data-page` opens the page in the facsimile. -->
+               heading it stays in the line. `data-page` opens the page in the facsimile; `data-image` names its image, under the manifest's root, so it needs no manifest. -->
           <modelGrp>
             <outputRendition>display: flex; align-items: center; gap: 0.7em; margin: 1.4em 0; font-family: var(--f-ui); font-size: 0.68em; font-weight: 500; letter-spacing: 0.04em; color: rgb(var(--c-muted)); user-select: none; scroll-margin-top: 5rem;</outputRendition>
             <model cssClass="pb-inline" predicate="ancestor::p or ancestor::l or ancestor::head" behaviour="break">
               <param name="type" value="'page'"/>
               <param name="data-page" value="@facs"/>
+              <param name="data-image" value="if (@facs and //idno[@type='URLIIIF']) then concat(replace(normalize-space((//idno[@type='URLIIIF'])[1]), '[^/]+/manifest$', ''), @facs, '/full/!1000,1500/0/default.jpg') else ''"/>
               <param name="label" value="concat('[', translate((@n, '·')[1], '[]', ''), ']')"/>
               <outputRendition>display: inline; margin: 0 0.3em;</outputRendition>
             </model>
             <model cssClass="pb-rule" behaviour="break">
               <param name="type" value="'page'"/>
               <param name="data-page" value="@facs"/>
+              <param name="data-image" value="if (@facs and //idno[@type='URLIIIF']) then concat(replace(normalize-space((//idno[@type='URLIIIF'])[1]), '[^/]+/manifest$', ''), @facs, '/full/!1000,1500/0/default.jpg') else ''"/>
               <param name="label" value="concat('[', translate((@n, '·')[1], '[]', ''), ']')"/>
               <outputRendition scope="before">content: ''; flex: 1; border-top: 1px dotted rgb(var(--c-line));</outputRendition>
               <outputRendition scope="after">content: ''; flex: 1; border-top: 1px dotted rgb(var(--c-line));</outputRendition>
