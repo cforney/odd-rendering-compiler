@@ -1,18 +1,6 @@
-/* Simler Digital's design tokens: DHBern/simler_data, preview/assets/tokens.css, copied on 2026-11-08. */
-/**
- * Design tokens.
- *
- * Note:
- *
- *   1. Colours are stored as **RGB channels**, not colours, so an opacity
- *      modifier (`bg-accent/10`) still works through the Tailwind theme.
- *   2. There are **two token layers** — the text layer (`--c-*`) and the control
- *      layer (`--c-ui-*`). They are identical here; separating them is what lets
- *      a warm reading page carry a sober toolbar later without becoming two
- *      designs.
- *
- * Style is `data-theme` on <html>, light/dark is `data-mode`. A second style is
- * another `[data-theme="…"]` block and nothing else.
+/*
+ * Design tokens: the custom properties the ODD's CSS reads.
+ * Colours are RGB channels; data-mode on <html> switches light and dark.
  */
 
 :root {

@@ -38,7 +38,7 @@ npm run render:extension   # → output/nested-pb/simler-psalmen.html
 The XSLT generators render it too, from `compiler-xslt/`:
 
 ```bash
-TOKENS=../../simler-tokens.css bash build.sh ../examples/extensions/nested-pb/tei_simler-nested-pb.odd ../examples/simler-psalmen.xml
+TOKENS=../../design-tokens.css bash build.sh ../examples/extensions/nested-pb/tei_simler-nested-pb.odd ../examples/simler-psalmen.xml
 ```
 
 The CETEIcean tier leaves it out.

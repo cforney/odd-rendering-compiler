@@ -24,7 +24,7 @@ import { cssResidue } from "../findings.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ODD = "../examples/tei_simler.odd";
-const TOKENS = "../examples/simler-tokens.css";
+const TOKENS = "../examples/design-tokens.css";
 const EXAMPLES = "../examples/simler-*.xml";
 
 let outDir;
@@ -66,6 +66,7 @@ test("odd-to-css adds the design tokens and reports custom properties nothing de
   assert.match(css, /^\.r-twocol \{[^}]*display: grid/m, "the two-column grid rendition");
   assert.match(css, /^\.pb-group \{[^}]*display: flex/m, "a model group's rendition on its class");
   assert.match(css, /^\.pb-rule::before \{/m, "a scoped rendition as a pseudo-element");
+  assert.match(css, /^\.rs-linked \{ color: inherit; text-decoration: none; \}/m, "a name linked to the register reads as text: only the entities view highlights it");
   const on = (output) => `:is\\(\\[data-${output}='on'\\], \\.tei-edition:has\\(> \\.tei-views input\\[data-view='${output}'\\]:checked\\)\\)`;
   assert.match(css, new RegExp(`^${on("entities")} \\.entity-person \\{`, "m"), "an output's CSS where that output is on");
   assert.match(css, new RegExp(`^${on("normalized")} \\.normalized-omit \\{ display: none; \\}`, "m"), "a view hides what it omits");
@@ -92,7 +93,7 @@ test("render-unified renders every example, with an index", () => {
   assert.match(sonnet, /<span class="tei-anchor" id="k216\.3"><\/span>Die Ehrgedächtnuß<a class="tei-note note-anchored tei-note-ref" href="#note-2" data-range="k216\.3">2<\/a>/,
     "a commentary note on the range its anchor starts");
   assert.match(sonnet, /<a class="tei-ref" href="https:\/\/www\.dwds\.de\/wb\/dwb\/beschehen">DWDS<\/a>/, "the commentary's link");
-  assert.match(sonnet, /<a class="tei-rs entity-person" data-key="person_003" href="#person_003">/, "a name, linked to its register entry");
+  assert.match(sonnet, /<a class="tei-rs rs-linked entity-person" data-key="person_003" href="#person_003">/, "a name, linked to its register entry");
   assert.match(sonnet, /<div class="tei-person" id="person_003" data-card="person"><span class="tei-persName">Buol, Meinrad<\/span> <span class="tei-birth">\* 1588<\/span>/,
     "the entry, which the ODD marks as a card");
   assert.match(sonnet, /<a class="tei-idno idno-link" href="https:\/\/d-nb\.info\/gnd\/1017997098">GND<\/a>/, "its authority, linked");
@@ -140,7 +141,7 @@ test("render-unified lays the views over the page, each with a switch", () => {
   const columns = page("unified", "simler-buchstabwechsel");
   assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> Entitäten<\/label><label><input type="checkbox" data-view="normalized"> Normalisiert<\/label><\/form>/,
     "a checkbox per view, labelled by its models' <desc>");
-  assert.match(columns, /<a class="tei-rs entity-person" data-key="person_001" href="#person_001">/, "a view's model adds its classes");
+  assert.match(columns, /<a class="tei-rs rs-linked entity-person" data-key="person_001" href="#person_001">/, "a view's model adds its classes");
   assert.match(columns, /<span class="tei-alternate-default normalized-alternate"><span class="tei-sic">it<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden>/,
     "an alternate's readings marked as the view reads them");
   assert.match(columns, /<br class="tei-lb normalized-omit">/, "what a view omits is marked");

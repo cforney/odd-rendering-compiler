@@ -8,7 +8,7 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 | File | What it is |
 |------|------------|
 | `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-08 with the register added (see [below](#what-was-changed)). The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the project's file |
-| `simler-tokens.css` | the design tokens the ODD's CSS reads (`preview/assets/tokens.css`, copied the same day, unchanged); the CSS generators put them at the top of `edition.css` |
+| `design-tokens.css` | the custom properties the ODD's CSS reads (fonts, sizes, colours); the CSS generators put them at the top of `edition.css` |
 | `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–XXI: range notes set inside a word, running headers, page numbers and catchwords, a page break inside a stanza, joined line ends; a commentary note and two names |
 | `simler-buchstabwechsel.xml` | poems VI and VII of the dedicatory poems: two interleaved two-column pages, whose acrostics the `l-twocol` params lay out; readings (`choice`) inside the acrostic lines, with a range note; the poet's name |
 | `simler-todtenklang.xml` | poems 143 and 144 of the epigrams, a burial poem and a sonnet: the edition's commentary as range notes, with links to dictionaries, and names (`rs`) whose entries the register holds |
@@ -55,7 +55,8 @@ changed. A document without a `standOff` renders as before:
   (`plain`). An entry carries `data-card`, which a page may open as a card where
   the name stands ([conventions](../docs/conventions.md#what-an-enhancer-may-rely-on)).
 - **Its links:** `rs` for a person or place with one entry links to it
-  (`#person_003`); the `entities` view has link models to match. `idno` of type
+  (`#person_003`), and reads as the text around it; the `entities` view has link
+  models to match, so it still highlights the names. `idno` of type
   `GND`, `HLS` or `GeoNames` links to the authority, and `persName` gained a model.
 - **Its rules:** each `rs/@key` has an entry where the register is present
   ([S-RR]); a note in the register needs no `@type`; a `head` in a list of the

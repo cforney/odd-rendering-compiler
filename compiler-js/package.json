@@ -9,7 +9,7 @@
     "odd-render": "odd-render.mjs"
   },
   "scripts": {
-    "build": "node odd-to-css.mjs --odd ../examples/tei_simler.odd --tokens ../examples/simler-tokens.css --out output",
+    "build": "node odd-to-css.mjs --odd ../examples/tei_simler.odd --tokens ../examples/design-tokens.css --out output",
     "build:xslt": "node odd-to-xslt.mjs --odd ../examples/tei_simler.odd --out output",
     "build:unified": "node odd-to-unified.mjs --odd ../examples/tei_simler.odd --out output --strict",
     "build:ceteicean": "node odd-to-ceteicean.mjs --odd ../examples/tei_simler.odd --tei \"../examples/simler-*.xml\" --css output/edition.css --out output/ceteicean --strict",
@@ -25,10 +25,10 @@
     "render:search": "node search-index.mjs --records output/plain/records.json --pages ../unified/ --out output/search",
     "render:all": "npm run render:xslt && npm run render:unified && npm run render:script && npm run render:islands && npm run render:petite-vue && npm run render:plain && npm run render:search && npm run render:json",
     "coverage": "node coverage.mjs --odd ../examples/tei_simler.odd --records output/json --out output/coverage",
-    "findings": "node findings.mjs --odd ../examples/tei_simler.odd --tei \"../examples/simler-*.xml\" --tokens ../examples/simler-tokens.css --out output/findings",
+    "findings": "node findings.mjs --odd ../examples/tei_simler.odd --tei \"../examples/simler-*.xml\" --tokens ../examples/design-tokens.css --out output/findings",
     "demo": "npm run build && npm run build:unified && npm run render:unified && npm run render:script",
     "build:simpleprint": "node odd-to-css.mjs --odd ../examples/tei_simplePrint.odd --out output/simpleprint",
-    "build:extension": "node odd-to-css.mjs --odd ../examples/extensions/nested-pb/tei_simler-nested-pb.odd --tokens ../examples/simler-tokens.css --out output/nested-pb && node odd-to-unified.mjs --odd ../examples/extensions/nested-pb/tei_simler-nested-pb.odd --out output/nested-pb --strict",
+    "build:extension": "node odd-to-css.mjs --odd ../examples/extensions/nested-pb/tei_simler-nested-pb.odd --tokens ../examples/design-tokens.css --out output/nested-pb && node odd-to-unified.mjs --odd ../examples/extensions/nested-pb/tei_simler-nested-pb.odd --out output/nested-pb --strict",
     "render:extension": "node render-unified.mjs --handlers output/nested-pb/tei-handlers.mjs --tei ../examples/simler-psalmen.xml --css output/nested-pb/edition.css --out output/nested-pb",
     "build:demo": "node ../demo/build-demo.mjs",
     "check:demo": "node --experimental-websocket ../demo/check-demo.mjs",

@@ -45,7 +45,7 @@ bash build.sh ../examples/tei_simler.odd ../examples/simler-psalmen.xml  # one e
 ```
 
 Outputs: `edition.xsl` and `edition.css` (with the design tokens of `TOKENS`,
-relative to the ODD, by default `simler-tokens.css`), then one page per TEI
+relative to the ODD, by default `design-tokens.css`), then one page per TEI
 file in each of `xslt/` (Tier 1, zero-JS), and `xslt-script/` and `xslt-islands/`
 (Tier 2, the stylesheet's param `enhance`, each with a linking `index.html` from
 `generate-index.xsl`),

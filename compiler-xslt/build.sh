@@ -8,7 +8,7 @@
 #   bash build.sh [ODD [TEI…]]
 # With no arguments, the Simler ODD and every ../examples/simler-*.xml. TOKENS
 # names the design tokens for edition.css, relative to the ODD (default
-# simler-tokens.css; set it empty for none).
+# design-tokens.css; set it empty for none).
 #
 # Saxon HE 12 is located via $SAXON_HOME — point it at your unpacked SaxonHE12
 # directory (containing saxon-he-12*.jar and lib/xmlresolver-*.jar). Download it
@@ -43,7 +43,7 @@ ODD="${1:-../examples/tei_simler.odd}"
 shopt -s nullglob
 TEIS=("$@")
 [ ${#TEIS[@]} -gt 0 ] || TEIS=(../examples/simler-*.xml)
-TOKENS="${TOKENS-simler-tokens.css}"
+TOKENS="${TOKENS-design-tokens.css}"
 NAMES=()
 for f in "${TEIS[@]}"; do NAMES+=("$(basename "$f")"); done
 mkdir -p output/xslt output/xslt-script output/xslt-islands output/ceteicean

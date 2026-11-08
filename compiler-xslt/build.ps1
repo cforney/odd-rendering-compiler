@@ -15,7 +15,7 @@
 param(
   [string]$Odd = "../examples/tei_simler.odd",
   [string[]]$Tei = @(),
-  [string]$Tokens = "simler-tokens.css"
+  [string]$Tokens = "design-tokens.css"
 )
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot

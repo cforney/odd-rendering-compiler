@@ -12,7 +12,7 @@
   odd-to-css.mjs.
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/odd-to-css.xsl
-              -o:output/edition.css tokens=simler-tokens.css
+              -o:output/edition.css tokens=design-tokens.css
   The `tokens` parameter is a CSS file, resolved next to the ODD.
   Output:  edition.css
   Read by: every rendered page, which links it

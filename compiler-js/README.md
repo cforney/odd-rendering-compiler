@@ -10,7 +10,7 @@ Everything below, composed in the order the steps depend on each other:
 
 ```bash
 node odd-render.mjs <odd> <tei...> [options]          # --help lists them all
-node odd-render.mjs ../examples/tei_simler.odd "../examples/simler-*.xml"   --tokens ../examples/simler-tokens.css --out build --reports
+node odd-render.mjs ../examples/tei_simler.odd "../examples/simler-*.xml"   --tokens ../examples/design-tokens.css --out build --reports
 ```
 
 The pages land in `--out` (default `build/`), what the compiler generated in
@@ -159,7 +159,7 @@ npm run build:extension && npm run render:extension   # the nested page-break ex
 
 Individual generators (`build`, `build:xslt`, `build:unified`, `build:ceteicean`)
 read `../examples/tei_simler.odd`, and `build` adds its tokens,
-`../examples/simler-tokens.css`. Individual renderers (`render:unified`,
+`../examples/design-tokens.css`. Individual renderers (`render:unified`,
 `render:script`, `render:islands`, `render:petite-vue`, `render:xslt`, `render:ceteicean`,
 `render:plain`, `render:json`) render every example.
 

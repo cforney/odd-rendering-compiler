@@ -1229,9 +1229,11 @@
           </attList>
           <!-- `data-key` names the register entries, which the page may open as a card; where the
                document carries the register, a person or place with one entry links to it -->
-          <model predicate="(@type='person' or @type='place') and ancestor::TEI/standOff and not(contains(normalize-space(@key), ' '))" behaviour="link">
+          <model cssClass="rs-linked" predicate="(@type='person' or @type='place') and ancestor::TEI/standOff and not(contains(normalize-space(@key), ' '))" behaviour="link">
             <param name="uri" value="concat('#', normalize-space(@key))"/>
             <param name="data-key" value="@key"/>
+            <!-- a name reads as the text around it; only the entities view highlights it -->
+            <outputRendition>color: inherit; text-decoration: none;</outputRendition>
           </model>
           <model behaviour="inline">
             <param name="data-key" value="@key"/>
