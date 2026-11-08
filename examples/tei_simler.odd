@@ -356,9 +356,11 @@
             </attDef>
           </attList>
           <model behaviour="document"/>
-          <!-- what the page shows around the text: its title, the facsimile, the entities it names -->
+          <!-- what the page shows around the text: its title and language (German unless the header
+               says otherwise), the facsimile, the entities it names -->
           <model output="page" behaviour="metadata">
             <param name="title" value="normalize-space(teiHeader/fileDesc/titleStmt/title[1])"/>
+            <param name="lang" value="if (teiHeader/profileDesc/langUsage/language/@ident) then string((teiHeader/profileDesc/langUsage/language/@ident)[1]) else 'de'"/>
             <param name="manifest" value="normalize-space((descendant::idno[@type='URLIIIF'])[1])"/>
             <param name="pages" value="descendant::pb/@facs"/>
             <param name="entities" value="descendant::rs/@key"/>
@@ -1330,6 +1332,7 @@
           <!-- a comment on the whole division: no marker, shown above the text; any other note is unmapped -->
           <model predicate="@type='annotation'" behaviour="note" useSourceRendition="true">
             <param name="place" value="'overview'"/>
+            <param name="marker" value="false()"/>
           </model>
           <model output="plain" predicate="@targetEnd" behaviour="omit"/>
         </elementSpec>
