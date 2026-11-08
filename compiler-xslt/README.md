@@ -7,8 +7,8 @@ then run over a TEI document to produce static HTML — the same HTML the
 JavaScript implementation renders.
 
 Run with no arguments, it builds the **Simler** edition from the project's own
-ODD, over its four excerpts: Fraktur renditions, notes and marginalia, and a
-CSS-grid acrostic layout.
+ODD, over its four excerpts: Fraktur renditions, notes, commentary and marginalia,
+a register, and a CSS-grid acrostic layout.
 
 ```
 compiler-xslt/

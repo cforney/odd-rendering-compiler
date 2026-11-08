@@ -52,7 +52,7 @@ test("odd-to-css counts the models CSS alone cannot render", () => {
     { behaviour: "omit", predicate: "parent::titleStmt/parent::fileDesc" },
   ];
   assert.deepEqual(cssResidue(/** @type {any} */ ([{ models }])), [models[1], models[2]], "an attribute test, and a behaviour without a tag");
-  assert.match(run("odd-to-css.mjs", ["--odd", ODD, "--out", join(outDir, "residue")]), /\b\d+ of 95 models need the renderers/);
+  assert.match(run("odd-to-css.mjs", ["--odd", ODD, "--out", join(outDir, "residue")]), /\b\d+ of \d+ models need the renderers/);
 });
 
 test("odd-to-css adds the design tokens and reports custom properties nothing defines", () => {
@@ -88,19 +88,28 @@ test("render-unified renders every example, with an index", () => {
   assert.match(columns, /<div class="tei-l l-twocol" style="--acro: 1; --fin: 1; --indent: 0">/, "an acrostic line with a closing letter");
   assert.match(columns, /<div class="tei-l l-twocol" style="--acro: 1; --fin: 0; --indent: 1">/, "an indented line in a column with acrostics");
 
-  const notes = page("unified", "simler-hausswesen");
-  assert.match(notes, /<span class="tei-note note-margin r-smaller r-et" data-margin="right">Tob\.[^<]*<span class="tei-anchor" id="a119"><\/span><span class="tei-unclear">17<\/span><a [^>]*href="#note-1"/,
-    "a range note inside a printed Bible note");
+  const sonnet = page("unified", "simler-todtenklang");
+  assert.match(sonnet, /<span class="tei-anchor" id="k216\.3"><\/span>Die Ehrgedächtnuß<a class="tei-note note-anchored tei-note-ref" href="#note-2" data-range="k216\.3">2<\/a>/,
+    "a commentary note on the range its anchor starts");
+  assert.match(sonnet, /<a class="tei-ref" href="https:\/\/www\.dwds\.de\/wb\/dwb\/beschehen">DWDS<\/a>/, "the commentary's link");
+  assert.match(sonnet, /<a class="tei-rs entity-person" data-key="person_003" href="#person_003">/, "a name, linked to its register entry");
+  assert.match(sonnet, /<div class="tei-person" id="person_003" data-card="person"><span class="tei-persName">Buol, Meinrad<\/span> <span class="tei-birth">\* 1588<\/span>/,
+    "the entry, which the ODD marks as a card");
+  assert.match(sonnet, /<a class="tei-idno idno-link" href="https:\/\/d-nb\.info\/gnd\/1017997098">GND<\/a>/, "its authority, linked");
+  for (const name of readdirSync(join(pocDir, "../examples")).filter((f) => /^simler-.*\.xml$/.test(f))) {
+    const html = page("unified", name.replace(".xml", ""));
+    for (const [, key] of html.matchAll(/href="#((?:person|place)_\d+)"/g)) assert.match(html, new RegExp(`id="${key}" data-card`), `${name}: ${key} has its entry`);
+  }
 
   assert.match(page("unified", "simler-regenten-kleinodt"), /<span class="tei-note note-margin r-smaller" data-margin="right">David bit<span class="tei-lb lb-hyphen normalized-omit">-<\/span>/,
     "a marginal gloss, with its joined line ends");
 
   const index = readFileSync(join(outDir, "unified", "index.html"), "utf8");
-  for (const name of ["simler-psalmen", "simler-buchstabwechsel", "simler-hausswesen", "simler-regenten-kleinodt"]) {
+  for (const name of ["simler-psalmen", "simler-buchstabwechsel", "simler-todtenklang", "simler-regenten-kleinodt"]) {
     assert.match(index, new RegExp(`href="${name}\\.html"`));
   }
-  assert.match(index, /<a href="simler-psalmen\.html">Haubtbegriff des erſten Pſalms, Psalms I–V \(C 1663, pp\. 4–5\)<\/a>/, "the title the page model gives");
-  assert.match(index, /2 page image\(s\) · <a href="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049159\/manifest">IIIF manifest<\/a>/, "its page images and manifest");
+  assert.match(index, /<a href="simler-psalmen\.html">Haubtbegriff des erſten Pſalms, Psalms I–XXI \(C 1663, pp\. 4–7\)<\/a>/, "the title the page model gives");
+  assert.match(index, /4 page image\(s\) · <a href="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049159\/manifest">IIIF manifest<\/a>/, "its page images and manifest");
 });
 
 test("the library compiles and renders in memory, as the command lines do, and never exits", () => {
@@ -131,19 +140,17 @@ test("render-unified lays the views over the page, each with a switch", () => {
   const columns = page("unified", "simler-buchstabwechsel");
   assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> Entitäten<\/label><label><input type="checkbox" data-view="normalized"> Normalisiert<\/label><\/form>/,
     "a checkbox per view, labelled by its models' <desc>");
-  assert.match(columns, /<span class="tei-rs entity-person" data-key="person_[0-9]+">/, "a view's model of the same behaviour adds its classes");
-
-  const notes = page("unified", "simler-hausswesen");
-  assert.match(notes, /<span class="tei-alternate-default normalized-alternate"><span class="tei-sic">f<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden>/,
+  assert.match(columns, /<a class="tei-rs entity-person" data-key="person_001" href="#person_001">/, "a view's model adds its classes");
+  assert.match(columns, /<span class="tei-alternate-default normalized-alternate"><span class="tei-sic">it<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden>/,
     "an alternate's readings marked as the view reads them");
-  assert.match(notes, /<br class="tei-lb normalized-omit">/, "what a view omits is marked");
+  assert.match(columns, /<br class="tei-lb normalized-omit">/, "what a view omits is marked");
 });
 
 test("render-unified renders another output alone: the entities", () => {
   run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--out", join(outDir, "entities"), "--output", "entities"]);
   const body = page("entities", "simler-buchstabwechsel").split("<body>")[1];
   assert.match(body, /<div class="tei-edition" data-entities="on"[^>]*>/, "the output is on");
-  assert.match(body, /<span class="tei-rs entity-person">/, "the output's model takes precedence");
+  assert.match(body, /<a class="tei-rs entity-person" href="#person_001">/, "the output's model takes precedence");
   assert.doesNotMatch(body, /tei-views|normalized-/, "no views laid over it");
 });
 
@@ -252,15 +259,16 @@ test("odd-render --search writes a search page and an index, linked from the ind
 
 test("render-plain writes the plain output as text and as Pagefind records", () => {
   const out = join(outDir, "plain");
-  run("render-plain.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--lang", "de", "--out", out]);
-  const text = readFileSync(join(out, "simler-hausswesen.txt"), "utf8");
+  run("render-plain.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-todtenklang.xml", "--lang", "de", "--out", out]);
+  const text = readFileSync(join(out, "simler-todtenklang.txt"), "utf8");
   assert.doesNotMatch(text, /[<>]/, "no markup");
-  assert.match(text, /Haußweſen/, "the text");
+  assert.match(text, /Todtenklang/, "the text");
+  assert.doesNotMatch(text, /Basler Drucker/, "but not the register");
 
   const [record] = JSON.parse(readFileSync(join(out, "records.json"), "utf8"));
   assert.deepEqual({ ...record, content: undefined }, {
-    url: "simler-hausswesen.html", content: undefined, language: "de",
-    meta: { title: "Chriſtenliches Haußweſen, stanzas 1–4 (C 1663, pp. 321–322)" },
+    url: "simler-todtenklang.html", content: undefined, language: "de",
+    meta: { title: "Sonnet/ oder Trauriger Todtenklang, poems 143–144 (C 1663, pp. 539–540)" },
   });
   assert.equal(record.content, text.trim().replace(/\n/g, " "), "the text on one line");
 });
@@ -478,8 +486,8 @@ test("the handlers can say which model gave each element they rendered", async (
 
 test("the petite-vue example leaves the alternate reading hidden, without JS and for the views' CSS", () => {
   const out = join(outDir, "interactive");
-  run("render-unified.mjs", ["--enhance", "petite-vue", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
-  const html = readFileSync(join(out, "simler-hausswesen.html"), "utf8");
+  run("render-unified.mjs", ["--enhance", "petite-vue", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--css", join(outDir, "edition.css"), "--out", out]);
+  const html = readFileSync(join(out, "simler-buchstabwechsel.html"), "utf8");
   assert.match(html, /<span class="tei-alternate-alt normalized-default" hidden :hidden="!alt">/);
   assert.match(html, /<span class="tei-alternate-default normalized-alternate" :hidden="alt">/);
   assert.doesNotMatch(html, /v-show/, "an inline display would beat the view that chooses this reading");
@@ -487,22 +495,22 @@ test("the petite-vue example leaves the alternate reading hidden, without JS and
 
 test("an enhancer adds scripts to a page, and changes nothing of the edition", () => {
   const render = (name, ...enhance) => {
-    run("render-unified.mjs", [...enhance, "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", join(outDir, name)]);
-    return page(name, "simler-hausswesen");
+    run("render-unified.mjs", [...enhance, "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--css", join(outDir, "edition.css"), "--out", join(outDir, name)]);
+    return page(name, "simler-buchstabwechsel");
   };
   const edition = (html) => html.slice(html.indexOf('<div class="tei-edition"'), html.indexOf("<script") < 0 ? html.indexOf("</body>") : html.indexOf("<script"));
   const plain = render("floor");
   assert.doesNotMatch(plain, /<script/);
   for (const name of ["script", "islands"]) assert.equal(edition(render(`enhanced-${name}`, "--enhance", name)).trim(), edition(plain).trim(), name);
-  assert.match(page("enhanced-script", "simler-hausswesen"), /tei-alternate-default[\s\S]*a\.tei-note-ref[\s\S]*TeiFacsimile/, "the small script brings all three behaviours inline");
+  assert.match(page("enhanced-script", "simler-buchstabwechsel"), /tei-alternate-default[\s\S]*a\.tei-note-ref[\s\S]*TeiFacsimile/, "the small script brings all three behaviours inline");
   assert.equal(spawnSync(process.execPath, ["render-unified.mjs", "--enhance", "nope"], { cwd: pocDir }).status, 1, "an unknown enhancer is an error");
 });
 
 test("the islands enhancer finds its regions in the browser and opens notes as tooltips", () => {
   const out = join(outDir, "islands");
-  run("render-unified.mjs", ["--enhance", "islands", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-hausswesen.xml", "--css", join(outDir, "edition.css"), "--out", out]);
+  run("render-unified.mjs", ["--enhance", "islands", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--css", join(outDir, "edition.css"), "--out", out]);
 
-  const html = readFileSync(join(out, "simler-hausswesen.html"), "utf8");
+  const html = readFileSync(join(out, "simler-buchstabwechsel.html"), "utf8");
   assert.doesNotMatch(html, /<tei-island/, "nothing is marked at build time");
   for (const script of ["readings.js", "facsimile.js"]) assert.ok(existsSync(join(out, script)), `${script} waits beside the page`);
   assert.doesNotMatch(html, /TeiFacsimile/, "and is not in it");

@@ -32,7 +32,6 @@
     "render:extension": "node render-unified.mjs --handlers output/nested-pb/tei-handlers.mjs --tei ../examples/simler-psalmen.xml --css output/nested-pb/edition.css --out output/nested-pb",
     "build:demo": "node ../demo/build-demo.mjs",
     "check:demo": "node --experimental-websocket ../demo/check-demo.mjs",
-    "sync:odd": "node ../examples/sync-odd.mjs",
     "test": "node --test",
     "typecheck": "tsc && tsc -p tsconfig.browser.json"
   },

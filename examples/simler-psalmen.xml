@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Simler Digital, C 1663: Haubtbegriff des erſten Pſalms, Psalms I–V (pp. 4–5).
-  Source: DHBern/simler_data at 3250d0e.
+  Simler Digital, C 1663: Haubtbegriff des erſten Pſalms, Psalms I–XXI (pp. 4–7).
+  Adapted from DHBern/simler_data, C_1663_dok.xml, 2026-11-08; see examples/README.md.
 -->
 <TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
   <teiHeader>
     <fileDesc>
       <titleStmt>
-        <title type="main">Haubtbegriff des erſten Pſalms, Psalms I–V (C 1663, pp. 4–5)</title>
+        <title type="main">Haubtbegriff des erſten Pſalms, Psalms I–XXI (C 1663, pp. 4–7)</title>
       </titleStmt>
       <publicationStmt>
-        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, reused as an example. The
-          transcription: Simler Project Team, licensed under CC BY 4.0,
+        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
+          transcription and the register: Simler Project Team, licensed under CC BY 4.0,
           https://creativecommons.org/licenses/by/4.0/.</p>
       </publicationStmt>
       <sourceDesc>
@@ -65,11 +65,11 @@
             <head rendition="#aq #c"><num>III.</num></head>
             <lb/>
             <lg type="poem">
-            <l>Der David ſetzt auf Gott ſein hoffnung und vertrauen/</l>
+            <l>Der <rs type="person" key="person_049">David</rs> ſetzt auf Gott ſein hoffnung und vertrauen/</l>
             <lb/>
             <l rendition="#et">alß ihn von ſeinem reic<anchor xml:id="a23"/>h<note type="annotation" targetEnd="a23"><p>In den Vergleichsexemplaren Wien und Zürich ist das "h" ganz klar ersichtlich.</p></note> vertriben in die flucht</l>
             <lb/>
-            <l rendition="#et">ſein ſohn/ der Abſolon/ der ihn zu to&#x364;den ſucht:</l>
+            <l rendition="#et">ſein ſohn/ der <anchor xml:id="k1.1"/><rs type="person" key="person_053">Abſolon</rs><note type="annotation" targetEnd="k1.1"><p>Abschalom, Davids Sohn; vgl. 2 Sam 15–18 und die Überschrift von Ps 3.</p></note>/ der ihn zu to&#x364;den ſucht:</l>
             <lb/>
             <l>mit bitt/ daß Gottes hülff er würklich mo&#x364;ge ſchauen.</l>
             </lg>
@@ -114,9 +114,279 @@
             </lg>
             <lb/>
             </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>VI.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Alß David krank und ſchwach zu ſeel und leib gelegen/</l>
+            <lb/>
+            <l rendition="#et">ſucht er ſein' hülff und troſt bey Gottes gnad allein/</l>
+            <lb/>
+            <l rendition="#et">ru&#x364;hmt auch derſelben ſich/ zu trutz der feindsgemein/</l>
+            <lb/>
+            <l>die ſeinen tod verhofft/ ihrs willens dann zu pflegen.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>VII.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Der David von dem Saul der aufruhr falſch gezigen/</l>
+            <lb/>
+            <l rendition="#et">beym Herꝛen ſuchet ſchirm: ſein' unſchuld ihm er-<lb
+            break="no"/>weißt:</l>
+            <lb/>
+            <l rendition="#et">weyſſaget wider Saul/ und Gotts gerichte preißt/</l>
+            <lb/>
+            <l>in deſſen lob er auch gelobt nicht zuerligen.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>VIII.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Dein hoher nam&#x342;/ o Herꝛ/ iſt ho&#x364;chlich zuerheben/</l>
+            <lb/>
+            <l rendition="#et">Du tilgeſt deinen feind auß kleiner kindern mund/</l>
+            <lb/>
+            <l rendition="#et">und deine weyßheit uns tuhſt in geſcho&#x364;pfften kund:</l>
+            <lb/>
+            <l>durch deine gu&#x364;te haſt uns alles untergeben.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>IX.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Der dankbar David hier des Herꝛen urtheil preiſet</l>
+            <lb/>
+            <l rendition="#et">in einem ſigeslied/ weil er in einer ſchlacht</l>
+            <lb/>
+            <l rendition="#et">das feld erhalten hat/ den haubt<supplied>f</supplied>eind umgebracht;</l>
+            <lb/>
+            <l>mit bitt/ daß Gottes hülff ihm fehrner werd erweiſet.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>X.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Der David ſich erklagt/ im nammen aller armen/</l>
+            <lb/>
+            <l rendition="#et">ab Sauls zu groſſem ſtoltz/ betrug und tyranney:</l>
+            <lb/>
+            <l rendition="#et">ru&#x364;fft Gott um rettung an/ und tro&#x364;ſtet fich darbey</l>
+            <lb/>
+            <l>er werde/ wie ſchon offt/ der ſeinen ſich erbarmen.</l>
+            </lg>
+            <lb/>
+            </div>
+            <fw place="bottom" type="pageNum">B iij</fw>
+            <fw place="bottom" type="catch"><hi rendition="#aq"><num>XI.</num></hi> Der</fw>
+            <lb/>
+            <pb facs="4049205" n="6"/>
+            <fw place="top" type="pageNum">6</fw>
+            <fw place="top" type="header">Das erſt bu&#x366;ch</fw>
+            <lb/>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XI.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Der David hertzlich klagt/ daß ſeine glaubensgnoſſen</l>
+            <lb/>
+            <l rendition="#et">ihn nicht genommen auf/ alß ihn der Saul verjagt:</l>
+            <lb/>
+            <l rendition="#et">traut Gott: entſchuldet ſich/ und ſeinen feinden ſagt</l>
+            <lb/>
+            <l>der himmel habe ſich zu ihrer ſtraf entſchloſſen.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XII.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Es bittet David hier fu&#x364;r ſich und alle frommen/</l>
+            <lb/>
+            <l rendition="#et">daß vor verlu&#x364;mdungen der Ho&#x364;chſt ſie wol bewahr:</l>
+            <lb/>
+            <l rendition="#et">weyſſaget von der ſtraf der heuchleriſchen ſchar/</l>
+            <lb/>
+            <l>und von des Herꝛen hu&#x364;lff/ die gwu&#x364;ßlich werde kommen.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XIII.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Der hülffloß David meint/ auch Gott hab ihn verlaſſen/</l>
+            <lb/>
+            <l rendition="#et">und werden groſſen ſigs die feinde ru&#x364;hmen ſich:</l>
+            <lb/>
+            <l rendition="#et">deß r<anchor xml:id="a24"/>u&#x364;<note type="annotation" targetEnd="a24"><p>In den Vergleichsexemplaren Wien und Zürich ist das hochgestellte "e" eindeutiger zu erkennen.</p></note>ffet er zu Gott ſo gar eynbrünſtiglich/</l>
+            <lb/>
+            <l>gelobet dank/ und kan nun widerum troſt faſſen.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XIV.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Saul und ſein hofgeſind in foller boßheit ſchweben/</l>
+            <lb/>
+            <l rendition="#et">und zwar/ wie David klagt/ auß gottsvergeſſenheit/</l>
+            <lb/>
+            <l rendition="#et">doch werden ſie vor ihm erzittern mit der zeit/</l>
+            <lb/>
+            <l>die frommen aber durch Meſſiam fro&#x364;lich leben.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XV.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Wer ewig wohnen wil in Gottes hoher hütten/</l>
+            <lb/>
+            <l rendition="#et">der muß den tugendweg fort wandlen fu&#x364;r und fu&#x364;r/</l>
+            <lb/>
+            <l rendition="#et">zu frommen halten ſich/ ſie ehren nach gebür:</l>
+            <lb/>
+            <l>der loſen leuhten ſich hingegen gantz entſchütten.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XVI.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Ein gulden kleinod iſt was David hier gedichtet/</l>
+            <lb/>
+            <l rendition="#et">dieweil ſein ho&#x364;chſtes gut im ſelben iſt verfaßt/</l>
+            <lb/>
+            <l rendition="#et">worauf/ mit dankbarkeit/ er einig ſich verlaßt/</l>
+            <lb/>
+            <fw place="bottom" type="catch">auch</fw>
+            <lb/>
+            <pb facs="4049206" n="7"/>
+            <fw place="top" type="pageNum">7</fw>
+            <fw place="top" type="header">Der Pſalmen.</fw>
+            <lb/>
+            <l>auch uns von Chriſti tod/ erſtehn und reich berichtet.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XVII.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Weil David von dem Saul nicht mag verho&#x364;r erlangen/</l>
+            <lb/>
+            <l rendition="#et">und in gerechter ſach noch muß verfolget ſeyn/</l>
+            <lb/>
+            <l rendition="#et">beru&#x364;fft er ſich auf den/ der ſiht ins hertz hineyn/</l>
+            <lb/>
+            <l>und denen hilfft die ihm/ auß zuverſicht anhangen.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XVIII.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Ein herꝛlich lobgeſang ſtellt David vorzuſingen/</l>
+            <lb/>
+            <l rendition="#et">nach dem/ durch Gottes gnad und wunderbare krafft/</l>
+            <lb/>
+            <l rendition="#et">er an den feinden ſich gerochen hat ſighafft:</l>
+            <lb/>
+            <l>weyſſaget daß von ihm Meſſias werd entſpringen.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XIX.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Die himmel und das gſtirn dein ehr/ o Herꝛ/ verkünden/</l>
+            <lb/>
+            <l rendition="#et">alß zeugen deiner macht/ vorſicht und herꝛlichkeit/</l>
+            <lb/>
+            <l rendition="#et">doch u&#x364;bertrifft dein gſatz der him&#x342;len zeugnuß weit:</l>
+            <lb/>
+            <l>bekehr mich/ und verzeih mir meine ſchweren ſu&#x364;nden!</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XX.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Der David ſich zu Gott in kriegsgefahren wendet/</l>
+            <lb/>
+            <l rendition="#et">und ihn um hülff erſucht/ im namen ſeiner gmeind/</l>
+            <lb/>
+            <l rendition="#et">verhofft gewüſſen ſig: globt dank/ und redt vom feind</l>
+            <lb/>
+            <l>alß wer er; weil er ſich auf ſich verlaß; geſcha&#x364;ndet.</l>
+            </lg>
+            <lb/>
+            </div>
+            
+            <div n="3">
+            <head rendition="#aq #c"><num>XXI.</num></head>
+            <lb/>
+            <lg type="poem">
+            <l>Was David jüngſt begert/ das hat ihm Gott beſchehret/</l>
+            <lb/>
+            <l rendition="#et">darum er ſein gelübd erſtattet gleicher weiß/</l>
+            <lb/>
+            <l rendition="#et">dankt um erhaltnen ſig: erbietet ferꝛnern preiß/</l>
+            <lb/>
+            <l>und glaubt/ es werd der feind/ durch Gottes zorn ver-<lb
+            break="no"/>zehret.</l>
+            </lg>
+            <lb/>
+            </div>
   </div>
   </div>
   </div>
   </body>
   </text>
+  <standOff>
+    <listPerson>
+      <head>Personen</head>
+      <person xml:id="person_049">
+        <persName>David</persName>
+        <note>Biblische Figur, König von Israel</note>
+        <idno type="GND">118523929</idno>
+      </person>
+      <person xml:id="person_053">
+        <persName>Abschalom</persName>
+        <note>Dritter Sohn von König David und Halbbruder von Salomon</note>
+        <idno type="GND">120527057</idno>
+      </person>
+    </listPerson>
+  </standOff>
 </TEI>

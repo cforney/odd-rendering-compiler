@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Simler Digital, C 1663: Regenten Kleinodt, Psalm 72, stanzas 1–3 (p. 349).
-  Source: DHBern/simler_data at 3250d0e.
+  Adapted from DHBern/simler_data, C_1663_dok.xml, 2026-11-08; see examples/README.md.
 -->
 <TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
   <teiHeader>
@@ -10,8 +10,8 @@
         <title type="main">Regenten Kleinodt, Psalm 72, stanzas 1–3 (C 1663, p. 349)</title>
       </titleStmt>
       <publicationStmt>
-        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, reused as an example. The
-          transcription: Simler Project Team, licensed under CC BY 4.0,
+        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
+          transcription and the register: Simler Project Team, licensed under CC BY 4.0,
           https://creativecommons.org/licenses/by/4.0/.</p>
       </publicationStmt>
       <sourceDesc>
@@ -43,7 +43,6 @@
             <p rendition="#c">Jn der weiſe: Jeſus wahrer Gottes Sohn/ ꝛc.</p>
             <lb/>
             
-            <!--NE: Positionen der notes/Marginalien überprüfen-->
             <lg type="poem">
             <lg n="1">
             <note place="right" type="marginalia" rendition="#smaller">David bit-<lb

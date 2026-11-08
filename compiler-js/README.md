@@ -155,7 +155,6 @@ npm run render:all         # every renderer on every example, the plain text and
 npm run findings           # what the Simler ODD does not foresee in the examples
 npm run render:json && npm run coverage   # the decisions as data, read back against the corpus
 npm run build:extension && npm run render:extension   # the nested page-break extension
-npm run sync:odd -- <commit>   # vendor the Simler ODD, tokens and excerpts at a commit
 ```
 
 Individual generators (`build`, `build:xslt`, `build:unified`, `build:ceteicean`)
@@ -258,7 +257,8 @@ renders by it:
   the model sets the one hyphen the print shows.
 - **Notes** are numbered in document order and collected by place. On the
   interactive pages a marker opens its note as a tooltip, by
-  `../runtime/notes.js` (styled by `../runtime/ui.css`, which the CSS
+  `../runtime/notes.js`, which also opens a link to an element the ODD marks
+  with `data-card` (a register entry) as a card (styled by `../runtime/ui.css`, which the CSS
   generators append to `edition.css`).
 - **Page images.** On the interactive pages a page break with a `data-page` opens
   its image beside the text, by `../runtime/facsimile.js`, from the IIIF manifest

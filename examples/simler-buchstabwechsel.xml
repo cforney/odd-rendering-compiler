@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Simler Digital, C 1663: Uber Herrn Tichters namen Buchstabwächsel, poem VI of the dedicatory poems (fol. A vii r).
-  Source: DHBern/simler_data at 3250d0e.
+  Simler Digital, C 1663: Uber Herꝛn Tichters namen Bu&#x366;chſtabwa&#x364;chſel, poems VI–VII of the dedicatory poems (fol. A vii r–v).
+  Adapted from DHBern/simler_data, C_1663_dok.xml, 2026-11-08; see examples/README.md.
 -->
 <TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
   <teiHeader>
     <fileDesc>
       <titleStmt>
-        <title type="main">Uber Herrn Tichters namen Buchstabwächsel (C 1663, fol. A vii r)</title>
+        <title type="main">Uber Herꝛn Tichters namen Bu&#x366;chſtabwa&#x364;chſel, poems VI–VII of the dedicatory poems (C 1663, fol. A vii r–v)</title>
       </titleStmt>
       <publicationStmt>
-        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, reused as an example. The
-          transcription: Simler Project Team, licensed under CC BY 4.0,
+        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
+          transcription and the register: Simler Project Team, licensed under CC BY 4.0,
           https://creativecommons.org/licenses/by/4.0/.</p>
       </publicationStmt>
       <sourceDesc>
@@ -21,88 +21,189 @@
   </teiHeader>
   <text>
   <front>
-            <pb n="[A vii r]" facs="4049188"/>
+  <div n="1">
+            <pb facs="4049188"/>
             <milestone unit="section" rendition="#hr"/>
             <lb/>
             <div xml:id="xi">
-                <head>
-                    <label>[xi.]</label>
-                    <lb/>
-                    <hi rendition="#b #c">
-                        <hi rendition="#aq">VI.</hi><lb/>
-                        <hi rendition="#aq">U</hi>ber Herrn Tichters namen Bu&#x366;chstabwächsel<lb/>
-                        <rs type="person" key="person_001">JOHANN WJLHELM SJMLER</rs>/<lb/> W/ in
-                            <hi rendition="#aq">U</hi>/ und V/ aufgelöset:<lb/> Nu mahl/ i<hi
-                            rendition="#aq">ô</hi>! vil reins mehl;<lb/> und<lb/> Lobspruch.</hi>
-                </head>
-                <lb/>
-                <lg type="poem" rendition="#twocol">
-                    <l><hi rendition="#larger"><hi rendition="#in">H</hi>Err <rs type="person" key="person_001">Simler</rs></hi> euer mehl</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">W</hi>ird finden seinen preis<hi rendition="#acroFin">S</hi></l>
-                    <lb/>
-                    <l rendition="#et">beym <hi rendition="#larger">fruchtbereichten volk</hi>/</l>
-                    <lb/>
-                    <l rendition="#et2">dieweil mit sonderm fleiß</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">J</hi>hr trachtet/ daß es rein;</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">J</hi>a simmelweisse se<hi rendition="#acroFin">J</hi></l>
-                    <lb/>
-                    <l rendition="#et">darunter nichts vermängt</l>
-                    <lb/>
-                    <l rendition="#et">von träbern oder kley.</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">O</hi> schöne schreibensart</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>ehrreicher reden blu<hi rendition="#acroFin">M</hi></l>
-                    <lb/>
-                    <l rendition="#et">wodurch zur sonnen steigt</l>
-                    <lb/>
-                    <l rendition="#et2">der <hi rendition="#larger">Teutschen Sprache</hi> ruhm.</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">H</hi>ier eine quell ohn schlam[m];</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">H</hi>oldseligkeit ohn grim<hi rendition="#acroFin">M</hi></l>
-                    <lb/>
-                    <l rendition="#et">hier ist nichts ärgerlichs/</l>
-                    <lb/>
-                    <l rendition="#et2">und daß sich nicht gezim[m].</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">A</hi>rbeitet dessen viel</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">E</hi>s ist rein simmelmeh<hi rendition="#acroFin">L</hi></l>
-                    <lb/>
-                    <l rendition="#et">die dichtling fallen wol</l>
-                    <lb/>
-                    <l rendition="#et2">und fliessen ohne fehl.</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">N</hi>ur immer frisch daran;</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>aßt sparen uns kein müh<hi rendition="#acroFin">E</hi></l>
-                    <lb/>
-                    <l rendition="#et">damit die <hi rendition="#larger">Jndisch Nuß</hi></l>
-                    <lb/>
-                    <l rendition="#et2">auch diser enden blu&#x364;he!</l>
-                    <lb/>
-                    <l rendition="#acrostic"><rs type="person" key="person_046"><hi rendition="#acroInit">N</hi>eid hart</rs> du tuhst uns nichts.</l>
-                    <lb/>
-                    <l rendition="#acrostic"><hi rendition="#acroInit">M</hi>an wird der Teutschen eh<hi rendition="#acroFin">R</hi></l>
-                    <lb/>
-                    <l rendition="#et">auß <rs type="person" key="person_045">Phöbus</rs> namenbuch</l>
-                    <lb/>
-                    <l rendition="#et">außtilgen nimmermehr.</l>
-                </lg>
-                <lb/>
-                <closer>
-                    <signed rendition="#right"><rs type="person" key="person_009">Georg
-                                Müller</rs>/ Pfarrer zu <rs type="place" key="place_008"
-                                >Tahlweil</rs>/<lb/> am <rs type="place" key="place_007"
-                                >Zürichsee</rs>.
-                    </signed>
-                </closer>
-                <lb/>
+            <head rendition="#b #c"><hi rendition="#aq"><num>VI.</num></hi>
+            <lb/>
+            <hi rendition="#aq">U</hi>ber Herꝛn Tichters namen
+            <lb/>
+            Bu&#x366;chſtabwa&#x364;chſel
+            <lb/>
+            <rs type="person" key="person_001">JOHANN WJLHELM SJMLER</rs>/
+            <lb/>
+            W/ in <hi rendition="#aq">U</hi>/ und V/ aufgelo&#x364;ſet:
+            <lb/>
+            Nu mahl/ <hi rendition="#aq">iô</hi>! vil reins mehl;
+            <lb/>
+            und
+            <lb/>
+            Lobſpruch.</head>
+            <lb/>
+            <lg type="poem" rendition="#twocol">
+            <l><hi rendition="#b"><hi rendition="#in">H</hi>Erꝛ <rs type="person" key="person_001">Simler</rs></hi> euer mehl</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">W</hi>ird finden ſeinen preiſ<hi rendition="#acroFin">S</hi></l>
+            <lb/>
+            <l rendition="#et">beym <hi rendition="#b">fruchtbereichten volk</hi>/</l>
+            <lb/>
+            <l rendition="#et2">dieweil mit ſonderm fleiß</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">J</hi>hr trachtet/ daß es rein;</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">J</hi>a ſimmelweiſſe ſe<hi rendition="#acroFin">J</hi></l>
+            <lb/>
+            <l rendition="#et">darunter nichts verma&#x364;ngt</l>
+            <lb/>
+            <l rendition="#et">von tra&#x364;bern oder kley.</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">O</hi> ſcho&#x364;ne ſchreibensart</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>ehrꝛeicher reden blu<hi rendition="#acroFin">M</hi></l>
+            <lb/>
+            <l rendition="#et">wodurch zur ſonnen ſteigt</l>
+            <lb/>
+            <l rendition="#et2">der <hi rendition="#b">Teutſchen Sprache</hi> ruhm.</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">H</hi>ier eine quell ohn ſchlam&#x303;;</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">H</hi>oldſeligkeit ohn grim<hi rendition="#acroFin">M</hi></l>
+            <lb/>
+            <l rendition="#et">hier iſt nichts a&#x364;rgerlichs/</l>
+            <lb/>
+            <l rendition="#et2">und daß ſich nicht gezim&#x303;.</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">A</hi>rbeitet deſſen viel</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">E</hi>s iſt rein ſimmelmeh<hi rendition="#acroFin">L</hi></l>
+            <lb/>
+            <l rendition="#et">die dichtling fallen wol</l>
+            <lb/>
+            <l rendition="#et2">und flieſſen ohne fehl.</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">N</hi>ur immer friſsch daran;</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>aßt ſparen uns kein mu&#x364;h<hi rendition="#acroFin">E</hi></l>
+            <lb/>
+            <l rendition="#et">damit die <hi rendition="#b">Jndiſch Nuß</hi></l>
+            <lb/>
+            <l rendition="#et2">auch diſer enden blu&#x364;he!</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">N</hi>eid hart du tuhſt uns nichts.</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">M</hi>an wird der Teutſchen eh<hi rendition="#acroFin">R</hi></l>
+            <lb/>
+            <l rendition="#et">auß Pho&#x364;bus namenbuch</l>
+            <lb/>
+            <l rendition="#et">außtilgen nimmermehr.</l>
+            </lg>
+            <lb/>
+            <closer><signed>Geo&#x364;rg Müller/ Pfarꝛer zu Tahlweil/
+            <lb/>
+            am Zürichſee.</signed></closer>
+            <lb/>
             </div>
+            <fw place="bottom" type="catch"><hi rendition="#aq"><num>VII.</num></hi> <hi rendition="#aq">U</hi>ber</fw>
+            <lb/>
+            <pb facs="4049189"/>
+            <milestone unit="section" rendition="#hr"/>
+            <lb/>
+            <div xml:id="xii">
+            <head rendition="#b #c"><hi rendition="#aq"><num>VII.</num></hi>
+            <lb/>
+            über den glu&#x366;klichen fortgang erwünſch-<lb
+            break="no"/>ter Außu&#x366;bung der a&#x364;dlen hochteutſchen Haubt-
+            <lb/>
+            und Heldenſprach:
+            <lb/>
+            Warnung an die unteutſchen.</head>
+            <lb/>
+            <lg type="poem" rendition="#twocol">
+            <l><hi rendition="#in">S</hi>Eht/ wie der Teutſchen ru&#x366;h</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">M</hi><choice><sic>it</sic><corr/></choice> flügel ſchnellem Lo<hi rendition="#acroFin">B</hi></l>
+            <lb/>
+            <l rendition="#et">ſich Himmelhoch erſchwingt:</l>
+            <lb/>
+            <l rendition="#et">und Nydhart zo&#x364;rnt darob.</l>
+            <lb/>
+            <l>Jn einem kurtzen</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">n<hi rendition="#aq">V</hi></hi><choice><sic>nd</sic><corr/></choice> blik erwachſet ſ<hi rendition="#acroFin">O</hi></l>
+            <lb/>
+            <l rendition="#et">daß Tadelgern erſtaunt</l>
+            <lb/>
+            <l rendition="#et">und weißt nicht wie und wo</l>
+            <lb/>
+            <l>Mein armer Grimmefol</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>aß fahren deinen ny<hi rendition="#acroFin">D</hi></l>
+            <lb/>
+            <l rendition="#et">Das ſtachlich Bienenvolk</l>
+            <lb/>
+            <l rendition="#et2">zum zorn zureitzen myd.</l>
+            <lb/>
+            <l>Lern ſchweigen;
+            <lb/>
+            und das mau</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">L</hi><choice><sic>eit</sic><corr/></choice> im gebiß und zau<hi rendition="#acroFin">M</hi></l>
+            <lb/>
+            <l rendition="#et">nicht tadlend was nicht taugt</l>
+            <lb/>
+            <l rendition="#et2">für deinen albern gaum.</l>
+            <lb/>
+            <l>Es wachßt hier an dem ſe</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">E</hi><anchor xml:id="a12"/><choice><sic>y</sic><corr/></choice><note type="annotation" targetEnd="a12"><p>Im Digitalisat scheinen die Verlängerung des "y" und die zwei Pünktchen in einer anderen Tintenfarbe (rötlich, braun?) geschrieben zu sein.</p></note> an dem Zürichſe<hi rendition="#acroFin">E</hi></l>
+            <lb/>
+            <l rendition="#et">ſo gu&#x366;t alß irgend wo</l>
+            <lb/>
+            <l rendition="#et2"><hi rendition="#aq">V</hi>liſſes ſu&#x364;ſſer klee.</l>
+            <lb/>
+            <l>Rott auß; ſo ſa&#x364;en wi</l>
+            <lb/>
+            <l rendition="#acrostic"><hi rendition="#acroInit">R</hi><choice><sic>eiß</sic><corr/></choice> ab/ ſo pflantzen wi<hi rendition="#acroFin">R:</hi></l>
+            <lb/>
+            <l rendition="#et">du Nyder tuhſt uns nichts;</l>
+            <lb/>
+            <l rendition="#et">du tuhſt es einig dir.</l>
+            </lg>
+            <lb/>
+            </div>
+            <div xml:id="xiii">
+            <head rendition="#b #c">Der Tichter an ſein
+            <lb/>
+            Bu&#x366;ch.</head>
+            <lb/>
+            <lg type="poem">
+            <l>Werd geleſen/ werd geſungen/</l>
+            <lb/>
+            <l>von den Alten/ von den jungen/</l>
+            <lb/>
+            <l rendition="#et">all' erbau/ und acht es nicht</l>
+            <lb/>
+            <l rendition="#et">daß der Tadler widerſpricht.</l>
+            </lg>
+            <lb/>
+            </div>
+            <fw place="bottom" type="catch" rendition="#aq"><num>VIII.</num></fw>
+  </div>
   </front>
   </text>
+  <standOff>
+    <listPerson>
+      <head>Personen</head>
+      <person xml:id="person_001">
+        <persName>Simler, Johann Wilhelm</persName>
+        <birth when="1605"/>
+        <death when="1672"/>
+        <note>Schweizer Dichter und reformierter Theologe</note>
+        <idno type="GND">119151693</idno>
+        <idno type="HLS">https://hls-dhs-dss.ch/de/articles/012297/2011-06-08/</idno>
+      </person>
+    </listPerson>
+  </standOff>
 </TEI>

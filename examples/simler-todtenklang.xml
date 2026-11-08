@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Simler Digital, C 1663: Sonnet/ oder Trauriger Todtenklang, poems 143–144 (pp. 539–540).
+  Adapted from DHBern/simler_data, C_1663_Teil-5.xml, 2026-11-08; see examples/README.md.
+-->
+<TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Sonnet/ oder Trauriger Todtenklang, poems 143–144 (C 1663, pp. 539–540)</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
+          transcription and the register: Simler Project Team, licensed under CC BY 4.0,
+          https://creativecommons.org/licenses/by/4.0/.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <bibl><idno type="URLIIIF">https://www.e-rara.ch/i3f/v20/4049159/manifest</idno></bibl>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+  <body>
+  <div n="1">
+                <pb n="539" facs="4049738"/>
+                <div n="2" xml:id="n215">
+                    <head>
+                        <hi rendition="#b #c">143. Auf Herren <rs type="person" key="person_169"
+                                >Joh. Jakob Genathen</rs>/ beru&#x364;hm<lb break="no"/>ten Trukker
+                            und Bu&#x366;chhändlers in <rs type="place" key="place_002">Basel</rs>/
+                            <lb/>Begräbnus.</hi></head>
+                    <lb/>
+                    <lg type="poem">
+                        <l>Nun ists mit Ihm gethan; nun fahrt Er hin im Friden;</l>
+                        <lb/>
+                        <l>doch ist sein guter Namm von uns nicht abgeschiden:</l>
+                        <lb/>
+                        <l rendition="#et">die weitbekante Preß/ durch die ein Mann mehr
+                            schreibt</l>
+                        <lb/>
+                        <l rendition="#et">eins Tags alß sonst ein Jahr/ macht daß Er ewig
+                            bleibt.</l>
+                    </lg>
+                    <lb/>
+                </div>
+                <pb n="540" facs="4049739"/>
+                <div n="2" xml:id="n216">
+                    <head>
+                        <hi rendition="#b #c">144. Sonnet/ <lb/>oder <lb/>Trauriger Todtenklang/
+                            <lb/>über <lb/>Herren Lands-Haubtmann <rs type="person" key="person_003"
+                                >Meinrad <lb/>Buolen</rs>/ ihme seliges; dem Vatterland<lb/>
+                            höchstschädliches Ab<lb break="no"/>leiben.</hi></head>
+                    <lb/>
+                    <lg type="poem">
+                        <l><hi rendition="#larger">Ach!</hi> armes <hi rendition="#larger"
+                                >Vatterland!</hi> des <rs type="person" key="person_003"><hi
+                                    rendition="#larger">Vatters</hi></rs> nun beraubet</l>
+                        <lb/>
+                        <l rendition="#et"><anchor xml:id="k216.2"/>durch den/ der allem fleisch<note type="annotation" targetEnd="k216.2"><p>d. i. der Tod (auch die folgenden Verse)</p></note> versaget Audientz/</l>
+                        <lb/>
+                        <l rendition="#et">bey welchem weder Bitt/ noch Goldgeleiches Gläntz/</l>
+                        <lb/>
+                        <l>noch auch die Tugend gilt; dieweil er keinem glaubet/</l>
+                        <lb/>
+                        <l n="5">und ihm der <hi rendition="#larger">Schöpfer</hi> selb das Würgen
+                            hat erlaubet:</l>
+                        <lb/>
+                        <l rendition="#et">Es mag ein König seyn/ in einem Purpur-Rok/</l>
+                        <lb/>
+                        <l rendition="#et">Ein Bättler an der Straß/ auff halb verfaultem Stok/</l>
+                        <lb/>
+                        <l>ein weiser oder thor/ er frißts unaußgeklaubet/</l>
+                        <lb/>
+                        <l rendition="#et">doch nur das Sterbliche/ Herrn <rs type="person"
+                                key="person_003">Buolen</rs> Seele lebt/</l>
+                        <lb/>
+                        <l n="10" rendition="#et">und/ selig/ Gottes Lob im Himmel hoch erhebt/</l>
+                        <lb/>
+                        <l>erwartend auch des Leibs. <anchor xml:id="k216.3"/>Die Ehrgedächtnuß<note type="annotation" targetEnd="k216.3"><p>der feminine Artikel im Fnhd. nicht ungewöhnlich, <ref target="https://fwb-online.de/lemma/ged%C3%A4chtnis.s.1f?q=ged%C3%A4chtnis&amp;page=1">FWB</ref></p></note> bleibet/</l>
+                        <lb/>
+                        <l rendition="#et">sein weltbekantes Lob verschwindet nimmermehr/</l>
+                        <lb/>
+                        <l rendition="#et">wo seiner wird gedacht/ <anchor xml:id="k216.4"/>beschihets<note type="annotation" targetEnd="k216.4"><p>von ‹beschehen›, <ref target="https://www.dwds.de/wb/dwb/beschehen">DWDS</ref>, d. i. ‹geschehen›</p></note> nur in ehr/</l>
+                        <lb/>
+                        <l>so/ daß der Ewigkeit sein Namm bleibt eynverleibet.</l>
+                    </lg>
+                    <lb/>
+                </div>
+  </div>
+  </body>
+  </text>
+  <standOff>
+    <listPerson>
+      <head>Personen</head>
+      <person xml:id="person_169">
+        <persName>Genath, Johann Jacob</persName>
+        <birth when="1582"/>
+        <death when="1654"/>
+        <note>Basler Drucker</note>
+        <idno type="GND">121416720</idno>
+      </person>
+      <person xml:id="person_003">
+        <persName>Buol, Meinrad</persName>
+        <birth when="1588"/>
+        <death when="1658"/>
+        <note>Schweizer Adeliger, Landammann von Davos und Bundslandammann</note>
+        <idno type="GND">1017997098</idno>
+        <idno type="HLS">https://hls-dhs-dss.ch/de/articles/016777</idno>
+      </person>
+    </listPerson>
+    <listPlace>
+      <head>Orte</head>
+      <place xml:id="place_002">
+        <placeName>Basel</placeName>
+        <note>Stadt und eidg. Ort</note>
+        <idno type="GeoNames">2661604</idno>
+      </place>
+    </listPlace>
+  </standOff>
+</TEI>

@@ -71,7 +71,9 @@ The first two are ours: to a behaviour elsewhere, a param it does not define
 means nothing.
 
 On page breaks, `data-page` names the page's image, and the root's model for output
-`page` may name a `manifest`; see *Page images* below.
+`page` may name a `manifest`; see *Page images* below. On any element, `data-card`
+marks it as a card, which a link to it opens in place; see *What an enhancer may
+rely on*.
 
 ## Classes
 
@@ -139,6 +141,7 @@ An enhancer adds scripts to a finished page, whichever renderer wrote it (`runti
 |---|---|
 | `.tei-alternate` with `.tei-alternate-default` and `.tei-alternate-alt[hidden]` as children | two readings, the second hidden |
 | `a.tei-note-ref[href^="#note-"]`, and the element it links to | a note and its marker |
+| `a[href^="#"]` linking to an element with `data-card` | a card: the element, such as a register entry, opened where the link stands, titled by its first child |
 | `[data-page]`, and `[data-manifest]` around it | a page's image, and where to find it |
 
 ## Extensions

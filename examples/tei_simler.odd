@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="https://www.tei-c.org/release/xml/tei/custom/schema/relaxng/tei_odds.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<!--
+  Adapted from DHBern/simler_data, schema/tei_simler.odd, 2026-11-08: the register of
+  persons and places in standOff, which the examples carry; examples/README.md lists the changes.
+-->
 <TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:eg="http://www.tei-c.org/ns/Examples">
   <teiHeader>
     <fileDesc>
@@ -140,11 +144,11 @@
         <moduleRef key="header" include="teiHeader fileDesc titleStmt editionStmt edition publicationStmt sourceDesc biblFull extent idno encodingDesc editorialDecl profileDesc langUsage language textClass classCode"/>
         <moduleRef key="core" include="p lb pb head label hi l lg list item rs choice sic corr abbr expan unclear milestone note num title author bibl name date pubPlace publisher ref cit quote cb measure respStmt resp"/>
         <moduleRef key="textstructure" include="TEI text front body div titlePage titlePart docTitle docAuthor docImprint docDate docEdition closer signed salute dateline epigraph byline"/>
-        <moduleRef key="namesdates" include="persName surname forename"/>
+        <moduleRef key="namesdates" include="persName surname forename listPerson person birth death listPlace place placeName"/>
         <moduleRef key="msdescription" include="msDesc msIdentifier repository physDesc typeDesc"/>
         <moduleRef key="transcr" include="fw supplied space"/>
         <moduleRef key="figures" include="figure"/>
-        <moduleRef key="linking" include="anchor"/>
+        <moduleRef key="linking" include="anchor standOff"/>
         <moduleRef key="tei"/>
 
         <!-- ===================================================================
@@ -345,6 +349,7 @@
             <sequence>
               <elementRef key="teiHeader"/>
               <elementRef key="text"/>
+              <elementRef key="standOff" minOccurs="0"/>
             </sequence>
           </content>
           <attList>
@@ -459,6 +464,9 @@
               <textNode/><elementRef key="surname"/><elementRef key="forename"/>
             </alternate>
           </content>
+          <model behaviour="inline">
+            <outputRendition>font-weight: 600;</outputRendition>
+          </model>
         </elementSpec>
 
         <elementSpec ident="editionStmt" module="header" mode="change">
@@ -540,9 +548,25 @@
                 <valItem ident="DOI"><desc>DOI of the digitised copy</desc></valItem>
                 <valItem ident="Transkribus"><desc>Transkribus document/collection identifier</desc></valItem>
                 <valItem ident="shelfmark"><desc>library shelfmark of the printed copy</desc></valItem>
+                <valItem ident="GND"><desc>in the register: the entry's GND number</desc></valItem>
+                <valItem ident="HLS"><desc>in the register: the URL of the entry's article in the Historisches Lexikon der Schweiz</desc></valItem>
+                <valItem ident="GeoNames"><desc>in the register: the place's GeoNames number</desc></valItem>
               </valList>
             </attDef>
           </attList>
+          <!-- in the register, a link to the authority; the header's are metadata -->
+          <model cssClass="idno-link" predicate="@type='GND'" behaviour="link">
+            <param name="uri" value="concat('https://d-nb.info/gnd/', normalize-space(.))"/>
+            <param name="content" value="'GND'"/>
+          </model>
+          <model cssClass="idno-link" predicate="@type='HLS'" behaviour="link">
+            <param name="uri" value="normalize-space(.)"/>
+            <param name="content" value="'HLS'"/>
+          </model>
+          <model cssClass="idno-link" predicate="@type='GeoNames'" behaviour="link">
+            <param name="uri" value="concat('https://www.geonames.org/', normalize-space(.))"/>
+            <param name="content" value="'GeoNames'"/>
+          </model>
         </elementSpec>
 
         <elementSpec ident="date" module="core" mode="change">
@@ -1006,7 +1030,7 @@
             <model cssClass="head-stanza" predicate="parent::lg" behaviour="paragraph">
               <outputRendition>font-family: var(--f-text); font-weight: 400; margin: 0 0 0.25em;</outputRendition>
             </model>
-            <model cssClass="head-caption" predicate="parent::list or parent::figure" behaviour="paragraph">
+            <model cssClass="head-caption" predicate="parent::list or parent::figure or parent::listPerson or parent::listPlace" behaviour="paragraph">
               <outputRendition>margin: 0 0 0.3em;</outputRendition>
             </model>
             <model cssClass="head-other" behaviour="paragraph">
@@ -1064,6 +1088,93 @@
         </elementSpec>
 
         <!-- ===== entity reference ===== -->
+        <!-- ===================================================================
+             REGISTER: the entries the text's rs refer to, where a document carries them
+             =================================================================== -->
+        <elementSpec ident="standOff" module="linking" mode="change">
+          <desc>The register of the persons and places the text names, from the project's registers:
+            an entry for each <att>key</att> of an <gi>rs</gi>, and no other. It follows the text.</desc>
+          <content>
+            <alternate maxOccurs="unbounded">
+              <elementRef key="listPerson"/><elementRef key="listPlace"/>
+            </alternate>
+          </content>
+          <model behaviour="section">
+            <outputRendition>margin-top: 2.5em; padding-top: 1em; border-top: 1px solid rgb(var(--c-line)); font-family: var(--f-ui); font-size: 0.85em;</outputRendition>
+          </model>
+          <!-- not in the search text -->
+          <model output="plain" behaviour="omit"/>
+        </elementSpec>
+        <elementSpec ident="listPerson" module="namesdates" mode="change">
+          <content>
+            <sequence>
+              <elementRef key="head" minOccurs="0"/>
+              <elementRef key="person" maxOccurs="unbounded"/>
+            </sequence>
+          </content>
+          <model behaviour="block"/>
+        </elementSpec>
+        <elementSpec ident="listPlace" module="namesdates" mode="change">
+          <content>
+            <sequence>
+              <elementRef key="head" minOccurs="0"/>
+              <elementRef key="place" maxOccurs="unbounded"/>
+            </sequence>
+          </content>
+          <model behaviour="block"/>
+        </elementSpec>
+        <elementSpec ident="person" module="namesdates" mode="change">
+          <desc>An entry of the register: its <att>xml:id</att> is the <att>key</att> an <gi>rs</gi>
+            refers to it by; a page may open it as a card where the name stands.</desc>
+          <content>
+            <sequence>
+              <elementRef key="persName"/>
+              <elementRef key="birth" minOccurs="0"/>
+              <elementRef key="death" minOccurs="0"/>
+              <elementRef key="note" minOccurs="0"/>
+              <elementRef key="idno" minOccurs="0" maxOccurs="unbounded"/>
+            </sequence>
+          </content>
+          <model behaviour="block">
+            <param name="data-card" value="'person'"/>
+            <outputRendition>margin: 0.6em 0;</outputRendition>
+          </model>
+        </elementSpec>
+        <elementSpec ident="place" module="namesdates" mode="change">
+          <desc>An entry of the register, as <gi>person</gi> is.</desc>
+          <content>
+            <sequence>
+              <elementRef key="placeName"/>
+              <elementRef key="note" minOccurs="0"/>
+              <elementRef key="idno" minOccurs="0" maxOccurs="unbounded"/>
+            </sequence>
+          </content>
+          <model behaviour="block">
+            <param name="data-card" value="'place'"/>
+            <outputRendition>margin: 0.6em 0;</outputRendition>
+          </model>
+        </elementSpec>
+        <elementSpec ident="placeName" module="namesdates" mode="change">
+          <content><textNode/></content>
+          <model behaviour="inline">
+            <outputRendition>font-weight: 600;</outputRendition>
+          </model>
+        </elementSpec>
+        <elementSpec ident="birth" module="namesdates" mode="change">
+          <desc>The year of birth, in <att>when</att>.</desc>
+          <content><empty/></content>
+          <model behaviour="inline">
+            <param name="content" value="concat('* ', @when)"/>
+          </model>
+        </elementSpec>
+        <elementSpec ident="death" module="namesdates" mode="change">
+          <desc>The year of death, in <att>when</att>.</desc>
+          <content><empty/></content>
+          <model behaviour="inline">
+            <param name="content" value="concat('† ', @when)"/>
+          </model>
+        </elementSpec>
+
         <elementSpec ident="rs" module="core" mode="change">
           <desc>A referencing string identifying a named entity. <att>type</att> classifies the
             entity; <att>key</att> is the typed identifier of the entry in the project registers
@@ -1087,6 +1198,16 @@
               </sch:rule>
             </constraint>
           </constraintSpec>
+          <constraintSpec ident="rs-register" scheme="schematron">
+            <desc>Where the document carries the register (<gi>standOff</gi>), each key has its entry
+              there.</desc>
+            <constraint>
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:rs[ancestor::tei:TEI/tei:standOff]">
+                <sch:assert test="every $key in tokenize(normalize-space(@key), ' ') satisfies ancestor::tei:TEI/tei:standOff//*[@xml:id = $key]">[S-RR]
+                  "<sch:value-of select="@key"/>" has no entry in the document's register.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
           <attList>
             <attDef ident="type" mode="change" usage="req">
               <valList type="semi" mode="replace">
@@ -1106,14 +1227,26 @@
               <datatype><dataRef key="teidata.text"/></datatype>
             </attDef>
           </attList>
-          <!-- `data-key` names the register entries, which the page may open as a card -->
+          <!-- `data-key` names the register entries, which the page may open as a card; where the
+               document carries the register, a person or place with one entry links to it -->
+          <model predicate="(@type='person' or @type='place') and ancestor::TEI/standOff and not(contains(normalize-space(@key), ' '))" behaviour="link">
+            <param name="uri" value="concat('#', normalize-space(@key))"/>
+            <param name="data-key" value="@key"/>
+          </model>
           <model behaviour="inline">
             <param name="data-key" value="@key"/>
           </model>
           <!-- entity highlighting, colour-coded by type -->
-          <model cssClass="entity-person" output="entities" predicate="@type='person'" behaviour="inline">
+          <!-- a view adds its classes to a model of the same behaviour: the linked names first -->
+          <model cssClass="entity-person" output="entities" predicate="@type='person' and ancestor::TEI/standOff and not(contains(normalize-space(@key), ' '))" behaviour="link">
             <desc>Entitäten</desc>
             <desc>Personen, Orte, Werke, Institutionen und Bibelstellen farbig.</desc>
+            <param name="uri" value="concat('#', normalize-space(@key))"/>
+          </model>
+          <model cssClass="entity-place" output="entities" predicate="@type='place' and ancestor::TEI/standOff and not(contains(normalize-space(@key), ' '))" behaviour="link">
+            <param name="uri" value="concat('#', normalize-space(@key))"/>
+          </model>
+          <model cssClass="entity-person" output="entities" predicate="@type='person'" behaviour="inline">
             <outputRendition>color: rgb(var(--c-person)); text-decoration: underline solid; text-underline-offset: 0.22em;</outputRendition>
           </model>
           <model cssClass="entity-place" output="entities" predicate="@type='place'" behaviour="inline">
@@ -1286,10 +1419,10 @@
             </constraint>
           </constraintSpec>
           <constraintSpec ident="note-type" scheme="schematron">
-            <desc>A note says what it is: a range comment by <att>targetEnd</att>, any other by
+            <desc>A note in the text says what it is: a range comment by <att>targetEnd</att>, any other by
               <att>type</att>.</desc>
             <constraint>
-              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:note[not(@targetEnd)]">
+              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:note[not(@targetEnd or ancestor::tei:standOff)]">
                 <sch:assert role="warning" test="@type">[S-NT] A note without targetEnd needs a
                   type.</sch:assert>
               </sch:rule>
@@ -1311,6 +1444,8 @@
               </valList>
             </attDef>
           </attList>
+          <!-- in the register, a note describes its entry -->
+          <model cssClass="note-entry" predicate="parent::person or parent::place" behaviour="block"/>
           <model cssClass="note-speaker" predicate="@type='speaker'" behaviour="inline" useSourceRendition="true">
             <outputRendition>font-family: var(--f-ui); font-size: 0.72em; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(var(--c-muted));</outputRendition>
           </model>
@@ -1336,6 +1471,14 @@
             <param name="marker" value="false()"/>
           </model>
           <model output="plain" predicate="@targetEnd" behaviour="omit"/>
+        </elementSpec>
+
+        <elementSpec ident="ref" module="core" mode="change">
+          <desc>A link, as in the commentary: to a dictionary, a record or another work
+            (<val>#n129</val>).</desc>
+          <model predicate="@target" behaviour="link" useSourceRendition="true">
+            <param name="uri" value="@target"/>
+          </model>
         </elementSpec>
 
         <elementSpec ident="list" module="core" mode="change">

@@ -200,10 +200,19 @@ for (const doc of data.docs) {
         if (tooltip) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); focus = document.activeElement === ref; }
         ref.blur(); document.body.click();
       }
+      // A link to an entry the ODD marks as a card opens it, titled by its first child.
+      const name = [...document.querySelectorAll('a[href^="#"]')].find((a) => document.getElementById(a.getAttribute('href').slice(1))?.hasAttribute('data-card'));
+      let card = null;
+      if (name) {
+        name.scrollIntoView(); await wait(300); name.click(); await wait(150);
+        const entry = document.getElementById(name.getAttribute('href').slice(1));
+        card = !!document.querySelector('.tei-tooltip:not([hidden])')?.getClientRects().length && document.querySelector('.tei-tooltip-title').textContent === entry.firstElementChild.textContent.trim();
+        document.body.click();
+      }
       const page = document.querySelector('[data-page]');
       let facsimile = null;
       if (page) { page.scrollIntoView(); await wait(500); page.click(); await wait(400); const src = document.querySelector('.tei-facsimile:not([hidden]) img')?.src; facsimile = !!src && (page.dataset.image ? src === page.dataset.image : src.endsWith('/' + page.dataset.page)); }
-      return { swaps, tooltip, "focus back after Escape": focus, facsimile };
+      return { swaps, tooltip, "focus back after Escape": focus, card, facsimile };
     })()`);
     for (const [name, did] of Object.entries(acts)) {
       if (did !== null && did !== path.interactive) report(path, doc, name, `the manifest says ${path.interactive ? "it does" : "it does not"}`);
