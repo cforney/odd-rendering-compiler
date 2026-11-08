@@ -23,7 +23,7 @@ import { fileURLToPath } from "url";
 import { parseArgs, resolveTeiFiles } from "./cli.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const { version } = JSON.parse(readFileSync(join(HERE, "package.json"), "utf8"));
+const { version } = JSON.parse(readFileSync(join(HERE, "../package.json"), "utf8")); // the published package
 
 /** The tiers: the static page, each enhancer of render-unified.mjs, and CETEIcean, which compiles and renders in one step. */
 const TIERS = ["static", "script", "islands", "petite-vue", "ceteicean"];

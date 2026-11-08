@@ -1,0 +1,28 @@
+{
+  "name": "odd-rendering-compiler",
+  "version": "0.3.0",
+  "description": "TEI ODD Processing Model → CSS, XSLT, unified/xast handlers and CETEIcean behaviours, with rendering for static editions",
+  "type": "module",
+  "exports": "./compiler-js/index.mjs",
+  "bin": {
+    "odd-render": "compiler-js/odd-render.mjs"
+  },
+  "files": [
+    "compiler-js/*.mjs",
+    "runtime/",
+    "behaviour-map.json"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@rgrove/parse-xml": "4.2.0",
+    "parse5": "7.3.0"
+  },
+  "optionalDependencies": {
+    "pagefind": "1.5.2"
+  },
+  "license": "BSD-2-Clause",
+  "author": "Christian Forney",
+  "repository": "github:cforney/odd-rendering-compiler"
+}

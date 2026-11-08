@@ -81,6 +81,21 @@ jobs:
           SAXON_HOME: ${{ github.workspace }}/compiler-xslt/vendor/SaxonHE12-9J
         run: npm test
 
+      # The published package, installed outside the checkout: the library and odd-render.
+      - name: Package — install and render
+        run: |
+          npm pack --pack-destination "$RUNNER_TEMP"
+          mkdir "$RUNNER_TEMP/app" && cd "$RUNNER_TEMP/app" && npm init -y > /dev/null
+          npm install "$RUNNER_TEMP"/odd-rendering-compiler-*.tgz
+          ex="$GITHUB_WORKSPACE/examples"
+          node --input-type=module -e "
+            import { readFileSync } from 'fs';
+            import { compileOdd, renderDocument } from 'odd-rendering-compiler';
+            const { html } = renderDocument(compileOdd('$ex/tei_simler.odd'), readFileSync('$ex/simler-psalmen.xml', 'utf8'));
+            if (!html.startsWith('<div class=\"tei-edition\"')) throw new Error('no edition');"
+          npx odd-render "$ex/tei_simler.odd" "$ex/simler-*.xml" --tier script --out site --strict
+          test -s site/simler-psalmen.html
+
   # The excerpts are validated against the schema compiled from the Simler ODD.
   # The nested page-break model is not TEI: it is validated against its own
   # customisation of the ODD language. Both compile with the TEI Stylesheets.

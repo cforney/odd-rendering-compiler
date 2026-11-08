@@ -23,9 +23,31 @@ missing ODD, a missing source or a glob that matches nothing is an error before
 anything is written.
 
 Each step is the script below, run as its own process, so the command adds no
-second implementation of anything. `package.json` declares it as the
-`odd-render` bin: `npm link` puts it on the path as `odd-render`. It is not
-published to npm.
+second implementation of anything.
+
+## Installing, and the library
+
+The package is the repository's root `package.json` (this folder's is for
+development, and private): the scripts here, `../runtime/` and the behaviour table.
+It is not on npm; install it from the repository or from `npm pack` at its root:
+
+```bash
+npm install github:cforney/odd-rendering-compiler   # or: npm install ./odd-rendering-compiler-0.3.0.tgz
+npx odd-render <odd> <tei...> [options]
+```
+
+A build that renders TEI itself imports the library, [`index.mjs`](index.mjs): it
+reads the ODD and renders in memory, writes no files and never exits the process.
+
+```js
+import { compileOdd, renderDocument } from "odd-rendering-compiler";
+const edition = compileOdd("tei_simler.odd", { tokens });   // { odd, css, unsupported, teiToHast }
+const { html, hast, notes, page } = renderDocument(edition, xml);   // page: title, lang, credit, …
+```
+
+An ODD it cannot read throws an `OddError`; XPath outside the subset is degraded
+and listed in `unsupported`. Pages, the index, enhancers and reports stay with the
+command lines. CI installs the packed package in an empty project and runs both.
 
 ## Generators (ODD → artefacts)
 
@@ -160,6 +182,7 @@ are not on disk.
 
 ```
 compiler-js/
+├── index.mjs             # the library: compileOdd, renderDocument, editionCss
 ├── odd-parser.mjs        # reads the ODD into models and CSS rules; parses TEI
 ├── odd-render.mjs        # the one command: every step below, in order
 ├── cli.mjs               # CLI, file output, escaping, the hast serialiser, multi-file input

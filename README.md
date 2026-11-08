@@ -60,6 +60,11 @@ It compiles `edition.css` and the handlers, renders every source with them, and
 tells you what it could not evaluate rather than refusing to build. See
 [`compiler-js/README.md`](compiler-js/README.md#one-command).
 
+**As a package or a library.** `npm install github:cforney/odd-rendering-compiler`
+gives `npx odd-render`, and `compileOdd` and `renderDocument` for a build that renders
+TEI itself (an Astro or Eleventy site, a rehype pipeline). See
+[`compiler-js/README.md`](compiler-js/README.md#installing-and-the-library).
+
 ## Quick start — XSLT
 
 Requires **Java** and **Saxon HE 12**. Point `SAXON_HOME` at your unpacked Saxon

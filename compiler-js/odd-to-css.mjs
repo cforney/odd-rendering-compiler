@@ -16,7 +16,7 @@
 
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
-import { on } from "./odd-parser.mjs";
+import { editionCss } from "./index.mjs";
 import { undefinedProperties } from "./findings.mjs";
 import { parseArgs, loadOdd, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
@@ -35,32 +35,13 @@ if (!oddPath) {
 log(`Parsing ODD: ${oddPath}`);
 const odd = loadOdd(oddPath, "odd-to-css");
 const { specs, renditions, views } = odd;
-const rules = specs.flatMap((s) => s.rules);
 const tokens = tokensPath ? readFileSync(resolve(tokensPath), "utf8").trim() : "";
-const oddCss = [
-  ...renditions.map((r) => `.r-${r.id} { ${r.css} }`),
-  ...rules.map((r) => `${r.selector} { ${r.css} }`),
-];
-// A view hides what it omits, and shows its own readings of an alternate.
-const viewCss = views.flatMap(({ output: v }) => [
-  `${on(v)} .${v}-omit { display: none; }`,
-  `${on(v)} .tei-alternate-default.${v}-alternate { display: none; }`,
-  `${on(v)} .tei-alternate-alt.${v}-default { display: inline; }`,
-]);
 
 for (const name of undefinedProperties(odd, tokens)) {
   log(`⚠ var(${name}) is defined nowhere${tokensPath ? "" : " (no --tokens)"}`);
 }
 
-const css = [
-  `/* edition.css — generated from ${basename(oddPath)}${stamp ? `, ${stamp}` : ""}; edit the ODD, not this file. */`,
-  ...(tokens ? [tokens] : []),
-  ".pm-block { display: block; }",
-  ...oddCss,
-  ...viewCss,
-  readFileSync(new URL("../runtime/ui.css", import.meta.url), "utf8").trim(),
-  "",
-].join("\n");
-
+const css = editionCss(odd, { tokens, source: basename(oddPath), stamp });
+const rules = specs.flatMap((s) => s.rules);
 const cssPath = writeOut(outDir, "edition.css", css);
 log(`✓ ${cssPath} (${tokens ? "tokens, " : ""}${renditions.length} renditions, ${rules.length} model rules, ${views.length} views)`);

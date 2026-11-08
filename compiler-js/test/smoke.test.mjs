@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { readOdd, parseXmlToXast } from "../odd-parser.mjs";
 import { loadHandlers } from "../cli.mjs";
+import { compileOdd, renderDocument, OddError } from "../index.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ODD = "../examples/tei_simler.odd";
@@ -88,6 +89,30 @@ test("render-unified renders every example, with an index", () => {
   }
   assert.match(index, /<a href="simler-psalmen\.html">Haubtbegriff des erſten Pſalms, Psalms I–V \(C 1663, pp\. 4–5\)<\/a>/, "the title the page model gives");
   assert.match(index, /2 page image\(s\) · <a href="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049159\/manifest">IIIF manifest<\/a>/, "its page images and manifest");
+});
+
+test("the library compiles and renders in memory, as the command lines do, and never exits", () => {
+  const out = join(outDir, "library");
+  run("odd-to-css.mjs", ["--odd", ODD, "--tokens", TOKENS, "--out", out, "--no-timestamp"]);
+  run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", EXAMPLES, "--out", out]);
+  const edition = compileOdd(join(pocDir, ODD), { tokens: readFileSync(join(pocDir, TOKENS), "utf8") });
+  assert.equal(edition.css, readFileSync(join(out, "edition.css"), "utf8"), "the stylesheet odd-to-css writes");
+  for (const name of readdirSync(join(pocDir, "../examples")).filter((f) => /^simler-.*\.xml$/.test(f))) {
+    const { html, page: meta } = renderDocument(edition, readFileSync(join(pocDir, "../examples", name), "utf8"));
+    assert.ok(page("library", name.replace(".xml", "")).includes(html), `${name}: the edition render-unified writes`);
+    assert.ok(meta.title[0], "with the page model's params");
+  }
+  const bare = join(out, "bare.odd");
+  writeFileSync(bare, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="b"><elementSpec ident="p" mode="change"/></schemaSpec></body></text></TEI>`);
+  assert.throws(() => compileOdd(bare), OddError, "an ODD it cannot compile throws");
+
+  // The published package is the root's: it carries runtime/ and the behaviour table, which compiler-js imports.
+  const root = JSON.parse(readFileSync(join(pocDir, "../package.json"), "utf8"));
+  const dev = JSON.parse(readFileSync(join(pocDir, "package.json"), "utf8"));
+  for (const key of ["name", "version", "license", "engines", "dependencies", "optionalDependencies"]) assert.deepEqual(root[key], dev[key], `both package.json agree on ${key}`);
+  assert.ok(dev.private, "only the root's is published");
+  assert.ok(["runtime/", "behaviour-map.json"].every((f) => root.files.includes(f)));
+  assert.ok([root.exports, root.bin["odd-render"]].every((f) => existsSync(join(pocDir, "..", f))));
 });
 
 test("render-unified lays the views over the page, each with a switch", () => {

@@ -3,7 +3,8 @@
   "version": "0.3.0",
   "description": "Build-time pipeline: TEI ODD Processing Model → CSS, XSLT, unified/xast handlers, and CETEIcean behaviours — with end-to-end HTML rendering for static editions",
   "type": "module",
-  "main": "odd-to-css.mjs",
+  "private": true,
+  "main": "index.mjs",
   "bin": {
     "odd-render": "odd-render.mjs"
   },
