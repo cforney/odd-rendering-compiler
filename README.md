@@ -108,8 +108,8 @@ CI publishes it to GitHub Pages on every push to `main`. See
 - The **example texts** in [`examples/`](examples/) are **not** covered by it —
   they keep their originating projects' terms and are included only as
   illustration. See [`examples/README.md`](examples/README.md) for provenance and
-  credits (Simler Digital / e-rara, CC BY-SA; the TEI Consortium's simplePrint
-  exemplar).
+  credits (Simler Digital's transcriptions and ODD, CC BY 4.0; e-rara's facsimiles on
+  e-rara's terms; the TEI Consortium's simplePrint exemplar, CC BY-SA 3.0).
 
 ## How to cite
 

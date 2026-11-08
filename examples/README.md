@@ -58,16 +58,21 @@ reusing these files.**
 
 - **Simler Digital** — <https://www.simler.unibe.ch/> — Johann Wilhelm Simler,
   *Teutsche Gedichte* (1663). The ODD, the design tokens and the excerpts come
-  from the project's repository, [DHBern/simler_data](https://github.com/DHBern/simler_data);
-  facsimiles from e-rara (<https://www.e-rara.ch/>), CC BY-SA. The tests and the
+  from the project's repository, [DHBern/simler_data](https://github.com/DHBern/simler_data).
+  The transcriptions and the ODD, with the schema and rendering generated from it, are
+  the Simler Project Team's under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+  as the ODD's `availability` states and each excerpt's header repeats. The facsimiles
+  come from e-rara (<https://www.e-rara.ch/>), on the terms e-rara states for each image. The tests and the
   demo's check use `compiler-js/test/fixtures/iiif/e-rara-4049159.json`, e-rara's
   IIIF manifest of the book cut down to the pages of the excerpts.
 - **TEI Consortium** — `tei_simplePrint.odd` is the TEI's SimplePrint exemplar
-  (<https://github.com/TEIC/TEI>), redistributed here for testing.
+  (<https://github.com/TEIC/TEI>), under CC BY-SA 3.0 as its header states,
+  redistributed here for testing.
 
 ## Licensing
 
 The **code** in this repository is under BSD-2-Clause (see the repository
 `LICENSE`). The **example texts above are not covered by that licence**: they
-remain under their originating projects' terms (e.g. e-rara facsimiles are
-CC BY-SA) and are included here only as illustrative input.
+remain under their originating projects' terms (the Simler transcriptions and ODD
+CC BY 4.0, the TEI's SimplePrint CC BY-SA 3.0, e-rara's facsimiles e-rara's terms per
+image) and are included here only as illustrative input.
