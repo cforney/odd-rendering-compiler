@@ -9,10 +9,9 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 |------|------------|
 | `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-08 with the register added (see [below](#what-was-changed)). The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the project's file |
 | `design-tokens.css` | the custom properties the ODD's CSS reads (fonts, sizes, colours); the CSS generators put them at the top of `edition.css` |
-| `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–XXI: range notes set inside a word, running headers, page numbers and catchwords, a page break inside a stanza, joined line ends; a commentary note and two names |
 | `simler-buchstabwechsel.xml` | poems VI and VII of the dedicatory poems: two interleaved two-column pages, whose acrostics the `l-twocol` params lay out; readings (`choice`) inside the acrostic lines, with a range note; the poet's name |
+| `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–XXI: range notes set inside a word, running headers, page numbers and catchwords, a page break inside a stanza, joined line ends; a commentary note and two names |
 | `simler-todtenklang.xml` | poems 143 and 144 of the epigrams, a burial poem and a sonnet: the edition's commentary as range notes, with links to dictionaries, and names (`rs`) whose entries the register holds |
-| `simler-regenten-kleinodt.xml` | *Regenten Kleinodt*, Psalm 72: printed marginal glosses with joined line ends, a melody line, numbered stanzas |
 | `tei_simplePrint.odd` | the TEI's SimplePrint exemplar (a real-world ODD composed via `<specGrpRef>`), a second ODD to test the compilers on |
 | `validate.sh` | validates each excerpt against the schema and the Schematron compiled from the ODD; CI runs it |
 | `extensions/nested-pb/` | **an extension**: the Simler ODD with Boot's (2024) nested page-break model, a facsimile thumbnail linking to the full scan; with its own ODD-language customisation (`poc_odds.odd`) to validate it. See its [README](extensions/nested-pb/README.md) |
@@ -39,15 +38,15 @@ they are:
 
 | Excerpt | Source file, pages | Changes | Schematron warnings, the source's own |
 |---|---|---|---|
+| `simler-buchstabwechsel.xml` | `C_1663_dok.xml`, fol. A vii r–v | `rs` on the poet's name, as `C_1663_Teil-0.xml` marks it; **a correction:** a stray `lb` inside the verse line *Lern ſchweigen; und das mau* (poem VII) removed, as the print, `C_1663_Teil-0.xml` and `D_1688.xml` have one line (corrected in simler_data too) | none |
 | `simler-psalmen.xml` | `C_1663_dok.xml` (the documentary transcription), pp. 4–7 | `rs` on *David* and *Abſolon* in Psalm III, as the reading text `C_1663_Teil-1.xml` marks them; **a commentary note on *Abſolon* (`k1.1`), written for the example** in the form of the edition's commentary | none |
-| `simler-buchstabwechsel.xml` | `C_1663_dok.xml`, fol. A vii r–v | `rs` on the poet's name, as `C_1663_Teil-0.xml` marks it | none |
 | `simler-todtenklang.xml` | `C_1663_Teil-5.xml` (the reading text, with the commentary), pp. 539–540 | the page break of p. 539, which falls in the poem before, set before 143; the provisional `label`s (`[215.]`, `[216.]`) and the commentary's `@subtype` removed; a commentary note that was a placeholder for the register ("vgl. Biogramm [Link]") removed with its anchor; a mistyped host in a link corrected (`fwb-online.de`) | [S-HI], [S-HIB] on the two headings' `hi`, which covers the whole `head` |
-| `simler-regenten-kleinodt.xml` | `C_1663_dok.xml`, p. 349 | a transcribers' working comment removed | none |
 
 ### What was changed
 
-The ODD is the project's, with the register its examples carry, and nothing else
-changed. A document without a `standOff` renders as before:
+The ODD is the project's, with the register its examples carry and one change
+to the layout, which the project's ODD shares. A document without a `standOff`
+renders as with the project's ODD:
 
 - **The register:** `standOff` (module linking) with `listPerson`/`listPlace`,
   `person`/`place`, `placeName`, `birth`, `death` (module namesdates), each with a
@@ -58,6 +57,10 @@ changed. A document without a `standOff` renders as before:
   (`#person_003`), and reads as the text around it; the `entities` view has link
   models to match, so it still highlights the names. `idno` of type
   `GND`, `HLS` or `GeoNames` links to the authority, and `persName` gained a model.
+- **The two-column layout:** an indented line in the `twocol` rendition steps 1.2em
+  (`--indent-step`, was 0.5em), as the print indents it, so that a name formed by the
+  first letters of the flush lines (SJMLER in poem VII) reads down the column; the
+  project's ODD has the same change.
 - **Its rules:** each `rs/@key` has an entry where the register is present
   ([S-RR]); a note in the register needs no `@type`; a `head` in a list of the
   register is a caption.

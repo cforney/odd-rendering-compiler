@@ -32,7 +32,7 @@ each target reads, implements and has executed.
 | [`compiler-js/`](compiler-js/) | JavaScript reference implementation (generators, renderers, shared ODD parser, smoke tests) |
 | [`compiler-xslt/`](compiler-xslt/) | XSLT reference implementation (the same chain, built entirely in XSLT + Saxon) |
 | [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `pm-runtime.mjs` + `xpath.mjs` for the unified handlers, `ceteicean.js` (+ page) over those two for the CETEIcean tier, `ui.css` for the renderers' own furniture (the view switches, the notes), and `notes.js` and `facsimile.js` for the notes and register cards as tooltips and the page images on every interactive page |
-| [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a copy, with a register) with four excerpts adapted from its sources, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an extension that is not TEI |
+| [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a copy, with a register) with three excerpts adapted from its sources, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an extension that is not TEI |
 
 ## Quick start — JavaScript
 

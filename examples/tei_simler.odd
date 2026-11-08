@@ -82,7 +82,7 @@
         <!-- The Buchstabwechsel pages: an interleaved two-column setting (read row by row, so the
              lines alternate left and right) whose acrostic lines carry marginal letters, set in the
              line's padding. The line boxes are laid out by the l models. -->
-        <rendition xml:id="twocol" scheme="css">--acro-body: 1.45em; --acro-fin: 1.25em; --indent-step: 0.5em; display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.3em; align-items: baseline;</rendition>
+        <rendition xml:id="twocol" scheme="css">--acro-body: 1.45em; --acro-fin: 1.25em; --indent-step: 1.2em; display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.3em; align-items: baseline;</rendition>
         <rendition xml:id="acrostic" scheme="css">position: relative;</rendition>
         <rendition xml:id="acroInit" scheme="css">position: absolute; left: 0; font-weight: 600;</rendition>
         <rendition xml:id="acroFin" scheme="css">position: absolute; right: 0; font-weight: 600;</rendition>

@@ -102,11 +102,8 @@ test("render-unified renders every example, with an index", () => {
     for (const [, key] of html.matchAll(/href="#((?:person|place)_\d+)"/g)) assert.match(html, new RegExp(`id="${key}" data-card`), `${name}: ${key} has its entry`);
   }
 
-  assert.match(page("unified", "simler-regenten-kleinodt"), /<span class="tei-note note-margin r-smaller" data-margin="right">David bit<span class="tei-lb lb-hyphen normalized-omit">-<\/span>/,
-    "a marginal gloss, with its joined line ends");
-
   const index = readFileSync(join(outDir, "unified", "index.html"), "utf8");
-  for (const name of ["simler-psalmen", "simler-buchstabwechsel", "simler-todtenklang", "simler-regenten-kleinodt"]) {
+  for (const name of ["simler-buchstabwechsel", "simler-psalmen", "simler-todtenklang"]) {
     assert.match(index, new RegExp(`href="${name}\\.html"`));
   }
   assert.match(index, /<a href="simler-psalmen\.html">Haubtbegriff des erſten Pſalms, Psalms I–XXI \(C 1663, pp\. 4–7\)<\/a>/, "the title the page model gives");

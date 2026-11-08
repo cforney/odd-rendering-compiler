@@ -1,10 +1,7 @@
 # Extension: the nested page-break model
 
-> **Not TEI.** This example uses the nested model that Boot (2024) proposes: a
-> `<model>` that holds a `<modelSequence>`, so one element has several behaviours
-> at once. The TEI's ODD schema (`tei_odds.rng`) rejects it, and only this proof
-> of concept renders it. The Simler ODD one level up, the project's own, renders
-> `pb` with the standard `break` behaviour.
+This example uses the nested model that Boot (2024) proposes: a `<model>` that
+holds a `<modelSequence>`, so one element has several behaviours at once.
 
 With a facsimile, a page break renders as a thumbnail of the page that links to
 the full scan: a `compound` of a `link` and a `graphic`, the link wrapping the

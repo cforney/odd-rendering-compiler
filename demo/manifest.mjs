@@ -117,8 +117,7 @@ export const inspected = { odd: "examples/tei_simler.odd", handlers: "compiler-j
 
 // Documents on offer: the examples, each rendered by every path (id = file name).
 export const docs = [
-  { id: "simler-psalmen", label: "Psalms I–XXI (C 1663, pp. 4–7)" },
   { id: "simler-buchstabwechsel", label: "Buchstabwächsel: two columns, acrostics" },
+  { id: "simler-psalmen", label: "Psalms I–XXI (C 1663, pp. 4–7)" },
   { id: "simler-todtenklang", label: "Trauriger Todtenklang: commentary, register" },
-  { id: "simler-regenten-kleinodt", label: "Regenten Kleinodt: marginalia" },
 ];
