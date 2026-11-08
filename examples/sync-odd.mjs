@@ -39,14 +39,13 @@ const raw = async (path) => (await get(`https://raw.githubusercontent.com/${REPO
 const short = sha.slice(0, 7);
 const date = committer.date.slice(0, 10);
 
-/** The elements left open by `lines` over those already open, each { name, tag, line }; `first` is the number of the first line. */
-function openAfter(lines, open = [], first = 1) {
+/** The elements left open by `lines` over those already open, each { name, tag }. */
+function openAfter(lines, open = []) {
   const stack = [...open];
-  const text = lines.join("\n");
-  for (const m of text.matchAll(/<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<(\/?)([\w:.-]+)(?:\s[^<>]*?)?(\/?)>/g)) {
+  for (const m of lines.join("\n").matchAll(/<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<(\/?)([\w:.-]+)(?:\s[^<>]*?)?(\/?)>/g)) {
     if (!m[2] || m[3]) continue;
     if (m[1]) stack.pop();
-    else stack.push({ name: m[2], tag: m[0], line: first + text.slice(0, m.index).split("\n").length - 1 });
+    else stack.push({ name: m[2], tag: m[0] });
   }
   return stack;
 }
@@ -63,7 +62,7 @@ function excerpt(source, { from, to }) {
   // The root is the excerpt's own.
   const open = openAfter(lines.slice(0, start)).filter((e) => e.name !== "TEI");
   const piece = lines.slice(start, end + 1);
-  return { start: start + 1, end: end + 1, open, piece, closing: openAfter(piece, open, start + 1).reverse() };
+  return { open, piece, closing: openAfter(piece, open).reverse() };
 }
 
 writeFileSync(new URL("tei_simler.odd", here), await raw("schema/tei_simler.odd"));
@@ -72,14 +71,10 @@ writeFileSync(new URL("simler-tokens.css", here),
   await raw("preview/assets/tokens.css"));
 
 for (const [name, spec] of Object.entries(EXCERPTS)) {
-  const { start, end, open, piece, closing } = excerpt(await raw(SOURCES + spec.file), spec);
+  const { open, piece, closing } = excerpt(await raw(SOURCES + spec.file), spec);
   const url = new URL(name, here);
   const current = readFileSync(url, "utf8").replace(/\r\n/g, "\n");
-  const header = current.slice(0, current.indexOf("</teiHeader>") + "</teiHeader>".length).replace(
-    /Source: [\s\S]*?closing tags\.\n/,
-    `Source: ${REPO} at ${short}, ${SOURCES}${spec.file},\n  lines ${start}–${end}, verbatim. Added around them: this comment, the teiHeader, the\n` +
-    `  start tags of the enclosing elements (from lines ${open.map((e) => e.line).join(", ")}) and the closing tags.\n`,
-  );
+  const header = current.slice(0, current.indexOf("</teiHeader>") + "</teiHeader>".length).replace(/Source: [^\n]*\n/, `Source: ${REPO} at ${short}.\n`);
   writeFileSync(url, [header, ...open.map((e) => `  ${e.tag}`), ...piece, ...closing.map((e) => `  </${e.name}>`), "</TEI>", ""].join("\n"));
 }
 

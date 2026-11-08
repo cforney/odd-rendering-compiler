@@ -27,11 +27,17 @@ Gedichte* (C, 1663):
   header comment, a minimal `teiHeader` with the IIIF manifest
   (`idno[@type='URLIIIF']`, which the page breaks' `@facs` resolve against), the
   start tags of the enclosing elements, and the closing tags.
-- **Sourced:** the header comment names the source file, the line range and the
-  commit.
+- **Sourced:** the header comment names the commit; the table below the source
+  file. `sync-odd.mjs` finds an excerpt by its text, as line numbers move.
 - **Valid:** each excerpt passes the schema compiled from `tei_simler.odd` and its
-  Schematron rules. Where the source itself draws a warning, the header comment
-  says which.
+  Schematron rules. Where the source itself draws a warning, the table says which.
+
+| Excerpt | Source file | Schematron warnings, the source's own |
+|---|---|---|
+| `simler-psalmen.xml` | `C_1663_dok.xml` | none |
+| `simler-buchstabwechsel.xml` | `C_1663_Teil-0.xml` | [S-HI] on the heading's `hi`; [S-LB] on the `lb` that ends the `div` |
+| `simler-hausswesen.xml` | `C_1663_dok.xml` | [S-LBC] on the `lb` after the catchword, which the excerpt is here to show; [S-LB] on the three `lb` that end an `lg`, after its Bible note |
+| `simler-regenten-kleinodt.xml` | `C_1663_dok.xml` | none |
 
 Three excerpts come from `C_1663_dok.xml`. The Buchstabwächsel comes from
 `C_1663_Teil-0.xml`, an earlier transcription stage of the same edition, because
