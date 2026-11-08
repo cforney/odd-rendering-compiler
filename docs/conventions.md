@@ -20,7 +20,7 @@ first model of that output whose predicate holds, else the first model without
 | Output | Meaning here | Elsewhere |
 |---|---|---|
 | `web` | the page | TEI Publisher and OPM render it too |
-| `page` | what the page shows around the text: the params of the root's model, such as `title`, `manifest` and `pages` | an unknown output, skipped |
+| `page` | what the page shows around the text: the params of the root's model, such as `title`, `lang`, `manifest` and `pages` | an unknown output, skipped |
 | `plain` | the search text, rendered by `render-plain.mjs` | known to OPM too |
 | `plaintext`, `print`, `fo`, `latex`, `epub`, `pdf` | a channel: renders alone, with `--output`, and is never a view | other tools' outputs |
 
@@ -104,7 +104,7 @@ XPath, ODD resolution and diagnostics, by target.
   line joins: the spaces around it go, and a last character of the line's text that
   `join` names; the model sets the hyphen. Without `join`, no text changes.
 - **Page metadata.** The params of the root's model for output `page`: `title` names the
-  page, or else its file does, and `manifest` goes on the edition. An `index` lists
+  page, or else its file does, `lang` gives the page's language, and `manifest` goes on the edition. An `index` lists
   what a model renders as `heading`. Findings read a note's range from a param `range`,
   and an anchor from the behaviour `anchor`.
 - **Namespaces.** Names resolve by namespace, not by spelling, in the ODD and in

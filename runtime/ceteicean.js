@@ -241,6 +241,8 @@ function teiEdition(ct, source, models, views, done) {
   const root = { node: teiXast(doc.documentElement), up: [] };
   const page = resolver.select(root, "page");
   if (page?.params.title) document.title = str(page.params.title(root));
+  const lang = page?.params.lang ? str(page.params.lang(root)) : "";
+  if (lang) document.documentElement.lang = lang;
   ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom, page?.params.manifest ? str(page.params.manifest(root)) : "")));
 }
 

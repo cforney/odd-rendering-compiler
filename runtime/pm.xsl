@@ -36,9 +36,10 @@
   <xsl:mode name="pm:select" on-no-match="deep-skip"/>
   <xsl:mode name="pm:page" on-no-match="shallow-copy"/>
 
-  <!-- The page; its title is the one the root's model for output "page" gives. -->
+  <!-- The page; its title and language are the ones the root's model for output "page" gives. -->
   <xsl:template match="/">
     <html data-mode="light">
+      <xsl:for-each select="string((pm:select(/*, 'page')?params?lang)[1])[.]"><xsl:attribute name="lang" select="."/></xsl:for-each>
       <head>
         <meta charset="UTF-8"/>
         <title><xsl:value-of select="(pm:select(/*, 'page')?params?title ! string(), replace(tokenize(base-uri(/), '/')[last()], '\.xml$', ''))[.][1]"/></title>

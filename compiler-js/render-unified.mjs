@@ -21,7 +21,7 @@ import { readFileSync } from "fs";
 import { resolve, basename, extname } from "path";
 import {
   parseArgs, createLogger, writeOut, toHtml, loadHandlers, readTei,
-  resolveTeiFiles, htmlPageName, buildIndexPage,
+  resolveTeiFiles, htmlPageName, buildIndexPage, escapeXml,
 } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -108,12 +108,13 @@ function renderPage(teiFile) {
   const { hast, notes, page } = teiToHast(tree, { output });
   const body = toHtml(enhancer?.transform?.(hast) ?? hast);
 
+  const lang = page.lang?.[0];
   const html = `<!DOCTYPE html>
-<html data-mode="light">
+<html data-mode="light"${lang ? ` lang="${escapeXml(lang)}"` : ""}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${page.title?.[0] || basename(teiFile, extname(teiFile))}</title>
+  <title>${escapeXml(page.title?.[0] || basename(teiFile, extname(teiFile)))}</title>
 
   <!-- ODD-generated stylesheet (odd-to-css.mjs), inlined for a self-contained file. -->
   <style id="edition-css">

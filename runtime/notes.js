@@ -2,7 +2,7 @@
  * notes.js — a note as a tooltip, the same on every interactive page. A click on
  * a note marker (a.tei-note-ref, a link to its note at the end) opens a panel
  * with that note, which steps to the previous or next one; Escape or a click
- * elsewhere closes it. Without JavaScript the marker stays a link. The page may
+ * elsewhere closes it, and focus returns to the marker. Without JavaScript the marker stays a link. The page may
  * render its text later (SaxonJS, CETEIcean), so clicks are caught on the document.
  */
 (function () {
@@ -48,6 +48,7 @@
     var copy = note.cloneNode(true);
     var num = copy.querySelector(".tei-note-num");
     if (num) num.remove();
+    copy.querySelectorAll("[id]").forEach(function (e) { e.removeAttribute("id"); }); // the note keeps them
     title.textContent = "Note " + marker.textContent.trim() + (all.length > 1 ? " of " + all.length : "");
     body.replaceChildren.apply(body, copy.childNodes);
     jump.href = "#" + note.id;
@@ -65,10 +66,13 @@
     return true;
   }
 
-  function close() {
+  /** Focus that was in the panel goes back to its marker, unless it follows a link. */
+  function close(leaving) {
     if (!shown) return;
+    var back = !leaving && panel.contains(document.activeElement);
     panel.hidden = true;
     shown.removeAttribute("aria-expanded");
+    if (back) shown.focus({ preventScroll: true });
     shown = null;
   }
 
@@ -79,7 +83,8 @@
       var step = t.closest("[data-step]");
       var next = step && markers()[markers().indexOf(shown) + Number(step.dataset.step)];
       if (next) { next.scrollIntoView({ block: "center" }); open(next); }
-      if (t.closest("[data-close], .tei-tooltip-foot a")) close();
+      if (t.closest("[data-close]")) close();
+      if (t.closest(".tei-tooltip-foot a")) close(true);
       return;
     }
     var marker = t.closest(MARKER);

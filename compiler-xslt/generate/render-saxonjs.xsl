@@ -28,6 +28,8 @@
   <xsl:template name="main">
     <xsl:variable name="title" select="string((pm:select(doc($tei-uri)/*, 'page')?params?title)[1])"/>
     <xsl:if test="$title"><ixsl:set-property name="title" select="$title" object="ixsl:page()"/></xsl:if>
+    <xsl:variable name="lang" select="string((pm:select(doc($tei-uri)/*, 'page')?params?lang)[1])"/>
+    <xsl:if test="$lang"><ixsl:set-property name="lang" select="$lang" object="ixsl:page()/*"/></xsl:if>
     <xsl:result-document href="#tei-content" method="ixsl:replace-content">
       <xsl:call-template name="pm:edition">
         <xsl:with-param name="doc" select="doc($tei-uri)"/>

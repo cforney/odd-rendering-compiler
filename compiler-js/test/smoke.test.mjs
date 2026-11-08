@@ -64,7 +64,7 @@ test("render-unified renders every example, with an index", () => {
 
   const psalms = page("unified", "simler-psalmen");
   assert.match(psalms, /<h5 class="tei-head head-first r-b r-c">/, "a heading one level below its fourth division");
-  assert.match(psalms, /<span class="tei-pb pb-group pb-rule" data-page="4049203">\[4\]<\/span>/, "a page break as its labelled rule, with its image");
+  assert.match(psalms, /<span class="tei-pb pb-group pb-rule" data-image="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/!1000,1500\/0\/default\.jpg" data-page="4049203">\[4\]<\/span>/, "a page break as its labelled rule, with its image");
   assert.match(psalms, /<a class="tei-note note-anchored tei-note-ref" href="#note-1" data-range="a23">1<\/a>/, "a range note's marker");
   assert.match(psalms, /<section class="tei-footnotes">/, "the notes collected at the end");
   assert.match(psalms, /wort be<span class="tei-lb lb-hyphen normalized-omit">-<\/span><br class="tei-lb lb-hyphen normalized-omit">trachtet/,
@@ -266,7 +266,7 @@ test("render-json writes the ODD's decisions as records, with a table of the mod
     node.element === element ? node : node.children.reduce((hit, c) => hit ?? (typeof c === "string" ? null : find(c, element)), null);
   assert.deepEqual(find(root, "pb"), {
     element: "pb", model: "pb-2", behaviour: "break", classes: ["tei-pb", "pb-group", "pb-rule"],
-    params: { type: ["page"], "data-page": ["4049203"], label: ["[4]"] }, outcome: "rendered", children: [],
+    params: { type: ["page"], "data-page": ["4049203"], "data-image": ["https://www.e-rara.ch/i3f/v20/4049203/full/!1000,1500/0/default.jpg"], label: ["[4]"] }, outcome: "rendered", children: [],
   }, "a record names the model that won, its classes and its params as evaluated");
 
   assert.equal(models["pb-2"].odd, "tei_simler.odd", "the side table says which ODD the model came from");
@@ -275,11 +275,11 @@ test("render-json writes the ODD's decisions as records, with a table of the mod
   assert.ok(!("l-1" in models), "only the models the document made fire");
 });
 
-test("what renders is the ODD's to say: line joins, headings, ranges and the title come from its models", () => {
+test("what renders is the ODD's to say: line joins, headings, ranges, the title and the language come from its models", () => {
   const out = join(outDir, "declared");
   mkdirSync(out, { recursive: true });
   const specs = {
-    TEI: `<model behaviour="document"/><model output="page" behaviour="metadata"><param name="title" value="string(@n)"/></model>`,
+    TEI: `<model behaviour="document"/><model output="page" behaviour="metadata"><param name="title" value="string(@n)"/><param name="lang" value="string(@type)"/></model>`,
     div: `<model behaviour="block"/>`,
     p: `<model behaviour="paragraph"/>`,
     list: `<model behaviour="index"/>`,
@@ -293,13 +293,13 @@ test("what renders is the ODD's to say: line joins, headings, ranges and the tit
   const odd = join(out, "d.odd");
   writeFileSync(odd, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><schemaSpec ident="d">${Object.entries(specs).map(([k, v]) => `<elementSpec ident="${k}" mode="change">${v}</elementSpec>`).join("")}</schemaSpec></body></text></TEI>`);
   const tei = join(out, "d.xml");
-  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0" n="Declared"><div><p>kept-<lb break="no"/>word gone~<ptr/>joined kept-<ptr/>x</p>
+  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0" n="Declared &amp; kept" type="la"><div><p>kept-<lb break="no"/>word gone~<ptr/>joined kept-<ptr/>x</p>
     <list><item>One</item><head>Not one</head><item>Two</item></list><milestone xml:id="m1"/><milestone xml:id="m2"/><seg corresp="#m1">s</seg><seg corresp="#m9">t</seg></div></TEI>`);
   run("odd-to-unified.mjs", ["--odd", odd, "--out", out]);
   run("render-unified.mjs", ["--handlers", join(out, "tei-handlers.mjs"), "--tei", tei, "--css", join(outDir, "edition.css"), "--out", out]);
   const html = readFileSync(join(out, "d.html"), "utf8");
-  assert.match(html, /<title>Declared<\/title>/, "the title of the page model");
-  assert.doesNotMatch(html, /<html lang=/, "no language the ODD did not give");
+  assert.match(html, /<title>Declared &amp; kept<\/title>/, "the title of the page model, escaped");
+  assert.match(html, /<html data-mode="light" lang="la">/, "and its language");
   assert.match(html, /kept-<br class="tei-lb">word/, "a break with no join keeps its line's hyphen, even as lb break=no");
   assert.match(html, /gone<br class="tei-ptr">joined/, "any element's model can join, with the characters it names");
   assert.match(html, /kept-<br class="tei-ptr">x/, "and only those");
