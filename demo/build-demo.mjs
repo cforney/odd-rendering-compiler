@@ -24,6 +24,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { concept, paths, floor, docs, inspected } from "./manifest.mjs";
 import { parseXmlToXast, readOdd, allModels } from "../compiler-js/odd-parser.mjs";
 import { seq, str } from "../runtime/xpath.mjs";
+import { FURNITURE } from "../runtime/pm-runtime.mjs";
 
 const DEMO = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(DEMO, "..");
@@ -120,10 +121,9 @@ if (!resolved.length) { console.error("[build-demo] no paths resolved — nothin
 
 // ---------------------------------------------------------------------------
 // The inspector's records: one per element rendered, in document order. The shell
-// finds an element by its place among those with a class of NOT_ELEMENTS' pattern.
+// finds an element by its place among those with a tei- class the renderers did not
+// write for themselves (FURNITURE).
 // ---------------------------------------------------------------------------
-/** tei- classes the renderers add for themselves, not for an element of the source. */
-const NOT_ELEMENTS = ["tei-edition", "tei-views", "tei-footnotes", "tei-notes", "tei-credit", "tei-note-body", "tei-note-num", "tei-toc", "tei-tooltip", "tei-alternate-default", "tei-alternate-alt"];
 const clip = (s, n) => (s.length > n ? `${s.slice(0, n)}…` : s);
 const xmlOf = (n) => {
   if (n.type === "text") return n.value;
@@ -156,7 +156,7 @@ async function writeInspection() {
     const records = [];
     (function walk(el) {
       const cls = el.properties?.className?.[0];
-      if (cls?.startsWith("tei-") && !NOT_ELEMENTS.includes(cls)) {
+      if (cls?.startsWith("tei-") && !FURNITURE.includes(cls)) {
         const { pos, model } = sources.get(el);
         const wrote = byId.get(model.id);
         const spec = odd.specs.find((s) => s.key === pos.node.name);
@@ -180,7 +180,7 @@ async function writeInspection() {
 
 const floorFile = resolve(SITE, floor.file);
 const data = {
-  concept, paths: resolved, inspect: await writeInspection(), notElements: NOT_ELEMENTS,
+  concept, paths: resolved, inspect: await writeInspection(), notElements: FURNITURE,
   views: readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.label, help: v.help ?? "" })),
   docs: docs.filter((d) => resolved.some((p) => p.pages[d.id])),
   floor: { label: floor.label, url: floor.file, sizeKB: kb(sizeOf(floorFile)) },

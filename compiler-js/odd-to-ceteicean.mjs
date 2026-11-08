@@ -30,9 +30,9 @@ import { resolve, basename } from "path";
 import { parseXmlToXast, pageOf, writtenAt } from "./odd-parser.mjs";
 import { checkXPath, reportUnsupported } from "./unsupported.mjs";
 import {
-  parseArgs, loadOdd, createLogger, writeOut, generatedStamp,
-  resolveTeiFiles, htmlPageName, buildIndexPage,
+  parseArgs, loadOdd, createLogger, writeOut, generatedStamp, resolveTeiFiles, htmlPageName,
 } from "./cli.mjs";
+import { buildIndexPage } from "./html.mjs";
 
 const cli = parseArgs();
 const log = createLogger("odd-to-ceteicean");
@@ -98,5 +98,5 @@ for (const teiFile of teiFiles) {
   entries.push({ href: htmlPageName(teiFile), title: htmlPageName(teiFile), meta: "CETEIcean (in the browser)", page: pageOf(specs, tree) });
 }
 if (entries.length > 1) {
-  writeOut(outDir, "index.html", buildIndexPage({ title: "TEI Edition — CETEIcean", subtitle: `${entries.length} documents · rendered in the browser`, entries }));
+  writeOut(outDir, "index.html", buildIndexPage({ title: "TEI Edition — CETEIcean", subtitle: `${entries.length} documents · rendered in the browser`, entries, search: cli.has("--search") }));
 }

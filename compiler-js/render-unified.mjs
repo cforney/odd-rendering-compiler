@@ -20,9 +20,9 @@
 import { readFileSync } from "fs";
 import { resolve, basename, extname } from "path";
 import {
-  parseArgs, createLogger, writeOut, toHtml, loadHandlers, readTei,
-  resolveTeiFiles, htmlPageName, buildIndexPage, escapeXml,
+  parseArgs, createLogger, writeOut, loadHandlers, readTei, resolveTeiFiles, htmlPageName,
 } from "./cli.mjs";
+import { toHtml, buildIndexPage, escapeXml } from "./html.mjs";
 
 const cli = parseArgs();
 const log = createLogger("render-unified");
@@ -171,6 +171,7 @@ if (multi) {
     title: `TEI Edition — ${name}`,
     subtitle: `${teiFiles.length} documents · prebuilt static HTML, no server required${enhance ? ", degrades to zero-JS" : ""}`,
     entries: indexEntries,
+    search: cli.has("--search"),
   }));
   log(`✓ Index written to ${indexFile}`);
 }

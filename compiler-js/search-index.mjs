@@ -16,7 +16,8 @@
 
 import { existsSync, readFileSync, rmSync, statSync } from "fs";
 import { join, resolve } from "path";
-import { parseArgs, createLogger, writeOut, escapeXml } from "./cli.mjs";
+import { parseArgs, createLogger, writeOut } from "./cli.mjs";
+import { escapeXml } from "./html.mjs";
 
 const cli = parseArgs();
 const log = createLogger("search-index");

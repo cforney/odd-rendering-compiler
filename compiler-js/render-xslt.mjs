@@ -20,9 +20,9 @@ import { readFileSync, mkdirSync, copyFileSync, rmSync } from "fs";
 import { resolve, join } from "path";
 import { tmpdir } from "os";
 import {
-  parseArgs, createLogger, writeOut,
-  resolveTeiFiles, htmlPageName, buildIndexPage,
+  parseArgs, createLogger, writeOut, resolveTeiFiles, htmlPageName,
 } from "./cli.mjs";
+import { buildIndexPage } from "./html.mjs";
 
 const cli = parseArgs();
 const log = createLogger("render-xslt");
@@ -77,6 +77,7 @@ if (multi && !process.exitCode) {
     title: "TEI Edition — XSLT",
     subtitle: `${teiFiles.length} documents · generated stylesheet, server-free`,
     entries: indexEntries,
+    search: cli.has("--search"),
   }));
   log(`✓ Index written to ${indexFile}`);
 }

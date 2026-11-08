@@ -41,7 +41,7 @@
     return cb();                                   // "load", or no observer support
   }
 
-  var here = document.currentScript.src;
+  var here = /** @type {HTMLScriptElement} */ (document.currentScript).src;
   /** A behaviour that fetches a script beside this one, once. */
   function fetches(file) {
     var url = new URL(file, here).href;

@@ -17,7 +17,8 @@ import { tmpdir } from "node:os";
 import { join, dirname, resolve, basename, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseXmlToXast } from "../odd-parser.mjs";
-import { toHtml, loadHandlers } from "../cli.mjs";
+import { loadHandlers } from "../cli.mjs";
+import { toHtml } from "../html.mjs";
 import { normaliseRenderedBody } from "../byte-identity.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -62,6 +63,22 @@ test("conformance.mjs runs the suite against a command, here the unified handler
   const none = conformance("--run", "exit 0");
   assert.equal(none.status, 1);
   assert.match(none.stdout, /✗ notes \(web\): the command wrote no notes\.html/);
+});
+
+test("the behaviour table has the TEI's behaviours, well formed, as its documentation says", () => {
+  const { _comment, ...map } = JSON.parse(readFileSync(resolve(pocDir, "../behaviour-map.json"), "utf8"));
+  const tei = "alternate anchor block body break cell cit document figure graphic heading index inline link list listItem metadata note omit paragraph row section table text title";
+  for (const b of tei.split(" ")) assert.ok(b in map, `${b}, a behaviour of the TEI Guidelines`);
+  const rows = readFileSync(resolve(pocDir, "../docs/behaviour-table.md"), "utf8").split("\n").filter((l) => l.startsWith("| ")).map((l) => l.split("|").map((c) => c.trim()));
+  for (const [b, entry] of Object.entries(map)) {
+    assert.deepEqual(Object.keys(entry).filter((k) => !["tag", "flow"].includes(k)), [], `${b}: only tag and flow`);
+    assert.ok(!entry.flow || ["block", "inline"].includes(entry.flow), `${b}: block or inline`);
+    assert.ok(!entry.tag || /^[a-z][a-z0-9]*$/.test(entry.tag), `${b}: an HTML element`);
+    const row = rows.find((r) => r[1].split(/[\s,/]+/).includes(b));
+    assert.ok(row, `${b} in docs/behaviour-table.md`);
+    if (entry.tag) assert.ok(row[2].includes(`<${entry.tag}>`), `${b}: <${entry.tag}> there too`);
+    if (entry.flow) assert.equal(row[3], entry.flow, `${b}: ${entry.flow} there too`);
+  }
 });
 
 test("the capability matrix accounts for every conformance case", () => {

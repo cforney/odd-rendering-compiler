@@ -220,6 +220,9 @@ export function createResolver(models, output, views = []) {
 /** Behaviours that render nothing, by what the model says. */
 export const SILENT = ["omit", "metadata"];
 
+/** The tei- classes the renderers write for themselves, not for an element of the source; every renderer writes the same. */
+export const FURNITURE = ["tei-edition", "tei-views", "tei-footnotes", "tei-notes", "tei-credit", "tei-note-body", "tei-note-num", "tei-toc", "tei-tooltip", "tei-alternate-default", "tei-alternate-alt"];
+
 /** A param's value as strings, one per item. */
 const strings = (v) => seq(v).map((item) => str([item]));
 

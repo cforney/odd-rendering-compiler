@@ -146,7 +146,7 @@ names differing only in case, stop the build before anything is written. The npm
 npm install
 npm run demo               # the Simler examples → static + interactive pages
 npm test                   # smoke tests, conformance fixtures, byte-identity gate
-npm run typecheck          # tsc over the JSDoc types, no emit
+npm run typecheck          # tsc over the JSDoc types, no emit; the browser scripts too
 npm run build:all          # all four generators from the Simler ODD
 npm run render:all         # every renderer on every example, the plain text and the records
 npm run findings           # what the Simler ODD does not foresee in the examples
@@ -185,7 +185,8 @@ compiler-js/
 ├── index.mjs             # the library: compileOdd, renderDocument, editionCss
 ├── odd-parser.mjs        # reads the ODD into models and CSS rules; parses TEI
 ├── odd-render.mjs        # the one command: every step below, in order
-├── cli.mjs               # CLI, file output, escaping, the hast serialiser, multi-file input
+├── cli.mjs               # the command lines' arguments, input files, logging, output files
+├── html.mjs              # HTML as strings: escaping, the hast serialiser, the index and report pages
 ├── odd-to-css.mjs        # edition.css
 ├── odd-to-unified.mjs    # tei-handlers.mjs
 ├── odd-to-xslt.mjs       # edition.xsl, with ../runtime/pm.xsl copied in
@@ -198,6 +199,7 @@ compiler-js/
 ├── byte-identity.mjs     # the equivalence check between renders
 ├── test/                 # smoke tests, fixtures, gate (`npm test`)
 ├── tsconfig.json         # `npm run typecheck`: tsc over the JSDoc types
+├── tsconfig.browser.json # and over the browser scripts of ../runtime/, with the DOM's
 └── output/               # generated artefacts (gitignored)
 ```
 

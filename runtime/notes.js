@@ -45,7 +45,7 @@
     if (!note) return false;
     if (!panel) build();
     var all = markers(), at = all.indexOf(marker);
-    var copy = note.cloneNode(true);
+    var copy = /** @type {Element} */ (note.cloneNode(true));
     var num = copy.querySelector(".tei-note-num");
     if (num) num.remove();
     copy.querySelectorAll("[id]").forEach(function (e) { e.removeAttribute("id"); }); // the note keeps them
@@ -77,11 +77,11 @@
   }
 
   document.addEventListener("click", function (e) {
-    var t = e.target;
+    var t = /** @type {HTMLElement} */ (e.target);
     if (!t.closest) return;
     if (panel && panel.contains(t)) {
       var step = t.closest("[data-step]");
-      var next = step && markers()[markers().indexOf(shown) + Number(step.dataset.step)];
+      var next = step && markers()[markers().indexOf(shown) + Number(step.getAttribute("data-step"))];
       if (next) { next.scrollIntoView({ block: "center" }); open(next); }
       if (t.closest("[data-close]")) close();
       if (t.closest(".tei-tooltip-foot a")) close(true);

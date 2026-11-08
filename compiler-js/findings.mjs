@@ -23,7 +23,8 @@ import { parseXmlToXast, pageOf, allModels } from "./odd-parser.mjs";
 import { checkXPath, compileModels } from "./unsupported.mjs";
 import { createResolver, SILENT } from "../runtime/pm-runtime.mjs";
 import { seq, str } from "../runtime/xpath.mjs";
-import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles, htmlPageName, buildReportPage } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveTeiFiles, htmlPageName } from "./cli.mjs";
+import { buildReportPage } from "./html.mjs";
 
 /** Custom properties the ODD's CSS reads that neither the tokens, the ODD's CSS nor a `--…` param defines. */
 export function undefinedProperties({ specs, renditions }, tokens = "") {

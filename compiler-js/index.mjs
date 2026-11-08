@@ -18,7 +18,7 @@ import { basename } from "path";
 import { readOdd, parseXmlToXast, on } from "./odd-parser.mjs";
 import { checkXPath, compileModels } from "./unsupported.mjs";
 import { createRenderer } from "../runtime/pm-runtime.mjs";
-import { toHtml } from "./cli.mjs";
+import { toHtml } from "./html.mjs";
 
 export { readOdd, parseXmlToXast, OddError } from "./odd-parser.mjs";
 export { toHtml };

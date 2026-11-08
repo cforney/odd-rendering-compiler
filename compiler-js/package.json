@@ -34,7 +34,7 @@
     "check:demo": "node --experimental-websocket ../demo/check-demo.mjs",
     "sync:odd": "node ../examples/sync-odd.mjs",
     "test": "node --test",
-    "typecheck": "tsc"
+    "typecheck": "tsc && tsc -p tsconfig.browser.json"
   },
   "engines": {
     "node": ">=20"

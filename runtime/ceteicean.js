@@ -60,7 +60,7 @@ function teiEdition(ct, source, models, views, done) {
   }
 
   // Choose, in document order, so notes are numbered as the other renderers number them.
-  (function walk(pos) {
+  (/** @param {any} pos */ function walk(pos) {
     const { node } = pos;
     if (node.type === "text") {
       node.dom.nodeValue = resolver.renderedText(pos);

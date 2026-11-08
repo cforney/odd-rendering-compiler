@@ -18,7 +18,7 @@
   }
 
   function upgrade() {
-    document.querySelectorAll(ALTERNATE + ":not([role])").forEach(function (alt) {
+    document.querySelectorAll(ALTERNATE + ":not([role])").forEach(/** @param {HTMLElement} alt */ function (alt) {
       alt.setAttribute("role", "switch");
       alt.setAttribute("aria-checked", "false");
       alt.title = "Swap the readings";
@@ -29,11 +29,13 @@
   new MutationObserver(upgrade).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener("click", function (e) {
-    var alt = e.target.closest && e.target.closest(ALTERNATE);
+    var t = /** @type {Element} */ (e.target);
+    var alt = t.closest && t.closest(ALTERNATE);
     if (alt) swap(alt);
   });
   document.addEventListener("keydown", function (e) {
-    var alt = (e.key === "Enter" || e.key === " ") && e.target.closest && e.target.closest(ALTERNATE);
+    var t = /** @type {Element} */ (e.target);
+    var alt = (e.key === "Enter" || e.key === " ") && t.closest && t.closest(ALTERNATE);
     if (alt) { e.preventDefault(); swap(alt); }
   });
 })();

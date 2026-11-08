@@ -27,7 +27,8 @@
 
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
-import { parseArgs, loadOdd, createLogger, writeOut, resolveInputFiles, buildReportPage } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, resolveInputFiles } from "./cli.mjs";
+import { buildReportPage } from "./html.mjs";
 
 /** The models that ran, every element rendered, the elements no model took, and those that rendered nothing. */
 function rollUp(records) {

@@ -17,7 +17,8 @@
 
 import { readFileSync, copyFileSync } from "fs";
 import { basename, join } from "path";
-import { parseArgs, loadOdd, createLogger, writeOut, escapeXml, generatedStamp } from "./cli.mjs";
+import { parseArgs, loadOdd, createLogger, writeOut, generatedStamp } from "./cli.mjs";
+import { escapeXml } from "./html.mjs";
 
 const cli = parseArgs();
 const log = createLogger("odd-to-xslt");

@@ -86,3 +86,15 @@ test("the XSLT path's enhancers leave the edition as it is", (t) => {
     }
   }
 });
+
+test("an enhancer adds the same scripts on either compiler's page", (t) => {
+  const scripts = (dir) => {
+    const html = readFileSync(resolve(dir, "simler-psalmen.html"), "utf8");
+    const on = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].map(([, attrs, body]) => attrs.match(/src="([^"]+)"/)?.[1] ?? body.trim());
+    return { on: on.sort(), beside: readdirSync(dir).filter((f) => f.endsWith(".js")).sort() };
+  };
+  if (!existsSync(resolve(pocDir, "../compiler-xslt/output/xslt-islands"))) return t.skip("needs the XSLT build");
+  for (const enhance of ["script", "islands"]) {
+    assert.deepEqual(scripts(resolve(pocDir, "../compiler-xslt/output", `xslt-${enhance}`)), scripts(resolve(pocDir, "output", `unified-${enhance}`)), enhance);
+  }
+});

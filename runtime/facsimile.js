@@ -45,7 +45,7 @@
   function resolve(id, manifestUrl) {
     if (!manifestUrl) return Promise.resolve(/^https?:/.test(id) ? { image: id } : null);
     manifests[manifestUrl] = manifests[manifestUrl] || fetch(manifestUrl).then(function (r) {
-      if (!r.ok) throw new Error(r.status);
+      if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     }).catch(function (e) {
       delete manifests[manifestUrl]; // the next opening tries again
@@ -129,7 +129,7 @@
 
   /** Page breaks answer the keyboard too. Idempotent, as it runs on every change to the page. */
   function upgrade() {
-    document.querySelectorAll(BREAK + ":not([role])").forEach(function (b) {
+    document.querySelectorAll(BREAK + ":not([role])").forEach(/** @param {HTMLElement} b */ function (b) {
       b.setAttribute("role", "button");
       b.setAttribute("aria-haspopup", "dialog");
       b.title = "Show the page image";
@@ -140,11 +140,11 @@
   new MutationObserver(upgrade).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener("click", function (e) {
-    var t = e.target;
+    var t = /** @type {HTMLElement} */ (e.target);
     if (!t.closest) return;
     if (panel && panel.contains(t)) {
       var step = t.closest("[data-step]");
-      var next = step && breaks()[breaks().indexOf(shown) + Number(step.dataset.step)];
+      var next = step && breaks()[breaks().indexOf(shown) + Number(step.getAttribute("data-step"))];
       if (next) { next.scrollIntoView({ block: "center" }); open(next); }
       if (t.closest("[data-close]")) close();
       return;
@@ -154,7 +154,8 @@
   });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") return close();
-    var marker = (e.key === "Enter" || e.key === " ") && e.target.closest && e.target.closest(BREAK);
+    var t = /** @type {Element} */ (e.target);
+    var marker = (e.key === "Enter" || e.key === " ") && t.closest && t.closest(BREAK);
     if (marker) { e.preventDefault(); open(marker); }
   });
 })();
