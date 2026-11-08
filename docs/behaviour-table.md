@@ -3,7 +3,10 @@
 A Processing-Model `@behaviour` says how an element is presented. One shared file,
 [`behaviour-map.json`](../behaviour-map.json), gives each behaviour its HTML
 element (`tag`, for behaviours that only wrap their content) and its flow (block
-or inline). Both compilers read it when they generate. The behaviours themselves
+or inline). Both compilers read it when they generate, so retargeting a behaviour
+is an edit to its row: a test gives `cit` a `<figure>` and checks that the unified
+handlers, the CETEIcean behaviours and the stylesheets of both XSLT generators
+follow. The behaviours themselves
 are implemented once per runtime: [`runtime/pm-runtime.mjs`](../runtime/pm-runtime.mjs)
 for the unified handlers and [`runtime/pm.xsl`](../runtime/pm.xsl) for the
 generated stylesheets, and the two render the same HTML. The CETEIcean tier

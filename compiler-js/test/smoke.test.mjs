@@ -20,6 +20,7 @@ import vm from "node:vm";
 import { readOdd, parseXmlToXast } from "../odd-parser.mjs";
 import { loadHandlers } from "../cli.mjs";
 import { compileOdd, renderDocument, OddError } from "../index.mjs";
+import { cssResidue } from "../findings.mjs";
 
 const pocDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ODD = "../examples/tei_simler.odd";
@@ -41,6 +42,17 @@ before(() => {
 
 after(() => {
   if (outDir) rmSync(outDir, { recursive: true, force: true });
+});
+
+test("odd-to-css counts the models CSS alone cannot render", () => {
+  const models = [
+    { behaviour: "inline", tag: "span", predicate: "parent::lg or ancestor::note" },
+    { behaviour: "inline", tag: "span", predicate: "@rend='x'" },
+    { behaviour: "note", predicate: null },
+    { behaviour: "omit", predicate: "parent::titleStmt/parent::fileDesc" },
+  ];
+  assert.deepEqual(cssResidue(/** @type {any} */ ([{ models }])), [models[1], models[2]], "an attribute test, and a behaviour without a tag");
+  assert.match(run("odd-to-css.mjs", ["--odd", ODD, "--out", join(outDir, "residue")]), /\b\d+ of 95 models need the renderers/);
 });
 
 test("odd-to-css adds the design tokens and reports custom properties nothing defines", () => {

@@ -12,7 +12,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve, basename, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -78,6 +78,37 @@ test("the behaviour table has the TEI's behaviours, well formed, as its document
     assert.ok(row, `${b} in docs/behaviour-table.md`);
     if (entry.tag) assert.ok(row[2].includes(`<${entry.tag}>`), `${b}: <${entry.tag}> there too`);
     if (entry.flow) assert.equal(row[3], entry.flow, `${b}: ${entry.flow} there too`);
+  }
+});
+
+test("an edit to one row of the behaviour table reaches every target", async () => {
+  // A copy of what the compilers read, with `cit` retargeted from <blockquote> to <figure>.
+  const root = join(out, "retarget");
+  const skip = (src) => !/[\\/](node_modules|output|test)$/.test(src);
+  for (const dir of ["compiler-js", "runtime", "compiler-xslt/generate"]) cpSync(resolve(pocDir, "..", dir), join(root, dir), { recursive: true, filter: skip });
+  symlinkSync(join(pocDir, "node_modules"), join(root, "compiler-js/node_modules"), "junction");
+  const map = JSON.parse(readFileSync(resolve(pocDir, "../behaviour-map.json"), "utf8"));
+  writeFileSync(join(root, "behaviour-map.json"), JSON.stringify({ ...map, cit: { ...map.cit, tag: "figure" } }));
+  const citOdd = join(root, "cit.odd");
+  writeFileSync(citOdd, readFileSync(odd, "utf8").replace("</schemaSpec>", `<elementSpec ident="cit" mode="change"><model behaviour="cit"/></elementSpec></schemaSpec>`));
+  const tei = join(root, "cit.xml");
+  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><cit>Quoted</cit></body></text></TEI>`);
+  const compile = (script, ...args) => execFileSync(process.execPath, [script, "--odd", citOdd, ...args], { cwd: join(root, "compiler-js") });
+  const figure = /<figure class="tei-cit">Quoted<\/figure>/;
+
+  compile("odd-to-unified.mjs", "--out", root);
+  const teiToHast = await loadHandlers(join(root, "tei-handlers.mjs"));
+  assert.match(toHtml(teiToHast(parseXmlToXast(readFileSync(tei, "utf8"))).hast), figure, "the unified handlers");
+  compile("odd-to-css.mjs", "--out", root);
+  compile("odd-to-ceteicean.mjs", "--tei", tei, "--css", join(root, "edition.css"), "--out", join(root, "ceteicean"));
+  assert.match(readFileSync(join(root, "ceteicean/tei-ceteicean-behaviours.js"), "utf8"), /"tag": "figure"/, "the CETEIcean behaviours");
+  compile("odd-to-xslt.mjs", "--out", join(root, "js"));
+  const stylesheets = { "odd-to-xslt.mjs": join(root, "js/edition.xsl"), "odd-to-xsl.xsl": join(root, "xsl/edition.xsl") };
+  if (!saxonHome) return assert.match(readFileSync(stylesheets["odd-to-xslt.mjs"], "utf8"), /'tag': 'figure'/, "the stylesheet of odd-to-xslt.mjs");
+  saxon(`-s:${citOdd}`, `-xsl:${join(root, "compiler-xslt/generate/odd-to-xsl.xsl")}`, `-o:${stylesheets["odd-to-xsl.xsl"]}`);
+  for (const [generator, xsl] of Object.entries(stylesheets)) {
+    saxon(`-s:${tei}`, `-xsl:${xsl}`, `-o:${xsl}.html`);
+    assert.match(readFileSync(`${xsl}.html`, "utf8"), figure, `the stylesheet of ${generator}`);
   }
 });
 

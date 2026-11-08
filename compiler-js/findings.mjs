@@ -35,6 +35,21 @@ export function undefinedProperties({ specs, renditions }, tokens = "") {
   return [...new Set(names(css, /var\(\s*(--[\w-]+)/g))].filter((name) => !defined.has(name));
 }
 
+/** A predicate CSS can say as a selector: tests of the element's parents and ancestors only. */
+const ANCESTRY = /^(parent::[\w:.-]+(\/parent::[\w:.-]+)*|ancestor::[\w:.-]+)$/;
+
+/**
+ * The models a stylesheet alone cannot render over HTML that keeps the element's
+ * name: a behaviour that is not silent and has no `tag` of its own, or a predicate
+ * that tests more than ancestry. What the renderers add to the CSS floor.
+ * @param {import("./odd-parser.mjs").Spec[]} specs
+ */
+export function cssResidue(specs) {
+  const sayable = (p) => p.split(/\s+(?:and|or)\s+/).every((t) => ANCESTRY.test(t.trim()));
+  return specs.flatMap((s) => s.models).filter((m) =>
+    (!SILENT.includes(m.behaviour) && !m.tag) || (m.predicate && !sayable(m.predicate)));
+}
+
 /** The findings in one document's text, each once, with a count where it recurs. */
 export function documentFindings({ specs, renditions }, tree) {
   const found = [];

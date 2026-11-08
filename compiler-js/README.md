@@ -61,7 +61,10 @@ command lines. CI installs the packed package in an empty project and runs both.
 The ODD's CSS may read design tokens, custom properties such as `--c-muted`.
 `odd-to-css.mjs` puts the tokens file given with `--tokens` first in
 `edition.css`, and reports any custom property that neither the tokens, the ODD's
-CSS nor a `--…` param defines.
+CSS nor a `--…` param defines. It also counts the models the stylesheet alone
+cannot render, which the renderers must: a behaviour that is not silent and has no
+HTML element of its own in the behaviour table, or a predicate that tests more than
+the element's ancestry.
 
 ## Renderers (artefacts + TEI → HTML)
 

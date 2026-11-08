@@ -7,7 +7,8 @@
  * that model (see odd-parser.mjs), the rules that lay each view over the page,
  * then the renderers' own furniture (../runtime/ui.css). The renderers evaluate
  * the predicates, so the CSS needs none. A custom property the ODD's CSS reads
- * but nothing defines is reported.
+ * but nothing defines is reported, and how many models the CSS alone cannot
+ * render (cssResidue in findings.mjs).
  *
  * Usage:   node odd-to-css.mjs --odd <path> [--tokens <css>] [--out <dir>]
  * Output:  <dir>/edition.css
@@ -17,7 +18,7 @@
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
 import { editionCss } from "./index.mjs";
-import { undefinedProperties } from "./findings.mjs";
+import { undefinedProperties, cssResidue } from "./findings.mjs";
 import { parseArgs, loadOdd, createLogger, writeOut, generatedStamp } from "./cli.mjs";
 
 const cli = parseArgs();
@@ -45,3 +46,4 @@ const css = editionCss(odd, { tokens, source: basename(oddPath), stamp });
 const rules = specs.flatMap((s) => s.rules);
 const cssPath = writeOut(outDir, "edition.css", css);
 log(`✓ ${cssPath} (${tokens ? "tokens, " : ""}${renditions.length} renditions, ${rules.length} model rules, ${views.length} views)`);
+log(`${cssResidue(specs).length} of ${specs.flatMap((s) => s.models).length} models need the renderers: a behaviour CSS cannot express, or a predicate on more than ancestry`);
