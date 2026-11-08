@@ -275,11 +275,11 @@ test("render-json writes the ODD's decisions as records, with a table of the mod
   assert.ok(!("l-1" in models), "only the models the document made fire");
 });
 
-test("what renders is the ODD's to say: line joins, headings, ranges, the title and the language come from its models", () => {
+test("what renders is the ODD's to say: line joins, headings, ranges, the title, language and credit come from its models", () => {
   const out = join(outDir, "declared");
   mkdirSync(out, { recursive: true });
   const specs = {
-    TEI: `<model behaviour="document"/><model output="page" behaviour="metadata"><param name="title" value="string(@n)"/><param name="lang" value="string(@type)"/></model>`,
+    TEI: `<model behaviour="document"/><model output="page" behaviour="metadata"><param name="title" value="string(@n)"/><param name="lang" value="string(@type)"/><param name="credit" value="'Text: A &amp; B, CC BY 4.0'"/></model>`,
     div: `<model behaviour="block"/>`,
     p: `<model behaviour="paragraph"/>`,
     list: `<model behaviour="index"/>`,
@@ -300,6 +300,7 @@ test("what renders is the ODD's to say: line joins, headings, ranges, the title 
   const html = readFileSync(join(out, "d.html"), "utf8");
   assert.match(html, /<title>Declared &amp; kept<\/title>/, "the title of the page model, escaped");
   assert.match(html, /<html data-mode="light" lang="la">/, "and its language");
+  assert.match(html, /<footer class="tei-credit">Text: A &amp; B, CC BY 4.0<\/footer><\/div>/, "and its credit, closing the edition");
   assert.match(html, /kept-<br class="tei-lb">word/, "a break with no join keeps its line's hyphen, even as lb break=no");
   assert.match(html, /gone<br class="tei-ptr">joined/, "any element's model can join, with the characters it names");
   assert.match(html, /kept-<br class="tei-ptr">x/, "and only those");
@@ -367,7 +368,7 @@ test("the records agree with the page on every example: the same text, notes in 
     const { root } = JSON.parse(readFileSync(join(out, file), "utf8"));
     const { hast } = teiToHast(parseXmlToXast(readFileSync(join(pocDir, "../examples", file.replace(".json", ".xml")), "utf8")));
     // What the renderer adds, or a param gives, is not text of the render.
-    const added = (n) => n.tagName === "form" || n.properties.className?.some((c) => ["tei-note-ref", "tei-note-num", "tei-pb", "tei-lb", "tei-cb", "tei-milestone"].includes(c));
+    const added = (n) => n.tagName === "form" || n.properties.className?.some((c) => ["tei-note-ref", "tei-note-num", "tei-credit", "tei-pb", "tei-lb", "tei-cb", "tei-milestone"].includes(c));
     const body = (n) => (n.type === "text" ? n.value : added(n) ? "" : n.children.map(body).join(""));
     assert.equal(squeeze(recordText(root)), squeeze(body(hast)), file);
   }

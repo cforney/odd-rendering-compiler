@@ -7,6 +7,7 @@
 }
 .tei-views label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
 .tei-views input { margin: 0; accent-color: rgb(var(--c-accent, 45 87 76)); }
+.tei-credit { margin-top: 2em; font-size: 0.8em; color: rgb(var(--c-muted, 106 102 95)); }
 .tei-footnotes, .tei-notes { margin-top: 2em; padding-top: 1em; border-top: 1px solid rgb(var(--c-line, 221 221 221)); }
 .tei-note-body { display: block; margin: 0.3em 0; font-size: 0.9em; }
 .tei-note-body:target { background-color: rgb(var(--c-accent, 45 87 76) / 0.09); }

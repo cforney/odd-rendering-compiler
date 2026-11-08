@@ -243,7 +243,7 @@ function teiEdition(ct, source, models, views, done) {
   if (page?.params.title) document.title = str(page.params.title(root));
   const lang = page?.params.lang ? str(page.params.lang(root)) : "";
   if (lang) document.documentElement.lang = lang;
-  ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom, page?.params.manifest ? str(page.params.manifest(root)) : "")));
+  ct.domToHTML5(doc, (dom) => done(teiRoot(views, dom, ...["manifest", "credit"].map((p) => (page?.params[p] ? str(page.params[p](root)) : "")))));
 }
 
 /** Replace each custom element by its content, the innermost first, and join the text that leaves apart. */
@@ -253,8 +253,8 @@ function teiUnwrap(root) {
   root.normalize();
 }
 
-/** The edition's root: a checkbox per view, which CSS lays over the page while it is checked, then the text. */
-function teiRoot(views, dom, manifest) {
+/** The edition's root: a checkbox per view, which CSS lays over the page while it is checked, then the text and the credit. */
+function teiRoot(views, dom, manifest, credit) {
   const root = document.createElement("div");
   root.className = "tei-edition";
   root.dataset.web = "on";
@@ -271,6 +271,7 @@ function teiRoot(views, dom, manifest) {
     }
   }
   root.append(dom);
+  if (credit) root.append(Object.assign(document.createElement("footer"), { className: "tei-credit", textContent: credit }));
   return root;
 }
 

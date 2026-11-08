@@ -227,7 +227,8 @@ const strings = (v) => seq(v).map((item) => str([item]));
  * teiToHast(tree, { output, trace }) → { hast, notes, page, sources, record }. The page,
  * output "web", has the views laid over it and a switch for each; another output
  * renders alone. `page` holds the params of the root's model for output "page", as
- * strings; its `manifest`, for the facsimile, goes on the edition too. With `trace`, `sources` maps each element rendered to the position and
+ * strings; its `manifest`, for the facsimile, goes on the edition too, and its `credit`
+ * closes the page. With `trace`, `sources` maps each element rendered to the position and
  * the model that gave it, and `record` is the render itself as data: a record for
  * each element it reached, as often as it reached it, whose children are the
  * records and the text it rendered inside; see Record.
@@ -406,7 +407,8 @@ export function createRenderer(models, views = []) {
     const root = top[0] && { node: top[0], up: [] };
     const meta = root && select(root, "page");
     const page = meta ? Object.fromEntries(Object.entries(meta.params).map(([k, f]) => [k, strings(f(root))])) : {};
+    const credit = output === "web" && page.credit?.[0] ? [h("footer", { className: ["tei-credit"] }, [text(page.credit[0])])] : [];
 
-    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on", ...(page.manifest?.[0] && { "data-manifest": page.manifest[0] }) }, [...switches, ...body, ...sections]), notes: ends, page, sources, record: open[0].children[0] };
+    return { hast: h("div", { className: ["tei-edition"], [`data-${output}`]: "on", ...(page.manifest?.[0] && { "data-manifest": page.manifest[0] }) }, [...switches, ...body, ...sections, ...credit]), notes: ends, page, sources, record: open[0].children[0] };
   };
 }

@@ -86,7 +86,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
     </html>
   </xsl:template>
 
-  <!-- The edition: the text, then its notes grouped by place. -->
+  <!-- The edition: the text, then its notes grouped by place, then the credit the page model gives. -->
   <xsl:template name="pm:edition">
     <xsl:param name="doc" select="/"/>
     <xsl:variable name="text"><xsl:apply-templates select="$doc/*"/></xsl:variable>
@@ -125,6 +125,8 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
           </xsl:otherwise>
         </xsl:choose>
       </xsl:for-each-group>
+      <xsl:variable name="credit" select="string((pm:select($doc/*, 'page')?params?credit)[1])"/>
+      <xsl:if test="$credit and $output = 'web'"><footer class="tei-credit"><xsl:value-of select="$credit"/></footer></xsl:if>
     </div>
   </xsl:template>
 

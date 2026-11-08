@@ -123,7 +123,7 @@ if (!resolved.length) { console.error("[build-demo] no paths resolved — nothin
 // finds an element by its place among those with a class of NOT_ELEMENTS' pattern.
 // ---------------------------------------------------------------------------
 /** tei- classes the renderers add for themselves, not for an element of the source. */
-const NOT_ELEMENTS = ["tei-edition", "tei-views", "tei-footnotes", "tei-notes", "tei-note-body", "tei-note-num", "tei-toc", "tei-tooltip", "tei-alternate-default", "tei-alternate-alt"];
+const NOT_ELEMENTS = ["tei-edition", "tei-views", "tei-footnotes", "tei-notes", "tei-credit", "tei-note-body", "tei-note-num", "tei-toc", "tei-tooltip", "tei-alternate-default", "tei-alternate-alt"];
 const clip = (s, n) => (s.length > n ? `${s.slice(0, n)}…` : s);
 const xmlOf = (n) => {
   if (n.type === "text") return n.value;
