@@ -357,10 +357,11 @@
           </attList>
           <model behaviour="document"/>
           <!-- what the page shows around the text: its title and language (German unless the header
-               says otherwise), the facsimile, the entities it names -->
+               says otherwise), the credit its licence asks for, the facsimile, the entities it names -->
           <model output="page" behaviour="metadata">
             <param name="title" value="normalize-space(teiHeader/fileDesc/titleStmt/title[1])"/>
             <param name="lang" value="if (teiHeader/profileDesc/langUsage/language/@ident) then string((teiHeader/profileDesc/langUsage/language/@ident)[1]) else 'de'"/>
+            <param name="credit" value="'Transcription: Simler Project Team, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Facsimiles: e-rara.ch.'"/>
             <param name="manifest" value="normalize-space((descendant::idno[@type='URLIIIF'])[1])"/>
             <param name="pages" value="descendant::pb/@facs"/>
             <param name="entities" value="descendant::rs/@key"/>

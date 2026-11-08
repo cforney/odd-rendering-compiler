@@ -7,7 +7,7 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 
 | File | What it is |
 |------|------------|
-| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data) at <!-- sync-odd -->[`c71771f`](https://github.com/DHBern/simler_data/tree/c71771f418c6d639af128395e6ee8d95fb6ae430) (2026-11-08)<!-- /sync-odd -->, unchanged; the primary example. The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the same file |
+| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data) at <!-- sync-odd -->[`3250d0e`](https://github.com/DHBern/simler_data/tree/3250d0ebdf869c20253bc25e61ee187e30603450) (2026-11-08)<!-- /sync-odd -->, unchanged; the primary example. The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the same file |
 | `simler-tokens.css` | the design tokens the ODD's CSS reads (`preview/assets/tokens.css`, same commit); the CSS generators put them at the top of `edition.css` |
 | `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–V: a range note set inside a word, running headers, page numbers and a catchword, a page break inside a stanza, joined line ends |
 | `simler-buchstabwechsel.xml` | poem VI of the dedicatory poems: the interleaved two-column page, whose acrostics (JOHANN, WILHELM, SIMMLER) the `l-twocol` params lay out; and named entities (`rs`) |

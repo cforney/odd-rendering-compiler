@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Simler Digital, C 1663: Chriſtenliches Haußweſen, a wedding poem, stanzas 1–4 (pp. 321–322).
-  Source: DHBern/simler_data at c71771f, webdav/data/sources/tei/C_1663_dok.xml,
+  Source: DHBern/simler_data at 3250d0e, webdav/data/sources/tei/C_1663_dok.xml,
   lines 20222–20339, verbatim. Added around them: this comment, the teiHeader, the
   start tags of the enclosing elements (from lines 25, 1502, 1503, 13433) and the closing tags.
   Valid against the schema of ../tei_simler.odd. Schematron warnings, the source's own:
