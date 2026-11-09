@@ -2,22 +2,22 @@
 
 One static page that frames the outputs both compilers already build, so a visitor
 can pick an example, switch rendering paths, turn JavaScript off, and see the
-generated artefact and its cost next to each result. The frame shows the edition
-alone: `build-demo` moves the banner each renderer puts on its page into *How it
-works* in the side panel, under a line saying what the path is for. *Inspect the
-text* picks any rendered element, on any path, and shows its TEI, the ODD's model
-that produced it, its params and the models it was chosen among. The build records
-this from the handlers' own trace (`inspect/<example>.json`); the renderings have
-the same elements in the same order, which is how a record is found, and the
-element's class must agree. The reports in the second row show what
-else the build writes for the example: its findings, what the ODD does not
-foresee in the encoding (the XPath it degraded included), its plain text with
-the Pagefind records beside it, its JSON records, every element naming the
-model the ODD chose for it, and the corpus coverage those records give — one
-report for all the examples, so the tab shows the same page whichever is picked; and a Pagefind search over the
-plain text, whose results open in the prebuilt rendering. On the interactive paths a
-click on a page break opens that page's image.
-Nothing is re-rendered here: apart from the banner, the page only frames existing files.
+generated artefact and its cost next to each result. Nothing is re-rendered here:
+the page only frames existing files.
+
+- **The frame** shows the edition alone. `build-demo` moves the banner each
+  renderer puts on its page into *How it works* in the side panel, under a line
+  saying what the path is for.
+- **Inspect the text** picks any rendered element, on any path, and shows its
+  TEI, the ODD's model that produced it, its params and the models it was chosen
+  among. The build records this from the handlers' own trace
+  (`inspect/<example>.json`); a record is found by the element's position, as the
+  renderings have the same elements in the same order, and its class must agree.
+- **The reports** in the second row show what else the build writes: the
+  findings (what the ODD does not foresee, the degraded XPath included), the
+  plain text with its Pagefind records, the JSON records, the corpus coverage
+  (one report for all examples), and a Pagefind search whose results open in the
+  prebuilt rendering.
 
 ## Build it
 
@@ -74,7 +74,9 @@ fetches each CDN script to weigh it; without network it stays a name, and out of
 ## Using it
 
 The tabs choose who builds the page; *Interaction* chooses how a prebuilt page is
-enhanced, and stays chosen across tabs. Each combination has its own entry in the URL,
+enhanced, and stays chosen across tabs. The text looks the same on every path, so
+a line beside the tabs says which path rendered it, once it is there. On the
+interactive paths a click on a page break opens that page's image. Each combination has its own entry in the URL,
 in `verified.json` and in the comparison table, which nests them by builder, and whose sizes count a linked stylesheet
 as part of the page, as an inlined one is. The URL holds the document, rendering, views, JavaScript setting and picked element,
 so a state can be shared. The views are switched from the panel for every rendering

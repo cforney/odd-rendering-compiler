@@ -24,7 +24,8 @@ compiler-xslt/
 └── output/              generated artefacts + rendered pages (gitignored)
 ```
 
-Inputs are in [`../examples/`](../examples/) (the Simler edition + `tei_simplePrint.odd`).
+Inputs are in [`../examples/`](../examples/) (the Simler edition + `tei_simplePrint.odd`),
+with their sources and credits.
 
 ## Run it
 
@@ -44,16 +45,17 @@ bash build.sh ../examples/tei_simler.odd ../examples/simler-psalmen.xml  # one e
 ./build.ps1                                                              # Windows / PowerShell
 ```
 
-Outputs: `edition.xsl` and `edition.css` (with the design tokens of `TOKENS`,
-relative to the ODD, by default `design-tokens.css`), then one page per TEI
-file in each of `xslt/` (Tier 1, zero-JS), and `xslt-script/` and `xslt-islands/`
-(Tier 2, the stylesheet's param `enhance`, each with a linking `index.html` from
-`generate-index.xsl`),
-and `ceteicean/`: from `odd-to-ceteicean.xsl`, `tei-ceteicean-behaviours.js` and
-a self-contained page per TEI file next to the ODD that renders it client-side
-with CETEIcean. When Node is available it additionally emits the **SaxonJS**
-browser path: `edition-saxonjs.sef.json`, a page per TEI file in `saxonjs/`, and a
-self-hosted `SaxonJS2.rt.js` (see below).
+Outputs, in `output/`:
+
+- `edition.xsl` and `edition.css`, with the design tokens of `TOKENS` (relative
+  to the ODD, by default `design-tokens.css`);
+- one page per TEI file in `xslt/` (static, no JavaScript), and in `xslt-script/`
+  and `xslt-islands/` (enhanced, by the stylesheet's param `enhance`), each with
+  an `index.html` from `generate-index.xsl`;
+- `ceteicean/`: `tei-ceteicean-behaviours.js` and a page per TEI file that
+  renders it in the browser with CETEIcean;
+- with Node, the **SaxonJS** path: `edition-saxonjs.sef.json`, a page per TEI
+  file in `saxonjs/`, and a self-hosted `SaxonJS2.rt.js` (see below).
 
 ## SaxonJS in the browser (SEF + IXSL)
 
@@ -135,10 +137,3 @@ as the JS `odd-to-ceteicean.mjs`.
   unified render and to that of the stylesheet from `odd-to-xslt.mjs`: identical
   up to attribute order and the whitespace next to a block's tags. `compiler-js`'s `npm test` checks this on
   the examples and on the conformance fixtures.
-
-## Example sources & credits
-
-The Simler texts (**Simler Digital**, <https://www.simler.unibe.ch/>; facsimiles
-e-rara, CC BY-SA) and `tei_simplePrint.odd` (**TEI Consortium**) are used as
-illustrative examples — see [`../examples/README.md`](../examples/README.md) for
-provenance and credits.

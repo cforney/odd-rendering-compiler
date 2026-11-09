@@ -213,7 +213,7 @@ compiler-js/
 └── output/               # generated artefacts (gitignored)
 ```
 
-Inputs are in [`../examples/`](../examples/).
+Inputs are in [`../examples/`](../examples/), with their sources and credits.
 
 ## Architecture
 
@@ -247,8 +247,3 @@ What is particular to this implementation:
 [`@rgrove/parse-xml`](https://github.com/rgrove/parse-xml) — the only dependency, and the parser unified's
 [`xast-util-from-xml`](https://github.com/syntax-tree/xast-util-from-xml) is built on, so build-time and rendering trees share one engine.
 `render-xslt.mjs` fetches SaxonJS (`xslt3`) with `npx` when it is not installed.
-
-## Example sources & credits
-
-Documented in [`../examples/README.md`](../examples/README.md) — Simler Digital and
-the TEI Consortium.

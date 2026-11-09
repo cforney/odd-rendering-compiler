@@ -131,6 +131,11 @@ report does; and a prefix on `@output` (`opm-`, `orc-`) keeps an engine's own
 models apart. The Processing Model itself comes from TEI Simple and its
 implementation in TEI Publisher.
 
+The islands tier follows the [islands
+architecture](https://jasonformat.com/islands-architecture/) (a term coined by
+Katie Sylor-Miller, described by Jason Miller), and its `on="load|idle|visible|media()"`
+values follow [Astro](https://astro.build)'s `client:*` directives.
+
 ## How to cite
 
 See [`CITATION.cff`](CITATION.cff).
