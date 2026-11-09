@@ -120,6 +120,17 @@ CI publishes it to GitHub Pages on every push to `main`:
   credits (Simler Digital's transcriptions and ODD, CC BY 4.0; e-rara's facsimiles on
   e-rara's terms; the TEI Consortium's simplePrint exemplar, CC BY-SA 3.0).
 
+## Acknowledgements
+
+Several decisions here come from e-editiones' [Open Processing
+Model](https://github.com/eeditiones/open-processing-model) (OPM): XPath a target
+cannot run is compiled out and reported rather than failing the build;
+`render-json.mjs` writes the Processing Model's decisions as records in OPM's
+shape, and `coverage.mjs` reads them back against the ODD, as OPM's coverage
+report does; and a prefix on `@output` (`opm-`, `orc-`) keeps an engine's own
+models apart. The Processing Model itself comes from TEI Simple and its
+implementation in TEI Publisher.
+
 ## How to cite
 
 See [`CITATION.cff`](CITATION.cff).
