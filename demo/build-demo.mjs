@@ -217,6 +217,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
     <nav class="paths" aria-label="Rendering path">
       <span class="nav-title">One edition, built by</span>
       <div class="nav-tabs" id="paths"></div>
+      <span class="rendered" id="rendered" role="status" aria-live="polite"></span>
     </nav>
     <nav class="paths reports" aria-label="Build reports">
       <span class="nav-title">Also from the build</span>

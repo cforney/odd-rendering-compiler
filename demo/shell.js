@@ -44,6 +44,7 @@ function render() {
   const frame = byId("page");
   frame.setAttribute("sandbox", state.js ? "allow-scripts allow-same-origin" : "allow-same-origin");
   frame.src = page ? page.url : "about:blank";
+  announce(!page ? "" : state.path.report ? `Loading ${nameOf(state.path)} …` : `Rendering with ${nameOf(state.path)} …`);
 
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.id === tabOf(state.path)));
   const variants = data.paths.filter((p) => tabOf(p) === tabOf(state.path));
@@ -261,6 +262,28 @@ const PLAIN_FILE = {
   "text/plain": "pre { max-width: 42em; margin: 2em auto; padding: 0 1em; white-space: pre-wrap; font: 16px/1.7 'Palatino Linotype', 'Book Antiqua', Georgia, serif; color: #222; }",
   "application/json": "pre { max-width: 60em; margin: 2em auto; padding: 0 1em; font: 13px/1.5 ui-monospace, 'Cascadia Code', Consolas, monospace; color: #222; }",
 };
+
+/** Say beside the tabs which path rendered the text below; `done` flashes it in the path's hue. */
+function announce(text, done = false) {
+  const status = byId("rendered");
+  status.textContent = text;
+  status.style.setProperty("--hue", state.path.hue);
+  status.classList.remove("done");
+  if (done) { void status.offsetWidth; status.classList.add("done"); } // restart the flash
+}
+
+// The text looks the same on every path, so the change is said once the edition is there:
+// for a page that renders in the browser, after its script has rendered it.
+byId("page").addEventListener("load", async () => {
+  const path = state.path, frameDoc = byId("page").contentDocument;
+  if (!state.path.pages[state.doc]) return;
+  for (const start = Date.now(); !path.report && Date.now() - start < 15000; await new Promise((r) => setTimeout(r, 100))) {
+    if (path !== state.path) return; // another path was chosen meanwhile
+    if (frameDoc?.querySelector(".tei-edition")?.getBoundingClientRect().height > 0) break;
+    if (!state.js && path.needsJs) return announce(`${nameOf(path)} needs JavaScript`);
+  }
+  if (path === state.path) announce(path.report ? `Showing ${nameOf(path)}` : `✓ Rendered with ${nameOf(path)}`, true);
+});
 
 // While inspecting, a click picks instead of following a note or swapping a reading.
 // The listeners belong to this page, so they work in a frame without scripts too.

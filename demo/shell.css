@@ -36,6 +36,11 @@ a { color: var(--link); }
 .reports .tab { padding-block: 0.3rem; }
 .nav-title { flex: 0 0 9.5rem; white-space: nowrap; font-size: 0.78rem; color: var(--muted); }
 .nav-tabs { display: flex; flex-wrap: wrap; gap: 0 1rem; }
+/* Which path rendered the text below: the text is the same on every path, so the change is said here. */
+.rendered { margin-left: auto; padding: 0.1rem 0.5rem; border-radius: 3px; font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.rendered.done { color: var(--ink); animation: rendered 1.6s ease-out; }
+@keyframes rendered { from { background: color-mix(in srgb, var(--hue) 28%, transparent); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .rendered.done { animation: none; } }
 .compare-open {
   padding: 0.25rem 0.65rem; font: inherit; color: var(--ink); cursor: pointer;
   background: #fff; border: 1px solid var(--line); border-radius: 6px;
@@ -125,6 +130,7 @@ summary { margin-top: 0.4rem; color: var(--muted); cursor: pointer; }
   body { display: block; height: auto; }
   .paths { flex-direction: column; }
   .nav-title { flex: none; padding-top: 0.4rem; }
+  .rendered { margin-left: 0; padding-inline: 0; }
   .stage { grid-template-columns: minmax(0, 1fr); }
   .stage iframe { height: 75vh; border-right: 0; border-bottom: 1px solid var(--line); }
 }
