@@ -134,7 +134,10 @@ function renderCompared() {
   body.replaceChildren();
   const rendering = data.paths.filter((q) => !q.report);
   const max = Math.max(...rendering.flatMap((p) => (p.pages[state.doc] ? [pageKB(p, p.pages[state.doc]), scriptKB(p.pages[state.doc])] : [0])));
-  byId("compare-checked").textContent = verified ? `Compared in ${verified.browser.split("/")[0]} on ${verified.checked}, on all ${verified.examples} examples.` : "";
+  // Whether they really are the same is said once, for all, from check-demo's results.
+  const differing = verified ? Object.keys(verified.results).filter((id) => verified.results[id].length) : [];
+  byId("compare-checked").textContent = !verified ? "Not checked."
+    : `Checked in ${verified.browser.split("/")[0]} on ${verified.checked}, on all ${verified.examples} examples: ${differing.length ? `${differing.map((id) => nameOf(data.paths.find((p) => p.id === id))).join(", ")} differ.` : "every rendering shows the same edition."}`;
   for (const p of rendering) {
     const page = p.pages[state.doc];
     const variants = rendering.filter((q) => q.builder === p.builder);
@@ -160,9 +163,6 @@ function renderCompared() {
       make(row, "td", "–");
     }
     verdict(row, p.interactive).title = p.interactive ? "" : "Notes at the end, readings fixed, no page images";
-    const differs = verified?.results[p.id] ?? [];
-    if (verified) verdict(row, !differs.length).title = differs.join("\n");
-    else make(row, "td", "–").title = "Not checked";
   }
   markCompared();
 }

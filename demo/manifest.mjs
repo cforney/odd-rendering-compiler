@@ -6,6 +6,12 @@
 export const concept =
   "ODD → generate → render · one source, many rendering paths, one edition.";
 
+// The few things to try, and what the texts are: sentences in a line under the header.
+export const guide = [
+  "Switch the tabs to build the same edition another way, turn JavaScript off to see which pages keep their text, or inspect the text to see which ODD model made each part.",
+  "The documents are excerpts of Simler Digital's edition, adapted for illustration.",
+];
+
 // The renderings, one per builder and interaction, in reading order; a report is what else the build writes.
 //   builder      who builds the page: a tab. interaction names how it is enhanced: the control beside it
 //   about        what the builder is, in a line, for the comparison

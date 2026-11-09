@@ -22,6 +22,7 @@ a { color: var(--link); }
 }
 .bar h1 { margin: 0; font-size: 1.1rem; font-weight: 600; }
 .bar p { margin: 0.1rem 0 0; color: var(--muted); }
+.bar .guide { font-size: 0.8rem; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; color: var(--muted); }
 .controls select {
   margin-left: 0.4rem; padding: 0.25rem 0.5rem; font: inherit; color: var(--ink);

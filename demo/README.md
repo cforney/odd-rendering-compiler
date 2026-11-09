@@ -65,15 +65,17 @@ run's place, font and colour must equal the first rendering's, and the pixels
 nearly so. It also holds the manifest's claims to the pages (`interactive`,
 `needsJs`) and the inspector's records to the elements rendered, opens a page image
 on each path against a stored copy of the IIIF manifest, and runs the search. It writes
-`site/verified.json`, which the comparison table reads, and exits 1 on a difference.
-CI runs it; a demo built without it says "Not checked" there.
+`site/verified.json`, from which the comparison says whether every rendering shows the
+same edition, and exits 1 on a difference. CI runs it; a demo built without it says
+"Not checked" there.
 
 The table's bars share one scale, so a page and a script can be compared. `build-demo`
 fetches each CDN script to weigh it; without network it stays a name, and out of the bar.
 
 ## Using it
 
-A first visit opens what `opening` in `manifest.mjs` names: the unified page with
+A line under the header names the few things to try (`guide` in `manifest.mjs`). A
+first visit opens what `opening` in `manifest.mjs` names: the unified page with
 the small script, and the entities view on. The tabs choose who builds the page;
 *Interaction* chooses how a prebuilt page is enhanced, and stays chosen across tabs. The text looks the same on every path, so
 a line beside the tabs says which path rendered it, once it is there. On the
