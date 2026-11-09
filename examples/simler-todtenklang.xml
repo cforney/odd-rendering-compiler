@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Simler Digital, C 1663: Sonnet/ oder Trauriger Todtenklang, poems 143–144 (pp. 539–540).
+  Simler Digital, C 1663: Dorothea, and Sonnet/ oder Trauriger Todtenklang, poems 141–144 (pp. 537–540).
   Adapted from DHBern/simler_data, C_1663_Teil-5.xml, 2026-11-08; see examples/README.md.
 -->
 <TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
   <teiHeader>
     <fileDesc>
       <titleStmt>
-        <title type="main">Sonnet/ oder Trauriger Todtenklang, poems 143–144 (C 1663, pp. 539–540)</title>
+        <title type="main">Dorothea, and Sonnet/ oder Trauriger Todtenklang, poems 141–144 (C 1663, pp. 537–540)</title>
       </titleStmt>
       <publicationStmt>
         <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
@@ -22,7 +22,168 @@
   <text>
   <body>
   <div n="1">
-                <pb n="539" facs="4049738"/>
+                <pb n="537" facs="4049736"/>
+                <div n="2" xml:id="n213">
+                    <head>
+                        <hi rendition="#b #c">141. <hi rendition="#aq #g">DOROTHEA</hi><hi
+                                rendition="#aq">,<lb/></hi> oder <lb/>Anbindungs-Gesang: <lb/>Auf
+                            <lb/>den 6. tag Hornungs <lb/>1659.</hi></head>
+                    <lb/>
+                    <p rendition="#c">In der weise: Galathee laß mich preisen.</p>
+                    <lb/>
+                    <lg type="poem">
+                        <lg n="1">
+                            <head>[1.]</head>
+                            <lb/>
+                            <l><hi rendition="#in">D</hi>OROTHEA/ laß mich preisen</l>
+                            <lb/>
+                            <l rendition="#et">deinen schönen Namen Heut/</l>
+                            <lb/>
+                            <l>auß demselben dir zuweisen</l>
+                            <lb/>
+                            <pb n="538" facs="4049737"/>
+                            <l rendition="#et">was mir mein gemu&#x364;th erfreut/</l>
+                            <lb/>
+                            <l n="5" rendition="#et2">Eine freye Gottes-gab</l>
+                            <lb/>
+                            <l rendition="#et2">heissest du/ und bist vorab</l>
+                            <lb/>
+                            <l>mir geschänket von dem HERREN/</l>
+                            <lb/>
+                            <l><choice><sic>desse</sic><corr>dessen</corr></choice> Nam bekannt ist ferren.</l>
+                        </lg>
+                        <lb/>
+                        <lg n="2">
+                            <head rendition="#c">2.</head>
+                            <lb/>
+                            <l>Heut/ nach unsern Landesbräuchen/</l>
+                            <lb/>
+                            <l n="10" rendition="#et">flochte meine treue Hand/</l>
+                            <lb/>
+                            <l>auß gemahlten Blumensträuchen/</l>
+                            <lb/>
+                            <l rendition="#et">meiner Liebsten dises Band:</l>
+                            <lb/>
+                            <l rendition="#et2">daß sie mit verknüpfet sey/</l>
+                            <lb/>
+                            <l rendition="#et2">biß sie sich wird lösen frey/</l>
+                            <lb/>
+                            <l n="15">mit beliebter Liebes-gabe/</l>
+                            <lb/>
+                            <l>die mein junges Hertz erlabe.</l>
+                        </lg>
+                        <lb/>
+                        <lg n="3">
+                            <head rendition="#c">3.</head>
+                            <lb/>
+                            <l>Mancher bindet nur im schertzen</l>
+                            <lb/>
+                            <l rendition="#et">die und die auf disen Tag:</l>
+                            <lb/>
+                            <l>aber Ich/ mit stätem Hertzen/</l>
+                            <lb/>
+                            <l n="20" rendition="#et">binde dich/ so vest ich mag/</l>
+                            <lb/>
+                            <l rendition="#et2">Wünsch’ und bitte Gott dabey</l>
+                            <lb/>
+                            <l rendition="#et2">daß sich diser Tag verneu</l>
+                            <lb/>
+                            <l>vilbeliebte jahr/ in freuden/</l>
+                            <lb/>
+                            <l>mit gesundheit unser Beiden.</l>
+                        </lg>
+                        <lb/>
+                        <lg n="4">
+                            <head rendition="#c">4.</head>
+                            <lb/>
+                            <l n="25">Liebste/ laß es dir belieben</l>
+                            <lb/>
+                            <l rendition="#et">wie es ist von mir gemeint:</l>
+                            <lb/>
+                            <l>werden wir gleich oft vertriben/</l>
+                            <lb/>
+                            <l rendition="#et">seind wir doch/ d<choice><sic>n</sic><corr>u</corr></choice>rch Treu/ vereint:</l>
+                            <lb/>
+                            <l rendition="#et2">Bleib nur immer wie du bist/</l>
+                            <lb/>
+                            <l n="30" rendition="#et2">dan/ in einer kurtzen frist/</l>
+                            <lb/>
+                            <l>werden wir zusamen kommen/</l>
+                            <lb/>
+                            <l>und dem scheyden seyn entnommen.</l>
+                        </lg>
+                        <lb/>
+                        <lg n="5">
+                            <head rendition="#c">5.</head>
+                            <lb/>
+                            <l>Zwing/ Apollo/ deine
+                                Säiten/</l>
+                            <lb/>
+                            <l rendition="#et">daß sie/ durch geschärfften klang/</l>
+                            <lb/>
+                            <l n="35">meiner Liebsten Lob außbräiten:</l>
+                            <lb/>
+                            <l rendition="#et">Hilff/ o Clio/ mit Gesang!</l>
+                            <lb/>
+                            <pb n="539" facs="4049738"/>
+                            <l rendition="#et2">Flora/ mit
+                                den guldnen Kle/</l>
+                            <lb/>
+                            <l rendition="#et2">Ziere meine Dorothe.</l>
+                            <lb/>
+                            <l>in den balden Fru&#x364;hlings-tagen</l>
+                            <lb/>
+                            <l n="40">die den Wintergreis verjagen.</l>
+                        </lg>
+                        <lb/>
+                    </lg>
+                </div>
+                <div>
+                    <head rendition="#b #c">Grabschrifften.</head>
+                    <lb/>
+                </div>
+                <div n="2" xml:id="n214">
+                    <head>
+                        <hi rendition="#b #c">142. Klingendes Traur- und Trostgeticht: über
+                            <lb/>Herren <rs type="person" key="person_168">D. Zwingers</rs> zu <rs
+                                type="place" key="place_002">Basel</rs>/ seliges
+                            <lb/>Absterben.</hi></head>
+                    <lb/>
+                    <lg type="poem">
+                        <l><hi rendition="#larger"><rs type="person" key="person_168">Herr
+                                    Zwinger</rs></hi> zwang den Tod/ von dem er schin gezwungen</l>
+                        <lb/>
+                        <l rendition="#et">alß ihn derselbige/ gleich andern/ weggerafft/</l>
+                        <lb/>
+                        <l rendition="#et">er aber von dem Tod/ durch wahren Glaubens krafft/</l>
+                        <lb/>
+                        <l>nach ritterlichem Kampf/ ins Leben durchgetrungen</l>
+                        <lb/>
+                        <l n="5">Sein’ edle Seele sich hat u&#x364;ber sich geschwungen</l>
+                        <lb/>
+                        <l rendition="#et">in jennes Ort/ wo sie in stäten freüden lebt/</l>
+                        <lb/>
+                        <l rendition="#et">erwartend ihres Leibs/ des Schöpfers Lob erhebt/</l>
+                        <lb/>
+                        <l>und stimmet mit/ wann wird das Heilig Herr/ gesungen.</l>
+                        <lb/>
+                        <l>Ihr Hinterlaßne laßt nun euer Trauren fahren/</l>
+                        <lb/>
+                        <l n="10" rendition="#et"><hi rendition="#larger">Herr <rs type="person"
+                                    key="person_168">Zwinger</rs></hi> wünscht nicht mehr in diser
+                            Welt zuseyn/</l>
+                        <lb/>
+                        <l rendition="#et">wo lauter zwang und drang/ sorg/ mu&#x364;h’ und seelen
+                            peyn:</l>
+                        <lb/>
+                        <l>des Trostes Gottes eüch wöll vor weiterm Leid bewahren!</l>
+                        <lb/>
+                        <l rendition="#et">O/ daß ein gleicher Hirt der hinterlaßnen Herd/</l>
+                        <lb/>
+                        <l rendition="#et">in stäter Wolffsgefahr/ bald fürgesetzet werd!</l>
+                    </lg>
+                    <lb/>
+                </div>
                 <div n="2" xml:id="n215">
                     <head>
                         <hi rendition="#b #c">143. Auf Herren <rs type="person" key="person_169"
@@ -92,6 +253,13 @@
   <standOff>
     <listPerson>
       <head>Personen</head>
+      <person xml:id="person_168">
+        <persName>Zwinger, Theodor (?)</persName>
+        <birth when="1597"/>
+        <death when="1654"/>
+        <note>Basler Theologe</note>
+        <idno type="HLS">https://hls-dhs-dss.ch/de/articles/010944</idno>
+      </person>
       <person xml:id="person_169">
         <persName>Genath, Johann Jacob</persName>
         <birth when="1582"/>

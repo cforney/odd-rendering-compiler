@@ -34,6 +34,13 @@ function run(script, args) {
   return execFileSync(process.execPath, [script, ...args], { cwd: pocDir, encoding: "utf8" });
 }
 const page = (dir, name) => readFileSync(join(outDir, dir, `${name}.html`), "utf8");
+/** A printing error and its correction, which no excerpt has, rendered by the Simler handlers into `dir`. */
+function readings(dir, args = []) {
+  const tei = join(outDir, "readings.xml");
+  writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><lg><l>Ein <choice><sic>Fehlr</sic><corr>Fehler</corr></choice> im Druck</l></lg></body></text></TEI>`);
+  run("render-unified.mjs", ["--handlers", join(outDir, "tei-handlers.mjs"), "--tei", tei, "--out", join(outDir, dir), ...args]);
+  return page(dir, "readings");
+}
 
 before(() => {
   outDir = mkdtempSync(join(tmpdir(), "odd-smoke-"));
@@ -93,6 +100,8 @@ test("render-unified renders every example, with an index", () => {
   assert.match(sonnet, /<span class="tei-anchor" id="k216\.3"><\/span>Die Ehrgedächtnuß<a class="tei-note note-anchored tei-note-ref" href="#note-2" data-range="k216\.3">2<\/a>/,
     "a commentary note on the range its anchor starts");
   assert.match(sonnet, /<a class="tei-ref" href="https:\/\/www\.dwds\.de\/wb\/dwb\/beschehen">DWDS<\/a>/, "the commentary's link");
+  assert.match(sonnet, /<span class="tei-sic">desse<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden><span class="tei-corr">dessen<\/span>/,
+    "a printing error, its correction the hidden reading");
   assert.match(sonnet, /<a class="tei-rs rs-linked entity-person" data-key="person_003" href="#person_003">/, "a name, linked to its register entry");
   assert.match(sonnet, /<div class="tei-person" id="person_003" data-card="person"><span class="tei-persName">Buol, Meinrad<\/span> <span class="tei-birth">\* 1588<\/span>/,
     "the entry, which the ODD marks as a card");
@@ -139,7 +148,7 @@ test("render-unified lays the views over the page, each with a switch", () => {
   assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> Entitäten<\/label><label><input type="checkbox" data-view="normalized"> Normalisiert<\/label><\/form>/,
     "a checkbox per view, labelled by its models' <desc>");
   assert.match(columns, /<a class="tei-rs rs-linked entity-person" data-key="person_001" href="#person_001">/, "a view's model adds its classes");
-  assert.match(columns, /<span class="tei-alternate-default normalized-alternate"><span class="tei-sic">it<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden>/,
+  assert.match(readings("readings"), /<span class="tei-alternate-default normalized-alternate"><span class="tei-sic">Fehlr<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden>/,
     "an alternate's readings marked as the view reads them");
   assert.match(columns, /<br class="tei-lb normalized-omit">/, "what a view omits is marked");
 });
@@ -266,7 +275,7 @@ test("render-plain writes the plain output as text and as Pagefind records", () 
   const [record] = JSON.parse(readFileSync(join(out, "records.json"), "utf8"));
   assert.deepEqual({ ...record, content: undefined }, {
     url: "simler-todtenklang.html", content: undefined, language: "de",
-    meta: { title: "Sonnet/ oder Trauriger Todtenklang, poems 143–144 (C 1663, pp. 539–540)" },
+    meta: { title: "Dorothea, and Sonnet/ oder Trauriger Todtenklang, poems 141–144 (C 1663, pp. 537–540)" },
   });
   assert.equal(record.content, text.trim().replace(/\n/g, " "), "the text on one line");
 });
@@ -483,9 +492,7 @@ test("the handlers can say which model gave each element they rendered", async (
 });
 
 test("the petite-vue example leaves the alternate reading hidden, without JS and for the views' CSS", () => {
-  const out = join(outDir, "interactive");
-  run("render-unified.mjs", ["--enhance", "petite-vue", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--css", join(outDir, "edition.css"), "--out", out]);
-  const html = readFileSync(join(out, "simler-buchstabwechsel.html"), "utf8");
+  const html = readings("interactive", ["--enhance", "petite-vue", "--css", join(outDir, "edition.css")]);
   assert.match(html, /<span class="tei-alternate-alt normalized-default" hidden :hidden="!alt">/);
   assert.match(html, /<span class="tei-alternate-default normalized-alternate" :hidden="alt">/);
   assert.doesNotMatch(html, /v-show/, "an inline display would beat the view that chooses this reading");
