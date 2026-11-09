@@ -78,7 +78,9 @@ enhanced, and stays chosen across tabs. Each combination has its own entry in th
 in `verified.json` and in the comparison table, which nests them by builder, and whose sizes count a linked stylesheet
 as part of the page, as an inlined one is. The URL holds the document, rendering, views, JavaScript setting and picked element,
 so a state can be shared. The views are switched from the panel for every rendering
-at once: the pages' own switches are hidden here, and work as ever elsewhere.
+at once: the pages' own switches are hidden here, and work as ever elsewhere. A link
+to another site (a dictionary, an authority file) opens in a new tab, as most such
+sites refuse to be framed; on the pages themselves it is an ordinary link.
 
 ## Files
 

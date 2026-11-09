@@ -284,6 +284,13 @@ byId("page").addEventListener("load", async () => {
     const el = renderedAt(e.target);
     if (el) pick(frameDoc, el);
   }, true);
+  // A link to another site opens in a new tab: most refuse to be framed, and the demo stays where it is.
+  frameDoc.addEventListener("click", (e) => {
+    const link = e.target.closest?.("a[href]");
+    if (!link || e.defaultPrevented || new URL(link.href).origin === frameDoc.location.origin) return;
+    e.preventDefault();
+    window.open(link.href, "_blank", "noopener");
+  });
   frameDoc.addEventListener("mouseover", (e) => mark(frameDoc, "demo-hover", state.inspecting ? renderedAt(e.target) : null));
   frameDoc.addEventListener("mouseleave", () => mark(frameDoc, "demo-hover", null));
   // What is picked stays picked across paths: the same element, in another rendering.

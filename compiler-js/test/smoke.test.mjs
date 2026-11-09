@@ -79,7 +79,7 @@ test("render-unified renders every example, with an index", () => {
   const psalms = page("unified", "simler-psalmen");
   assert.match(psalms, /<h5 class="tei-head head-first r-b r-c">/, "a heading one level below its fourth division");
   assert.match(psalms, /<span class="tei-pb pb-group pb-rule" data-image="https:\/\/www\.e-rara\.ch\/i3f\/v20\/4049203\/full\/!1000,1500\/0\/default\.jpg" data-page="4049203">\[4\]<\/span>/, "a page break as its labelled rule, with its image");
-  assert.match(psalms, /<a class="tei-note note-anchored tei-note-ref" href="#note-1" data-range="a23">1<\/a>/, "a range note's marker");
+  assert.match(psalms, /<a class="tei-note note-anchored tei-note-ref" href="#note-1" data-range="k1\.1">1<\/a>/, "a range note's marker");
   assert.match(psalms, /<section class="tei-footnotes">/, "the notes collected at the end");
   assert.match(psalms, /wort be<span class="tei-lb lb-hyphen normalized-omit">-<\/span><br class="tei-lb lb-hyphen normalized-omit">trachtet/,
     "at a joined line end one hyphen, the line break's, which the normalized view omits");
@@ -506,9 +506,9 @@ test("an enhancer adds scripts to a page, and changes nothing of the edition", (
 
 test("the islands enhancer finds its regions in the browser and opens notes as tooltips", () => {
   const out = join(outDir, "islands");
-  run("render-unified.mjs", ["--enhance", "islands", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-buchstabwechsel.xml", "--css", join(outDir, "edition.css"), "--out", out]);
+  run("render-unified.mjs", ["--enhance", "islands", "--handlers", join(outDir, "tei-handlers.mjs"), "--tei", "../examples/simler-todtenklang.xml", "--css", join(outDir, "edition.css"), "--out", out]);
 
-  const html = readFileSync(join(out, "simler-buchstabwechsel.html"), "utf8");
+  const html = readFileSync(join(out, "simler-todtenklang.html"), "utf8");
   assert.doesNotMatch(html, /<tei-island/, "nothing is marked at build time");
   for (const script of ["readings.js", "facsimile.js"]) assert.ok(existsSync(join(out, script)), `${script} waits beside the page`);
   assert.doesNotMatch(html, /TeiFacsimile/, "and is not in it");
