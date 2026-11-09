@@ -7,7 +7,7 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 
 | File | What it is |
 |------|------------|
-| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-08 with the register added (see [below](#what-was-changed)). The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the project's file |
+| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-08 and slightly adapted (see [below](#what-was-changed)). The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the project's file |
 | `design-tokens.css` | the custom properties the ODD's CSS reads (fonts, sizes, colours); the CSS generators put them at the top of `edition.css` |
 | `simler-buchstabwechsel.xml` | poems VI and VII of the dedicatory poems: two interleaved two-column pages, whose acrostics the `l-twocol` params lay out; readings (`choice`) inside the acrostic lines; the poet's name |
 | `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–XXI: running headers, page numbers and catchwords, a page break inside a stanza, joined line ends; a commentary note and two names |
@@ -19,51 +19,34 @@ Shared sample inputs for both reference implementations — the JavaScript one i
 ## The excerpts
 
 Each `simler-*.xml` is an excerpt of a source file of Simler Digital, *Teutsche
-Gedichte* (C, 1663), copied from simler_data on 2026-11-08. The project's files are
-work in progress; the excerpts are not synced with them, and are meant to stay as
-they are:
+Gedichte* (C, 1663), copied from simler_data on 2026-11-08 and **slightly
+adapted**. The project's files are work in progress; the excerpts are not synced
+with them, and are meant to stay as they are:
 
-- **Close to the source:** the lines are the source's, with only the changes the
-  table below lists. A change removes what is provisional in the source, so that
-  the example does not keep a working state, or adds what shows a feature the
-  edition will have. Around the lines are a header comment, a minimal `teiHeader`
-  with the IIIF manifest (`idno[@type='URLIIIF']`, which the page breaks' `@facs`
-  resolve against), the enclosing elements, and the register.
-- **A register:** each excerpt that names a person or place carries a `standOff`
-  with the entries its `rs/@key` refer to, and no others. Name, life dates,
-  description and authority identifiers come from the project's registers (its
-  Google Sheet), under the same licence as the transcriptions.
+- **Close to the source:** the lines are the source's. What is provisional in it
+  was removed, an error against the print corrected, and a few names and one
+  commentary note added to show what the edition will have. Around the lines are a
+  header comment, a minimal `teiHeader` with the IIIF manifest
+  (`idno[@type='URLIIIF']`, which the page breaks' `@facs` resolve against) and the
+  enclosing elements.
+- **A register:** an excerpt that names persons or places carries a `standOff` with
+  their entries, from the project's registers, under the same licence as the
+  transcriptions.
 - **Valid:** each excerpt passes the schema compiled from `tei_simler.odd` and its
   Schematron rules. Where the source itself draws a warning, the table says which.
 
-| Excerpt | Source file, pages | Changes | Schematron warnings, the source's own |
-|---|---|---|---|
-| `simler-buchstabwechsel.xml` | `C_1663_dok.xml`, fol. A vii r–v | `rs` on the poet's name, as `C_1663_Teil-0.xml` marks it; **a correction:** a stray `lb` inside the verse line *Lern ſchweigen; und das mau* (poem VII) removed, as the print, `C_1663_Teil-0.xml` and `D_1688.xml` have one line (corrected in simler_data too) | none |
-| `simler-psalmen.xml` | `C_1663_dok.xml` (the documentary transcription), pp. 4–7 | `rs` on *David* and *Abſolon* in Psalm III, as the reading text `C_1663_Teil-1.xml` marks them; **a commentary note on *Abſolon* (`k1.1`), written for the example** in the form of the edition's commentary | none |
-| `simler-todtenklang.xml` | `C_1663_Teil-5.xml` (the reading text, with the commentary), pp. 539–540 | the page break of p. 539, which falls in the poem before, set before 143; the provisional `label`s (`[215.]`, `[216.]`) and the commentary's `@subtype` removed; a commentary note that was a placeholder for the register ("vgl. Biogramm [Link]") removed with its anchor; a mistyped host in a link corrected (`fwb-online.de`) | [S-HI], [S-HIB] on the two headings' `hi`, which covers the whole `head` |
+| Excerpt | Source file, pages | Schematron warnings, the source's own |
+|---|---|---|
+| `simler-buchstabwechsel.xml` | `C_1663_dok.xml` (the documentary transcription), fol. A vii r–v | none |
+| `simler-psalmen.xml` | `C_1663_dok.xml`, pp. 4–7 | none |
+| `simler-todtenklang.xml` | `C_1663_Teil-5.xml` (the reading text, with the commentary), pp. 539–540 | [S-HI], [S-HIB] on the two headings' `hi` |
 
 ### What was changed
 
-The ODD is the project's, with the register its examples carry and one change
-to the layout, which the project's ODD shares. A document without a `standOff`
-renders as with the project's ODD:
-
-- **The register:** `standOff` (module linking) with `listPerson`/`listPlace`,
-  `person`/`place`, `placeName`, `birth`, `death` (module namesdates), each with a
-  model; `standOff` follows the `text`, and is left out of the search text
-  (`plain`). An entry carries `data-card`, which a page may open as a card where
-  the name stands ([conventions](../docs/conventions.md#what-an-enhancer-may-rely-on)).
-- **Its links:** `rs` for a person or place with one entry links to it
-  (`#person_003`), and reads as the text around it; the `entities` view has link
-  models to match, so it still highlights the names. `idno` of type
-  `GND`, `HLS` or `GeoNames` links to the authority, and `persName` gained a model.
-- **The two-column layout:** an indented line in the `twocol` rendition steps 1.2em
-  (`--indent-step`, was 0.5em), as the print indents it, so that a name formed by the
-  first letters of the flush lines (SJMLER in poem VII) reads down the column; the
-  project's ODD has the same change.
-- **Its rules:** each `rs/@key` has an entry where the register is present
-  ([S-RR]); a note in the register needs no `@type`; a `head` in a list of the
-  register is a caption.
+The ODD is the project's, slightly adapted as well: it renders the register (with
+a link from each name to its entry, which a page may open as a card), and an
+indented line in the two-column layout steps further, as the print does. A
+document without a `standOff` renders as with the project's ODD.
 
 ## Validate
 
@@ -80,7 +63,7 @@ the Schematron warnings and fails on an invalid excerpt or a Schematron error.
 ## Sources & credits
 
 The sample texts are reused, by permission, as illustrative examples; each file's
-header records its source, and the table above what was changed. **Please credit the originating projects when
+header records its source. **Please credit the originating projects when
 reusing these files.**
 
 - **Simler Digital** — <https://www.simler.unibe.ch/> — Johann Wilhelm Simler,

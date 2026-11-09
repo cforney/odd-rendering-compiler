@@ -22,8 +22,11 @@ the stylesheets of both XSLT generators render an **equivalent static body**
 and on conformance fixtures. [docs/capabilities.md](docs/capabilities.md) says what
 each target reads, implements and has executed.
 
-> **Note.** This is an experimental implementation: it exists to illustrate
-> the idea and reproduce the article, not as production code.
+**Online demo:** <https://cforney.github.io/odd-rendering-compiler> — the Simler
+examples through every rendering path, side by side.
+
+⚠️ **Note.** This is an experimental implementation: it exists to illustrate
+the idea and reproduce the article, not as production code.
 
 ## What's here
 
@@ -96,7 +99,8 @@ cd compiler-js && npm run build:demo   # assembles demo/site/ from existing outp
 npx http-server ../demo/site           # then open the printed URL
 ```
 
-CI publishes it to GitHub Pages on every push to `main`. See
+CI publishes it to GitHub Pages on every push to `main`:
+<https://cforney.github.io/odd-rendering-compiler>. See
 [`demo/README.md`](demo/README.md) for the build steps and how to extend it.
 
 ## Documentation
