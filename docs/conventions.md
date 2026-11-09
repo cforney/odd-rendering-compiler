@@ -25,20 +25,24 @@ first model of that output whose predicate holds, else the first model without
 | `plaintext`, `print`, `fo`, `latex`, `epub`, `pdf` | a channel: renders alone, with `--output`, and is never a view | other tools' outputs |
 
 **Views.** Every other output is a view laid over the `web` page, not a render of
-its own, so another tool's output with an unlisted name becomes a switch; give it
-an engine's prefix to keep it apart. A view gets a checkbox
-`<input data-view="<view>">`, labelled by the first
-`<desc>` among its models. For each element, the view's first model whose
-predicate holds adds to the page: an `omit` becomes the class `<view>-omit`, a
-model of the same behaviour adds its classes, and an `alternate`'s readings are
-marked `<view>-default` and `<view>-alternate`. The CSS applies the view where
-`:is([data-<view>='on'], .tei-edition:has(> .tei-views input[data-view='<view>']:checked))`
-holds, so a view switches without JavaScript, and two editions on one page switch
-apart. A view can only hide and add classes: a model of another behaviour, or one
-changing the content, has no effect on the page, shows when that output renders
-alone, and is diagnosed as `view-unrealized`. Views combine; none is exclusive of
-another. A tool that does not know views skips these models
-and renders the page without them.
+its own. So another tool's output with an unlisted name becomes a switch; give it
+an engine's prefix to keep it apart.
+
+- **Switch:** a checkbox `<input data-view="<view>">`, labelled by the first
+  `<desc>` among the view's models. The CSS applies the view where
+  `:is([data-<view>='on'], .tei-edition:has(> .tei-views input[data-view='<view>']:checked))`
+  holds, so it switches without JavaScript, and two editions on one page switch
+  apart. Views combine.
+- **Effect:** for each element, the view's first model whose predicate holds
+  adds to the page. An `omit` becomes the class `<view>-omit`, a model of the
+  same behaviour adds its classes, and an `alternate`'s readings are marked
+  `<view>-default` and `<view>-alternate`.
+- **Limit:** a view can only hide and add classes. A model of another
+  behaviour, or one that changes the content, has no effect on the page (it
+  shows when that output renders alone) and is diagnosed as `view-unrealized`.
+
+A tool that does not know views skips these models and renders the page without
+them.
 
 ## Engine prefixes on `@output`
 
@@ -105,11 +109,12 @@ XPath, ODD resolution and diagnostics, by target.
   nothing. Where a model has a param `join`, on any element and of any behaviour, the
   line joins: the spaces around it go, and a last character of the line's text that
   `join` names; the model sets the hyphen. Without `join`, no text changes.
-- **Page metadata.** The params of the root's model for output `page`: `title` names the
-  page, or else its file does, `lang` gives the page's language, `credit` closes the page's edition as
-  `footer.tei-credit` (on the page only, not in other outputs), and `manifest` goes on the edition. An `index` lists
-  what a model renders as `heading`. Findings read a note's range from a param `range`,
-  and an anchor from the behaviour `anchor`.
+- **Page metadata.** The params of the root's model for output `page`: `title`
+  names the page (else its file name does), `lang` gives its language, `credit`
+  closes the edition as `footer.tei-credit` (on the page only), and `manifest`
+  goes on the edition. An `index` lists what a model renders as `heading`.
+  Findings read a note's range from a param `range`, and an anchor from the
+  behaviour `anchor`.
 - **Namespaces.** Names resolve by namespace, not by spelling, in the ODD and in
   the source. A model applies to TEI's element of its `@ident`, or with
   `elementSpec/@ns` to that namespace's, under the same class `tei-<ident>`. Any
@@ -120,12 +125,13 @@ XPath, ODD resolution and diagnostics, by target.
 - **Whitespace.** Whitespace-only text at the edge of a block, or next to one, is
   indentation and is dropped. Other whitespace collapses, unless the nearest
   `xml:space` says `preserve`.
-
 - **Page images.** The param `manifest` of the root's model for output `page` goes
   on the edition as `data-manifest`, in every target. On an interactive page, an
-  element with `data-page` opens its image: the one its param `data-image` names, or else one found in that IIIF manifest (Presentation
-  2 or 3) by the end of a canvas, image or image service id; with no manifest, a
-  `data-page` that is itself a URL is the image. A project with another scheme
+  element with `data-page` opens its image, found in this order:
+  1. the image its param `data-image` names;
+  2. the one in the IIIF manifest (Presentation 2 or 3) whose canvas, image or
+     image service id ends with the `data-page` value;
+  3. with no manifest, the `data-page` value itself, if it is a URL. A project with another scheme
   replaces `TeiFacsimile.resolve`. A static page keeps the plain marker.
 - **Search.** `search-index.mjs` indexes the `plain` output, with text and query
   folded: compatibility forms and marks removed, `ß` as `ss`, so `selig` finds

@@ -6,7 +6,7 @@ handlers, and CETEIcean behaviours — with the renderers that turn TEI into HTM
 
 ## One command
 
-Everything below, composed in the order the steps depend on each other:
+Runs every step below, in order:
 
 ```bash
 node odd-render.mjs <odd> <tei...> [options]          # --help lists them all
@@ -92,10 +92,15 @@ runtime's trace: a tree in which every element reached names the model that won 
 record or the text as it renders — and a side table giving each model that ran its
 predicate, its `<desc>` and the ODD it was written in. So an element a `content`
 param leaves out has no record, and one it selects twice has two. `parts` names the
-parts of a sequence that ran. `outcome` is `rendered`; `omitted`, as the model says;
-`empty`, the model ran and gave nothing; or `passed-through`, no model applied, so its
-content renders in its place, with `model: null`. It is the injection point for other toolchains, which read the ODD's decisions without
-re-implementing them.
+parts of a sequence that ran. `outcome` is one of:
+
+- `rendered`;
+- `omitted`, as the model says;
+- `empty`: the model ran and gave nothing;
+- `passed-through`: no model applied, so the content renders in its place
+  (`model: null`).
+
+Other toolchains read the ODD's decisions here without re-implementing them.
 
 **Findings.** `findings.mjs` reports, and prints in the build log, what the ODD
 does not foresee: in each source's text, attribute values outside the ODD's
@@ -106,17 +111,19 @@ without a IIIF manifest; in the ODD, custom properties defined nowhere (with
 evaluate.
 
 **Coverage.** `coverage.mjs` rolls the records up over the corpus and reads them
-back against the ODD, which answers the two questions an ODD author has. Because the
-records are the render, it counts what ran, not what the source holds. *What
-did I write that never runs?* — models and sequence parts no document ran, models
-that can never run because an earlier model of the same output has no predicate,
-and elements the ODD has models for that no document rendered. *What is in my documents
-that I never handled?* — elements with no model at all, and the silent case:
-elements whose spec has models of which none applied, whose content passes
-through without a warning. It lists apart what renders nothing: left out as a model
-says, or a model that ran and gave nothing. Models a chained ODD wrote are reported apart, and unhandled
-elements below an `alternate` are not reported, where leaving a reading
-unrendered is a decision. Coverage is per output.
+back against the ODD. Because the records are the render, it counts what ran, not
+what the source holds. It answers an ODD author's two questions, per output:
+
+- *What did I write that never runs?* Models and sequence parts no document ran,
+  models that can never run because an earlier model of the same output has no
+  predicate, and elements with models that no document rendered.
+- *What is in my documents that I never handled?* Elements with no model at all,
+  and the silent case: elements whose models all failed to apply, so their content
+  passes through without a warning.
+
+What renders nothing (omitted, or empty) is listed apart, and so are models a
+chained ODD wrote. Unhandled elements below an `alternate` are not reported:
+leaving a reading unrendered is a decision.
 
 **Unrunnable XPath degrades.** A predicate or param outside the XPath subset is
 not a build error: it compiles to what a failing evaluation returns — `false()`
@@ -140,8 +147,9 @@ See [`../docs/predicate-grammar.md`](../docs/predicate-grammar.md).
 Every renderer accepts **one file or a whole corpus**: `--tei` may be a single
 file, a directory, a `* ? **` glob (quote it), a comma-separated list, or a
 repeated flag. Each source gives `<basename>.html`; several also a linking
-`index.html`. Sources that would write the same page or that index, also by
-names differing only in case, stop the build before anything is written. The npm scripts render every example, `../examples/simler-*.xml`.
+`index.html`. If two sources would write the same file (also when their names
+differ only in case), the build stops before writing anything. The npm scripts
+render every example, `../examples/simler-*.xml`.
 
 ## Quick start
 
@@ -209,72 +217,30 @@ Inputs are in [`../examples/`](../examples/).
 
 ## Architecture
 
-**Reading the ODD.** `readOdd(path)` in `odd-parser.mjs` returns, for each
-`elementSpec`, its models in document order, the CSS of their
-`<outputRendition>`s and the values of its value lists, and the views: the
-outputs laid over the page. Each model carries the id the JSON records name it
-by, `<ident>-<n>`, and where it was written. The XSLT generators read the ODD the same way
-(`../compiler-xslt/generate/odd-model.xsl`). `pageOf(specs, tree)` gives what
-the ODD's model for output `page` says of one source.
+How the pipeline fits together (model selection, views, the shared runtimes,
+flow, the tiers) is in [`../docs/concept.md`](../docs/concept.md). The
+conventions are in [`../docs/conventions.md`](../docs/conventions.md), the
+behaviours in [`../docs/behaviour-table.md`](../docs/behaviour-table.md), and what
+is read of an ODD chain in [`../docs/capabilities.md`](../docs/capabilities.md).
+What is particular to this implementation:
 
-An ODD it cannot read, `readOdd` refuses with an `OddError`, and every script
-stops with a line per problem and where it stands (`loadOdd` in `cli.mjs`):
-XML that is not well-formed, a base ODD not found, no `<model>` at all, an
-`elementSpec` without `@ident`, a `<model>` without `@behaviour`, a `<param>`
-without `@name`, or a `<modelSequence>` with no `<model>`.
+- **Reading the ODD.** `readOdd(path)` in `odd-parser.mjs` returns, for each
+  `elementSpec`, its models in document order (each with its id `<ident>-<n>` and
+  where it was written), the CSS of their `<outputRendition>`s, its value lists,
+  and the views. `pageOf(specs, tree)` gives what the model for output `page`
+  says of one source. The XSLT generators read the ODD into the same model
+  (`../compiler-xslt/generate/odd-model.xsl`).
+- **Rendering.** `tei-handlers.mjs` is the ODD's models as a table, with
+  predicates and params as XPath; `../runtime/pm-runtime.mjs` renders by it.
+- **An ODD it cannot read** is refused with an `OddError`, and every script stops
+  with a line per problem (`loadOdd` in `cli.mjs`): XML that is not well-formed,
+  a base ODD not found, no `<model>` at all, an `elementSpec` without `@ident`, a
+  `<model>` without `@behaviour`, a `<param>` without `@name`, or a
+  `<modelSequence>` with no `<model>`.
 
 ```
 [odd-to-unified] ✗ my.odd:8: <model> in <elementSpec ident="p"> has no @behaviour
 ```
-
-- **Model groups** are flattened; a model takes `@output` and
-  `@useSourceRendition` from its group or sequence.
-- **Classes:** a styled model gets its `@cssClass`, or `<ident>-<n>`.
-- **Behaviours:** each gets its HTML element and flow from the shared
-  [`../behaviour-map.json`](../behaviour-map.json). See
-  [`../docs/behaviour-table.md`](../docs/behaviour-table.md).
-- **`<specGrpRef>`** is resolved within one document (the TEI's `tei_simplePrint`
-  is composed from seven references). This is not full `odd2odd` flattening.
-- **ODD chaining:** a `<schemaSpec source="…">` naming another ODD reads it as the
-  base. This ODD's specs with models replace the base spec's models,
-  `mode="delete"` removes a spec, and a new ident is added.
-
-**Generated code, shared behaviours.** `tei-handlers.mjs` is the ODD's models as
-a table, with predicates and params as XPath. `../runtime/pm-runtime.mjs`
-renders by it:
-
-- **Models:** each element takes the first model of the output being rendered
-  whose predicate holds, else the first such model without `@output`.
-- **Views:** on the `web` page, each view's model marks the element: an omit,
-  its classes, or which reading of an alternate it reads; a checkbox per view
-  heads the edition, and `edition.css` does the rest.
-- **Params:** they are XPath; `data-…` and `--…` params become attributes and CSS
-  custom properties.
-- **Flow:** block or inline decides where TEI indentation is dropped and where a
-  line break is already implied.
-- **Joined line ends:** where an element's model has a param `join`, the line joins
-  the next: the spaces around the break go, and a last character the param names, so
-  the model sets the one hyphen the print shows.
-- **Notes** are numbered in document order and collected by place. On the
-  interactive pages a marker opens its note as a tooltip, by
-  `../runtime/notes.js`, which also opens a link to an element the ODD marks
-  with `data-card` (a register entry) as a card (styled by `../runtime/ui.css`, which the CSS
-  generators append to `edition.css`).
-- **Page images.** On the interactive pages a page break with a `data-page` opens
-  its image beside the text, by `../runtime/facsimile.js`, from the IIIF manifest
-  on the edition's `data-manifest` (see
-  [conventions](../docs/conventions.md)). The islands tier loads the script when the
-  first break comes into view.
-
-The generated stylesheet does the same with `../runtime/pm.xsl`, so the unified
-and XSLT renders have an equivalent body. A CETEIcean page chooses models by the
-same runtime in the browser, and `../runtime/ceteicean.js` reshapes CETEIcean's
-custom elements into the same HTML. See
-[`../docs/concept.md`](../docs/concept.md).
-
-**The nested model (Boot 2024).** A `<model>` that holds a `<modelSequence>` is
-not TEI. The compilers render it, a `link` part wrapping the others, for the
-extension example in [`../examples/extensions/nested-pb/`](../examples/extensions/nested-pb/).
 
 ## Dependencies
 

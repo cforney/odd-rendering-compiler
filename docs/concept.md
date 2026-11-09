@@ -66,14 +66,13 @@ two are independent:
 | | **compiled** (artefacts generated from the ODD) | **interpreted** (the ODD read on every run) |
 |---|---|---|
 | **request time (server)** | TEI Publisher: the ODD compiled into XQuery, which eXist-db runs | — |
-| **build time (static)** | this repository: XSLT, unified handlers, CETEIcean behaviours, CSS | Simler Digital's own build (`simler_data/preview`) |
+| **build time (static)** | this repository: XSLT, unified handlers, CETEIcean behaviours, CSS | Simler Digital's own build |
 | **in the browser** | this repository, via SaxonJS or CETEIcean | possible, by bundling an interpreter |
 
-The two meet in the middle. This compiler generates the ODD's models as a table
-over a shared runtime, which chooses the model as it renders; the Simler build
-compiles its XPath and CSS once and interprets only the choice of model. Only
-generated artefacts reach another toolchain, the browser or the CSS floor, and
-that is where compiling pays off.
+In practice the two overlap: this compiler still chooses each element's model at
+render time, from a generated table, and the Simler build compiles its XPath and
+CSS once. Compiling pays off where the ODD itself cannot go: into another
+toolchain, the browser, or plain CSS.
 
 ## Output tiers
 
@@ -95,12 +94,13 @@ The same ODD feeds three levels, each building on the last:
 The CETEIcean tier renders in the browser instead: the same body, and the same
 tooltips and page images.
 
-Beside the pages, the same build reports what the ODD does not foresee in the
-encoding (`compiler-js/findings.mjs`), writes the `plain` output as text and as
-Pagefind records (`compiler-js/render-plain.mjs`), which become a search page
-(`compiler-js/search-index.mjs`), and writes
-the render itself as data — every element it reached naming the model that won
-(`compiler-js/render-json.mjs`), the injection point for other toolchains. Read
-those records back against the ODD and they answer the ODD author's two
-questions — what did I write that never runs, and what is in my documents that I
-never handled (`compiler-js/coverage.mjs`).
+Beside the pages, the same build writes:
+
+- **findings:** what the ODD does not foresee in the encoding (`compiler-js/findings.mjs`);
+- **search:** the `plain` output as text and Pagefind records
+  (`render-plain.mjs`), and a search page from them (`search-index.mjs`);
+- **records:** the render as data, every element naming the model that won
+  (`render-json.mjs`), for other toolchains to read;
+- **coverage:** those records read back against the ODD (`coverage.mjs`), which
+  answers what the ODD holds that never runs, and what the documents hold that
+  the ODD never handles.
