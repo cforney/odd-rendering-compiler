@@ -109,6 +109,9 @@ export const paths = [
   },
 ];
 
+// What a first visit opens: a path's id and the ODD's views switched on (a link's own state wins).
+export const opening = { path: "unified-script", views: ["entities"] };
+
 // The shared visual floor every path renders against — shown beside each tab.
 export const floor = { label: "edition.css", file: "js/edition.css" };
 

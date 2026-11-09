@@ -21,7 +21,7 @@ import {
 } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { concept, paths, floor, docs, inspected } from "./manifest.mjs";
+import { concept, paths, floor, docs, inspected, opening } from "./manifest.mjs";
 import { parseXmlToXast, readOdd, allModels } from "../compiler-js/odd-parser.mjs";
 import { seq, str } from "../runtime/xpath.mjs";
 import { FURNITURE } from "../runtime/pm-runtime.mjs";
@@ -179,9 +179,14 @@ async function writeInspection() {
 }
 
 const floorFile = resolve(SITE, floor.file);
+const views = readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.label, help: v.help ?? "" }));
 const data = {
-  concept, paths: resolved, inspect: await writeInspection(), notElements: FURNITURE,
-  views: readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.label, help: v.help ?? "" })),
+  concept, paths: resolved, inspect: await writeInspection(), notElements: FURNITURE, views,
+  // Only what this build has: a path left out, or a view the ODD lacks, opens the defaults.
+  opening: {
+    path: resolved.find((p) => p.id === opening.path)?.id ?? resolved[0].id,
+    views: opening.views.filter((v) => views.some((w) => w.output === v)),
+  },
   docs: docs.filter((d) => resolved.some((p) => p.pages[d.id])),
   floor: { label: floor.label, url: floor.file, sizeKB: kb(sizeOf(floorFile)) },
 };

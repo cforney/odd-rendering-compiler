@@ -73,8 +73,9 @@ fetches each CDN script to weigh it; without network it stays a name, and out of
 
 ## Using it
 
-The tabs choose who builds the page; *Interaction* chooses how a prebuilt page is
-enhanced, and stays chosen across tabs. The text looks the same on every path, so
+A first visit opens what `opening` in `manifest.mjs` names: the unified page with
+the small script, and the entities view on. The tabs choose who builds the page;
+*Interaction* chooses how a prebuilt page is enhanced, and stays chosen across tabs. The text looks the same on every path, so
 a line beside the tabs says which path rendered it, once it is there. On the
 interactive paths a click on a page break opens that page's image. Each combination has its own entry in the URL,
 in `verified.json` and in the comparison table, which nests them by builder, and whose sizes count a linked stylesheet

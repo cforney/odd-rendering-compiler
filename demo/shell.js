@@ -14,14 +14,16 @@ const make = (parent, tag, text, className) => {
 // State: the document, the rendering path, whether the page may run JavaScript, the
 // views laid over it, and the inspector: whether it is on, and what it has picked.
 // All but inspecting is in the URL, so a state can be shared and survives a reload.
+// A first visit, with nothing in the URL, opens the manifest's `opening`.
 const asked = new URLSearchParams(location.hash.slice(1));
+const opened = data.paths.find((p) => p.id === (asked.get("path") ?? data.opening.path)) ?? data.paths[0];
 const state = {
   doc: data.docs.find((d) => d.id === asked.get("doc"))?.id ?? data.docs[0].id,
-  path: data.paths.find((p) => p.id === asked.get("path")) ?? data.paths[0],
+  path: opened,
   js: asked.get("js") !== "off",
-  views: new Set((asked.get("views") ?? "").split(",").filter((v) => data.views.some((w) => w.output === v))),
+  views: new Set((asked.get("views") ?? data.opening.views.join(",")).split(",").filter((v) => data.views.some((w) => w.output === v))),
   inspecting: false,
-  interaction: data.paths.find((p) => p.id === asked.get("path"))?.interaction ?? data.paths[0].interaction,
+  interaction: opened.interaction,
   picked: asked.has("pick") ? Number(asked.get("pick")) : null,
 };
 
@@ -31,7 +33,7 @@ const nameOf = (p) => (p.builder ? `${p.builder} Â· ${p.interaction}` : `Build Â
 
 function remember() {
   const hash = new URLSearchParams({ doc: state.doc, path: state.path.id });
-  if (state.views.size) hash.set("views", [...state.views].join(","));
+  hash.set("views", [...state.views].join(",")); // also when empty, so no view is not read as the opening's
   if (!state.js) hash.set("js", "off");
   if (state.picked !== null) hash.set("pick", state.picked);
   history.replaceState(null, "", `#${hash}`);
