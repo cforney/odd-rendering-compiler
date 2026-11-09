@@ -45,5 +45,5 @@ for (const name of undefinedProperties(odd, tokens)) {
 const css = editionCss(odd, { tokens, source: basename(oddPath), stamp });
 const rules = specs.flatMap((s) => s.rules);
 const cssPath = writeOut(outDir, "edition.css", css);
-log(`✓ ${cssPath} (${tokens ? "tokens, " : ""}${renditions.length} renditions, ${rules.length} model rules, ${views.length} views)`);
+log(`✓ ${cssPath} (${tokens ? "tokens, " : ""}${renditions.length} renditions, ${rules.length} model rules, ${views.length} views; ${specs.filter((s) => s.models.length).length} of ${specs.length} elements have a model)`);
 log(`${cssResidue(specs).length} of ${specs.flatMap((s) => s.models).length} models need the renderers: a behaviour CSS cannot express, or a predicate on more than ancestry`);

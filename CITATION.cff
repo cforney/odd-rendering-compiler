@@ -12,7 +12,7 @@ authors:
     family-names: Forney
     affiliation: "Data Science Lab, University of Bern"
     email: christian.forney@unibe.ch
-version: 0.3.0
+version: 1.0.0
 license: BSD-2-Clause
 repository-code: "https://github.com/cforney/odd-rendering-compiler"
 url: "https://github.com/cforney/odd-rendering-compiler"
@@ -24,8 +24,8 @@ keywords:
   - digital scholarly editions
   - static site
   - minimal computing
-# A Zenodo DOI will be added here (as `doi:` and a versioned `identifiers:` entry)
-# once the v0.1.0 release is archived. See companion-repo-plan.md, step 8.
+# On release: `date-released:`, and once Zenodo has archived it, the concept DOI as
+# `doi:` (and the version's DOI under `identifiers:`). An `orcid:` belongs under the author.
 preferred-citation:
   type: article
   title: "The TEI ODD as Static-Build Configuration: Compiling the Processing Model into Edition Rendering"

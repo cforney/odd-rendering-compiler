@@ -1,6 +1,6 @@
 {
   "name": "odd-rendering-compiler",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "TEI ODD Processing Model → CSS, XSLT, unified/xast handlers and CETEIcean behaviours, with rendering for static editions",
   "type": "module",
   "exports": "./compiler-js/index.mjs",

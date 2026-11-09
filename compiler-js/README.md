@@ -32,7 +32,7 @@ development, and private): the scripts here, `../runtime/` and the behaviour tab
 It is not on npm; install it from the repository or from `npm pack` at its root:
 
 ```bash
-npm install github:cforney/odd-rendering-compiler   # or: npm install ./odd-rendering-compiler-0.3.0.tgz
+npm install github:cforney/odd-rendering-compiler   # or: npm install ./odd-rendering-compiler-1.0.0.tgz
 npx odd-render <odd> <tei...> [options]
 ```
 

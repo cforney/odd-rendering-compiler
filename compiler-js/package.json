@@ -1,6 +1,6 @@
 {
   "name": "odd-rendering-compiler",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Build-time pipeline: TEI ODD Processing Model → CSS, XSLT, unified/xast handlers, and CETEIcean behaviours — with end-to-end HTML rendering for static editions",
   "type": "module",
   "private": true,
