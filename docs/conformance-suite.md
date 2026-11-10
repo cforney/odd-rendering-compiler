@@ -1,7 +1,7 @@
 # A shared conformance suite for the Processing Model
 
-**A proposal.** Several implementations now read TEI ODD Processing Models: TEI
-Publisher, OPM, the Simler preview (`tei-odd-interpreter`) and this compiler.
+**A proposal.** Several implementations now read TEI ODD Processing Models: for
+example, TEI Publisher, OPM, and this compiler.
 Each answers the questions the Guidelines leave open in its own way, and each
 tests only itself. What is missing is not another implementation, but a way to
 see where the implementations agree. This compiler's conformance fixtures are
@@ -76,14 +76,3 @@ the question into a diff.
   whether it belongs in a shared suite is itself a question.
 - **`pb:template`.** In a template of text, TEI Publisher fills in a param's
   string, this compiler its rendered nodes.
-
-## Where it stands
-
-- **This compiler** runs the suite through the unified handlers and the
-  stylesheets of both XSLT generators, at the strict level, in CI.
-- **The Simler preview** runs the ODD and the TEI cases with its own expected
-  files (its `test/fixtures/README.md` lists the four conventions in which they
-  differ). Its first run found two bugs in the preview.
-- **OPM and TEI Publisher** have not been asked yet. The proposal is to share
-  the inputs first, agree at the structure level next, and let each project keep
-  its strict expectations; new cases go to the suite, not to one project.
