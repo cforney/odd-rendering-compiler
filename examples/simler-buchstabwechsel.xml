@@ -57,7 +57,7 @@
             <lb/>
             <l rendition="#et">darunter nichts verma&#x364;ngt</l>
             <lb/>
-            <l rendition="#et">von tra&#x364;bern oder kley.</l>
+            <l rendition="#et">von tra&#x364;bern oder <anchor xml:id="kxi.1"/>kley<note type="annotation" targetEnd="kxi.1"><p>‹Kleie›, die Bälge des gemahlenen Getreides: das Mehl ist rein gesiebt, wie es das Anagramm im Titel sagt (‹Nu mahl/ iô! vil reins mehl›), <ref target="https://fwb-online.de/lemma/kleie.s.1f">FWB</ref></p></note>.</l>
             <lb/>
             <l rendition="#acrostic"><hi rendition="#acroInit">O</hi> ſcho&#x364;ne ſchreibensart</l>
             <lb/>
@@ -100,7 +100,7 @@
             <l rendition="#et">außtilgen nimmermehr.</l>
             </lg>
             <lb/>
-            <closer><signed>Geo&#x364;rg Müller/ Pfarꝛer zu Tahlweil/
+            <closer><signed rendition="#right #smaller">Geo&#x364;rg Müller/ Pfarꝛer zu Tahlweil/
             <lb/>
             am Zürichſee.</signed></closer>
             <lb/>

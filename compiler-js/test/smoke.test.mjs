@@ -97,7 +97,7 @@ test("render-unified renders every example, with an index", () => {
   assert.match(columns, /<div class="tei-l l-twocol" style="--acro: 1; --fin: 0; --indent: 1">/, "an indented line in a column with acrostics");
 
   const sonnet = page("unified", "simler-todtenklang");
-  assert.match(sonnet, /<span class="tei-anchor" id="k216\.3"><\/span>Die Ehrgedächtnuß<a class="tei-note note-anchored tei-note-ref" href="#note-2" data-range="k216\.3">2<\/a>/,
+  assert.match(sonnet, /<span class="tei-anchor" id="k216\.3"><\/span>Die Ehrgedächtnuß<a class="tei-note note-anchored tei-note-ref" href="#note-3" data-range="k216\.3">3<\/a>/,
     "a commentary note on the range its anchor starts");
   assert.match(sonnet, /<a class="tei-ref" href="https:\/\/www\.dwds\.de\/wb\/dwb\/beschehen">DWDS<\/a>/, "the commentary's link");
   assert.match(sonnet, /<span class="tei-sic">desse<\/span><\/span><span class="tei-alternate-alt normalized-default" hidden><span class="tei-corr">dessen<\/span>/,

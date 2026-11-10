@@ -10,6 +10,7 @@
 .tei-credit { margin-top: 2em; font-size: 0.8em; color: rgb(var(--c-muted, 106 102 95)); }
 .tei-footnotes, .tei-notes { margin-top: 2em; padding-top: 1em; border-top: 1px solid rgb(var(--c-line, 221 221 221)); }
 .tei-note-body { display: block; margin: 0.3em 0; font-size: 0.9em; }
+.tei-note-body > .tei-note-num + p { display: inline; margin: 0; } /* a note's first paragraph runs on from its number */
 .tei-note-body:target { background-color: rgb(var(--c-accent, 45 87 76) / 0.09); }
 .tei-note-ref[aria-expanded="true"] { background-color: rgb(var(--c-accent, 45 87 76) / 0.2); border-radius: 3px; }
 .tei-tooltip {

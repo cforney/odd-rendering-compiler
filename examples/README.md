@@ -24,8 +24,10 @@ adapted**. The project's files are work in progress; the excerpts are not synced
 with them, and are meant to stay as they are:
 
 - **Close to the source:** the lines are the source's. What is provisional in it
-  was removed, an error against the print corrected, and a few names and one
-  commentary note added to show what the edition will have. Around the lines are a
+  was removed, errors against the print corrected (letters, a stanza number not
+  printed, where a signature stands), and a few names and commentary notes added
+  to show what the edition will have, the notes with a link to the
+  *Frühneuhochdeutsches Wörterbuch* (FWB). Around the lines are a
   header comment, a minimal `teiHeader` with the IIIF manifest
   (`idno[@type='URLIIIF']`, which the page breaks' `@facs` resolve against) and the
   enclosing elements.
@@ -45,7 +47,8 @@ with them, and are meant to stay as they are:
 
 The ODD is the project's, slightly adapted as well: it renders the register (with
 a link from each name to its entry, which a page may open as a card), and an
-indented line in the two-column layout steps further, as the print does. A
+indented line in the two-column layout steps further, and an even page's number
+stands at the left, as the print does. A
 document without a `standOff` renders as with the project's ODD.
 
 ## Validate

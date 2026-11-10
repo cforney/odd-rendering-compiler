@@ -169,7 +169,7 @@
             <lb/>
             <l rendition="#et">in einem ſigeslied/ weil er in einer ſchlacht</l>
             <lb/>
-            <l rendition="#et">das feld erhalten hat/ den haubt<supplied>f</supplied>eind umgebracht;</l>
+            <l rendition="#et">das feld erhalten hat/ den haubt<choice><sic>ſ</sic><corr>f</corr></choice>eind umgebracht;</l>
             <lb/>
             <l>mit bitt/ daß Gottes hülff ihm fehrner werd erweiſet.</l>
             </lg>
@@ -236,7 +236,7 @@
             <lb/>
             <l rendition="#et">und werden groſſen ſigs die feinde ru&#x364;hmen ſich:</l>
             <lb/>
-            <l rendition="#et">deß ru&#x364;ffet er zu Gott ſo gar eynbrünſtiglich/</l>
+            <l rendition="#et">deß ru&#x364;ffet er zu Gott ſo gar <anchor xml:id="k1.2"/>eynbrünſtiglich<note type="annotation" targetEnd="k1.2"><p>‹inbrünstig›: von religiöser Hingabe erfüllt, <ref target="https://fwb-online.de/lemma/inbr%C3%BCnstig.s.4adj">FWB</ref></p></note>/</l>
             <lb/>
             <l>gelobet dank/ und kan nun widerum troſt faſſen.</l>
             </lg>

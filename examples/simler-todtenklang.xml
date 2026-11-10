@@ -33,8 +33,6 @@
                     <lb/>
                     <lg type="poem">
                         <lg n="1">
-                            <head>[1.]</head>
-                            <lb/>
                             <l><hi rendition="#in">D</hi>OROTHEA/ laß mich preisen</l>
                             <lb/>
                             <l rendition="#et">deinen schönen Namen Heut/</l>
@@ -129,7 +127,7 @@
                             <l rendition="#et2">Flora/ mit
                                 den guldnen Kle/</l>
                             <lb/>
-                            <l rendition="#et2">Ziere meine Dorothe.</l>
+                            <l rendition="#et2">ziere meine Dorothe.</l>
                             <lb/>
                             <l>in den balden Fru&#x364;hlings-tagen</l>
                             <lb/>
@@ -217,7 +215,7 @@
                                 >Vatterland!</hi> des <rs type="person" key="person_003"><hi
                                     rendition="#larger">Vatters</hi></rs> nun beraubet</l>
                         <lb/>
-                        <l rendition="#et"><anchor xml:id="k216.2"/>durch den/ der allem fleisch<note type="annotation" targetEnd="k216.2"><p>d. i. der Tod (auch die folgenden Verse)</p></note> versaget Audientz/</l>
+                        <l rendition="#et"><anchor xml:id="k216.2"/>durch den/ der allem fleisch<note type="annotation" targetEnd="k216.2"><p>d. i. der Tod (auch die folgenden Verse)</p></note> versaget <anchor xml:id="k216.5"/>Audientz<note type="annotation" targetEnd="k216.5"><p>‹Gehör, Anhörung›: der Tod hört keine Bitte an, <ref target="https://fwb-online.de/lemma/audienz.s.1f">FWB</ref></p></note>/</l>
                         <lb/>
                         <l rendition="#et">bey welchem weder Bitt/ noch Goldgeleiches Gläntz/</l>
                         <lb/>
