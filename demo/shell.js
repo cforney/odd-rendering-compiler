@@ -363,11 +363,10 @@ for (const view of data.views) {
     remember();
   };
   make(label, "strong", view.label);
-  make(label, "span", view.help, "muted small");
 }
 
 const doc = byId("doc");
-for (const d of data.docs) doc.add(new Option(d.label, d.id));
+for (const d of data.docs) doc.add(Object.assign(new Option(d.label, d.id), { title: d.about ?? "" }));
 doc.value = state.doc;
 doc.disabled = data.docs.length < 2;
 doc.onchange = () => {

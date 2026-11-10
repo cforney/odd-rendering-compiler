@@ -193,8 +193,9 @@ async function writeInspection() {
 }
 
 const floorFile = resolve(SITE, floor.file);
-// The views in the shell's language where the ODD translates them, else in its own.
-const views = readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.translations?.[LANG]?.label ?? v.label, help: v.translations?.[LANG]?.help ?? v.help ?? "" }));
+// The views in the shell's language where the ODD translates them, else in its own; their
+// explanations stay out, as the ODD writes them for the whole edition, not these excerpts.
+const views = readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.translations?.[LANG]?.label ?? v.label }));
 const data = {
   concept, odd: { label: basename(inspected.odd), url: oddFile }, paths: resolved, inspect: await writeInspection(), notElements: FURNITURE, views,
   // Only what this build has: a path left out, or a view the ODD lacks, opens the defaults.
@@ -217,6 +218,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>ODD Rendering Compiler — compare the rendering paths</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%2316a34a%22%2F%3E%3Cpath%20d%3D%22M9%208h10l5%205v11H9z%22%20fill%3D%22%23fff%22%2F%3E%3Cpath%20d%3D%22M12%2016h9M12%2020h9%22%20stroke%3D%22%2316a34a%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E">
   <link rel="stylesheet" href="shell.css">
 </head>
 <body>
@@ -257,7 +259,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
         <details id="how"><summary>How it works</summary><div id="how-text"></div></details>
       </section>
       <section id="views" hidden>
-        <h3>Show in the text</h3>
+        <h3>View options</h3>
         <div id="view-list"></div>
       </section>
       <section id="inspect" hidden>
@@ -283,6 +285,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
       <h2 id="compare-title">Which rendering should I use?</h2>
       <button type="button" id="compare-close">Close</button>
     </header>
+    <p><strong>For most editions:</strong> a page built in advance (unified/xast or XSLT) with the small script. It reads without JavaScript and needs no server, and one small script opens readings, notes and page images in place.</p>
     <p class="muted">They all show the same edition; they differ in what the reader downloads and what the page can do. Sizes are uncompressed, for the document picked, and all bars share one scale; a script inside the page counts in both columns, and the list of page images (454 KB) comes only with the first one opened. <span id="compare-checked"></span></p>
     <table>
       <thead><tr><th>Built by</th><th>Without JavaScript</th><th>Without a server</th><th>Interaction</th><th>Page</th><th>Script</th><th>Readings, notes, page images in place</th></tr></thead>

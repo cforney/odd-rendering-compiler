@@ -12,7 +12,7 @@ export const guide = {
   summary: "What is this? One text, one description of how it should look, several ways to show it.",
   text: [
     "The texts are encoded in TEI. A separate file, the ODD ({odd}), declares how each part of them should look. From these two, the edition below is produced in several ways: each tab is one. The result looks the same, but differs in what the reader downloads and what the page can do.",
-    "Try it: switch the tabs, turn JavaScript off to see which pages keep their text, or inspect the text to see which rule of the ODD made a passage.",
+    "Try it: switch the tabs, click a page number such as [537] to see the printed page, turn JavaScript off to see which pages keep their text, or inspect the text to see which rule of the ODD made a passage.",
     "The documents are excerpts of Simler Digital's edition, adapted for illustration.",
   ],
 };
@@ -129,9 +129,9 @@ export const floor = { label: "edition.css", file: "js/edition.css" };
 // What the inspector explains the examples by.
 export const inspected = { odd: "examples/tei_simler.odd", handlers: "compiler-js/output/tei-handlers.mjs", tei: "examples/{doc}.xml" };
 
-// Documents on offer: the examples, each rendered by every path (id = file name).
+// Documents on offer: the examples, each rendered by every path (id = file name); about says what each shows.
 export const docs = [
-  { id: "simler-buchstabwechsel", label: "Buchstabwächsel: two columns, acrostics" },
-  { id: "simler-psalmen", label: "Psalms I–XXI (C 1663, pp. 4–7)" },
-  { id: "simler-todtenklang", label: "Dorothea, Todtenklang: readings, commentary, register" },
+  { id: "simler-buchstabwechsel", label: "Buchstabwächsel (poems VI–VII)", about: "Two columns, with acrostics" },
+  { id: "simler-psalmen", label: "Psalms I–XXI (pp. 4–7)", about: "Running heads, catchwords, joined line ends" },
+  { id: "simler-todtenklang", label: "Todtenklang (poems 141–144)", about: "Readings, commentary, register" },
 ];
