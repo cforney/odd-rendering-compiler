@@ -247,7 +247,7 @@
       <xsl:if test="$group"><xsl:attribute name="group" select="count($group/preceding-sibling::tei:modelGrp) + 1"/></xsl:if>
       <xsl:if test="@predicate"><xsl:attribute name="predicate" select="pm:xpath(@predicate, .)"/></xsl:if>
       <xsl:if test="$output"><xsl:attribute name="output" select="$output"/></xsl:if>
-      <xsl:if test="tei:desc"><xsl:attribute name="label" select="normalize-space(tei:desc[1])"/></xsl:if>
+      <xsl:if test="tei:desc[not(@xml:lang)]"><xsl:attribute name="label" select="normalize-space(tei:desc[not(@xml:lang)][1])"/></xsl:if>
       <xsl:if test="*:template"><xsl:attribute name="template" select="pm:template(*:template[1])"/></xsl:if>
       <xsl:if test="$styled">
         <xsl:call-template name="pm:rules">

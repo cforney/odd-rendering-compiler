@@ -1243,6 +1243,8 @@
           <model cssClass="entity-person" output="entities" predicate="@type='person' and ancestor::TEI/standOff and not(contains(normalize-space(@key), ' '))" behaviour="link">
             <desc>Entitäten</desc>
             <desc>Personen, Orte, Werke, Institutionen und Bibelstellen farbig.</desc>
+            <desc xml:lang="en">Entities</desc>
+            <desc xml:lang="en">Persons, places, works, institutions and Bible passages in colour.</desc>
             <param name="uri" value="concat('#', normalize-space(@key))"/>
           </model>
           <model cssClass="entity-place" output="entities" predicate="@type='place' and ancestor::TEI/standOff and not(contains(normalize-space(@key), ' '))" behaviour="link">
@@ -1304,6 +1306,8 @@
           <model output="normalized" predicate="sic and corr or abbr and expan" behaviour="alternate">
             <desc>Normalisiert</desc>
             <desc>Zeilenenden zusammenziehen, getrennte Wörter verbinden, Korrektur und Auflösung statt Vorlage.</desc>
+            <desc xml:lang="en">Normalised</desc>
+            <desc xml:lang="en">Line ends joined, divided words rejoined, the correction and the expansion instead of the print.</desc>
             <param name="default" value="(corr, expan)"/>
             <param name="alternate" value="(sic, abbr)"/>
           </model>

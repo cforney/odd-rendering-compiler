@@ -107,7 +107,7 @@ the same stylesheet from the same runtime.
 - **Classes and CSS:** styled models get their classes and CSS rules; a model's
   CSS for an output applies where that output is on.
 - **Views:** every output but `web`, `page` and `plain`, labelled by the first
-  `<desc>` of its models.
+  `<desc>` of its models without `xml:lang`.
 - **`<specGrp>`/`<specGrpRef>`** composition is resolved within one document
   (reference order, cycle guard, unreferenced groups skipped); this is not full
   `odd2odd`.

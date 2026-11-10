@@ -29,7 +29,9 @@ const state = {
 
 /** The tab of a path: its builder, or as a report its own. */
 const tabOf = (p) => p.builder ?? p.id;
-const nameOf = (p) => (p.builder ? `${p.builder} · ${p.interaction}` : `Build · ${p.label}`);
+// A builder's interaction is named only where there is one to choose.
+const nameOf = (p) => (!p.builder ? `Build · ${p.label}`
+  : data.paths.filter((q) => q.builder === p.builder).length > 1 ? `${p.builder} · ${p.interaction}` : p.builder);
 
 function remember() {
   const hash = new URLSearchParams({ doc: state.doc, path: state.path.id });
@@ -378,6 +380,9 @@ doc.onchange = () => {
 
 byId("js-on").checked = state.js;
 byId("js-on").onchange = (e) => { state.js = e.target.checked; render(); };
+
+byId("odd-link").textContent = data.odd.label;
+byId("odd-link").href = data.odd.url;
 
 const floorLink = byId("floor-link");
 floorLink.textContent = data.floor.label;

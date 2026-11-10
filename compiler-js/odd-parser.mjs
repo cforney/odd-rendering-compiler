@@ -29,7 +29,7 @@
  * The CSS of a model with @output applies where that output is on (see `on`).
  *
  * `values` are the attribute values the spec's value lists foresee. `views` are
- * the outputs laid over the page, labelled by a model's <desc>: all but the
+ * the outputs laid over the page, labelled by a model's <desc> (see `described`): all but the
  * CHANNELS, which render on their own, and another engine's.
  *
  * `sources` are the ODDs of the chain, base first, with their hashes. `diagnostics`
@@ -57,7 +57,7 @@ import { xpath, bool, seq, str, nameOf, TEI_NS } from "../runtime/xpath.mjs";
  * @typedef {{ name: string, value: string, odd: string, line: number }} Param
  * @typedef {{ id: string, behaviour: string, tag?: string, flow: string, predicate: string | null,
  *   output: string | null, group?: number, params: Param[], classes: string[], source: boolean, template?: string,
- *   label?: string, parts?: OddModel[], odd: string, line: number }} OddModel
+ *   label?: string, help?: string, translations?: Record<string, { label?: string, help?: string }>, parts?: OddModel[], odd: string, line: number }} OddModel
  * @typedef {{ selector: string, css: string }} Rule
  * @typedef {{ ident: string, key: string, ns?: string, mode: string, models: OddModel[], rules: Rule[], values: Record<string, string[]> }} Spec
  * @typedef {{ code: string, severity: "error" | "warning" | "info", message: string, odd?: string, line?: number, element?: string, model?: string }} Diagnostic
@@ -235,8 +235,7 @@ function readSpec(spec, file) {
       classes: [...new Set([groupClass, ...own, cls].filter(Boolean))],
       source: inherited("useSourceRendition") === "true",
       template: templateOf(m),
-      label: elements(m, "desc").map((d) => normalize(textOf(d)))[0],
-      help: elements(m, "desc").map((d) => normalize(textOf(d)))[1],
+      ...described(m),
       parts,
       ...file.at(m.start),
     };
@@ -262,6 +261,17 @@ function readSpec(spec, file) {
   return { ident, key, ...(ns !== undefined && { ns }), mode: spec.attributes.mode ?? "add", models, rules, values: Object.fromEntries(values) };
 }
 
+/**
+ * A model's label and help: its first and second <desc> without @xml:lang. Those with
+ * one translate them, as `translations`: { <lang>: { label, help } }.
+ */
+function described(m) {
+  const said = (lang) => elements(m, "desc").filter((d) => (d.attributes["xml:lang"] ?? "") === lang).map((d) => normalize(textOf(d)));
+  const langs = [...new Set(elements(m, "desc").map((d) => d.attributes["xml:lang"]).filter(Boolean))];
+  const [label, help] = said("");
+  return { label, help, ...(langs.length && { translations: Object.fromEntries(langs.map((l) => [l, { label: said(l)[0], help: said(l)[1] }])) }) };
+}
+
 /** Every model of the specs, the parts of a sequence included, each with the element it belongs to. */
 export function allModels(specs) {
   const flatten = (m) => [m, ...(m.parts ?? []).flatMap(flatten)];
@@ -275,7 +285,7 @@ function viewsOf(specs) {
     .filter((output) => !CHANNELS.includes(output) && !output.startsWith("opm-"))
     .map((output) => {
       const said = models.find((m) => m.output === output && m.label);
-      return { output, label: said?.label ?? output, help: said?.help };
+      return { output, label: said?.label ?? output, help: said?.help, ...(said?.translations && { translations: said.translations }) };
     });
 }
 

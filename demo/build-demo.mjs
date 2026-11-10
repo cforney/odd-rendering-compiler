@@ -29,6 +29,7 @@ import { FURNITURE } from "../runtime/pm-runtime.mjs";
 const DEMO = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(DEMO, "..");
 const SITE = resolve(DEMO, "site");
+const LANG = "en"; // the shell's language: its <html lang>, and the views' labels where the ODD translates them
 const SOURCES = {                          // manifest `dir` → compiler output
   js: resolve(ROOT, "compiler-js", "output"),
   xslt: resolve(ROOT, "compiler-xslt", "output"),
@@ -74,6 +75,15 @@ function takeBanner(page) {
   return banner[1].trim();
 }
 
+// A report that is a text or JSON file, framed in a page of its own beside it, so it reads
+// in the shell's colours whatever the browser does with a bare file.
+function framed(file) {
+  const text = readFileSync(file, "utf8").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+  writeFileSync(`${file}.html`, `<!DOCTYPE html><html lang="${LANG}"><head><meta charset="UTF-8"><meta name="color-scheme" content="light"><title>${basename(file)}</title>
+<style>body { margin: 0; background: #fff; color: #1f2328; } pre { margin: 0; padding: 1rem 1.25rem; font: 0.8rem/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; }</style></head>
+<body><pre>${text}</pre></body></html>`);
+}
+
 // ---------------------------------------------------------------------------
 // 1 · Reset the site and copy both compilers' outputs in, so every
 //     page keeps its sibling assets (edition.css, the SEF, the runtime, …).
@@ -88,6 +98,9 @@ for (const [dir, src] of Object.entries(SOURCES)) {
   cpSync(src, resolve(SITE, dir), { recursive: true });
 }
 for (const asset of ["shell.css", "shell.js", "robots.txt"]) copyFileSync(resolve(DEMO, asset), resolve(SITE, asset));
+const oddFile = `odd/${basename(inspected.odd)}.xml`;
+mkdirSync(resolve(SITE, "odd"), { recursive: true });
+copyFileSync(resolve(ROOT, inspected.odd), resolve(SITE, oddFile));
 
 // ---------------------------------------------------------------------------
 // 2 · Resolve each path and document against the copied site: URL and metrics per page.
@@ -100,10 +113,11 @@ const resolved = (await Promise.all(paths.map(async (p) => {
     const page = resolve(SITE, url);
     if (!existsSync(page)) continue;
     if (page.endsWith(".html")) banner = takeBanner(page) ?? banner;
+    else framed(page);
     const js = await measureClientJs(page);
     // A linked stylesheet is part of the page, as an inlined one is.
     const css = [...readFileSync(page, "utf8").matchAll(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].reduce((sum, [, href]) => sum + sizeOf(resolve(dirname(page), href)), 0);
-    pages[doc.id] = { url, pageKB: kb(sizeOf(page)), cssKB: css ? kb(css) : null, jsKB: kb(js.bytes + (p.loadsLater ?? []).reduce((sum, f) => sum + sizeOf(resolve(SITE, f)), 0)), jsExternal: js.external };
+    pages[doc.id] = { url: page.endsWith(".html") ? url : `${url}.html`, pageKB: kb(sizeOf(page)), cssKB: css ? kb(css) : null, jsKB: kb(js.bytes + (p.loadsLater ?? []).reduce((sum, f) => sum + sizeOf(resolve(SITE, f)), 0)), jsExternal: js.external };
   }
   if (!Object.keys(pages).length) {
     console.warn(`[build-demo] skipping ${p.id}: no ${p.dir}/${p.file} found`);
@@ -179,9 +193,10 @@ async function writeInspection() {
 }
 
 const floorFile = resolve(SITE, floor.file);
-const views = readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.label, help: v.help ?? "" }));
+// The views in the shell's language where the ODD translates them, else in its own.
+const views = readOdd(resolve(ROOT, inspected.odd)).views.map((v) => ({ output: v.output, label: v.translations?.[LANG]?.label ?? v.label, help: v.translations?.[LANG]?.help ?? v.help ?? "" }));
 const data = {
-  concept, paths: resolved, inspect: await writeInspection(), notElements: FURNITURE, views,
+  concept, odd: { label: basename(inspected.odd), url: oddFile }, paths: resolved, inspect: await writeInspection(), notElements: FURNITURE, views,
   // Only what this build has: a path left out, or a view the ODD lacks, opens the defaults.
   opening: {
     path: resolved.find((p) => p.id === opening.path)?.id ?? resolved[0].id,
@@ -196,7 +211,7 @@ const data = {
 //     the path tabs, the document picker, the JS on/off toggle and the side panel.
 // ---------------------------------------------------------------------------
 writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
-<html lang="en">
+<html lang="${LANG}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -209,7 +224,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
     <div>
       <h1>The TEI ODD as static-build configuration</h1>
       <p>${data.concept}</p>
-      <p class="guide">${guide.join(" ")}</p>
+      <details class="guide"><summary>${guide.summary}</summary>${guide.text.map((t) => `<p>${t.replace("{odd}", `<a href="${oddFile}">${basename(inspected.odd)}</a>`)}</p>`).join("")}</details>
     </div>
     <div class="controls">
       <button type="button" class="compare-open" id="compare-open">Compare the renderings</button>
@@ -253,7 +268,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
       </section>
       <section>
         <h3>Generated behind it</h3>
-        <a id="artefact-link"></a>
+        <a id="artefact-link"></a> <span class="muted">from the ODD, <a id="odd-link"></a></span>
       </section>
       <section id="floor">
         <h3>Shared stylesheet</h3>

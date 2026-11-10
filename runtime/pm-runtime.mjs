@@ -30,7 +30,7 @@ import { xpath, bool, str, seq, isPos } from "./xpath.mjs";
  *   params: Record<string, Expression>, classes: string[], source: boolean,
  *   template?: TemplateNode[], parts?: Model[] }} Model
  * @typedef {string | { name: string, attributes: Record<string, string>, children: TemplateNode[] }} TemplateNode
- * @typedef {{ output: string, label: string }} View  an output laid over the page
+ * @typedef {{ output: string, label: string, help?: string, translations?: Record<string, { label?: string, help?: string }> }} View  an output laid over the page
  */
 /**
  * An element as it rendered. Its outcome: "rendered"; "omitted", as its model says;

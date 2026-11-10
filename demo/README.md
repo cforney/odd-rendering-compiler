@@ -74,8 +74,10 @@ fetches each CDN script to weigh it; without network it stays a name, and out of
 
 ## Using it
 
-A line under the header names the few things to try (`guide` in `manifest.mjs`). A
-first visit opens what `opening` in `manifest.mjs` names: the unified page with
+A line under the header opens into a short introduction for anyone, which links the
+ODD (`guide` in `manifest.mjs`); the side panel links it too. The views are labelled
+in English where the ODD translates its `<desc>` (`xml:lang="en"`), and a report
+that is a text or JSON file is framed in a page of its own. A first visit opens what `opening` in `manifest.mjs` names: the unified page with
 the small script, and the entities view on. The tabs choose who builds the page;
 *Interaction* chooses how a prebuilt page is enhanced, and stays chosen across tabs. The text looks the same on every path, so
 a line beside the tabs says which path rendered it, once it is there. On the

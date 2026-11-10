@@ -29,7 +29,9 @@ its own. So another tool's output with an unlisted name becomes a switch; give i
 an engine's prefix to keep it apart.
 
 - **Switch:** a checkbox `<input data-view="<view>">`, labelled by the first
-  `<desc>` among the view's models. The CSS applies the view where
+  `<desc>` among the view's models, and explained by the second. A `<desc>` with
+  `xml:lang` translates them, for a tool that shows another language (the demo
+  shows the English); the page keeps the ODD's own. The CSS applies the view where
   `:is([data-<view>='on'], .tei-edition:has(> .tei-views input[data-view='<view>']:checked))`
   holds, so it switches without JavaScript, and two editions on one page switch
   apart. Views combine.

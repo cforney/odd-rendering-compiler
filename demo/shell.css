@@ -12,6 +12,7 @@ body {
   font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 a { color: var(--link); }
+:root { color-scheme: light; } /* the shell has no dark design, so the browser's controls match it */
 .muted { color: var(--muted); }
 .small { font-size: 0.8rem; }
 
@@ -22,7 +23,10 @@ a { color: var(--link); }
 }
 .bar h1 { margin: 0; font-size: 1.1rem; font-weight: 600; }
 .bar p { margin: 0.1rem 0 0; color: var(--muted); }
-.bar .guide { font-size: 0.8rem; }
+/* The introduction: a line, which opens into a few sentences. */
+.bar .guide { max-width: 60rem; margin-top: 0.25rem; font-size: 0.85rem; color: var(--muted); }
+.bar .guide summary { cursor: pointer; color: var(--ink); }
+.bar .guide p { margin: 0.35rem 0 0; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; color: var(--muted); }
 .controls select {
   margin-left: 0.4rem; padding: 0.25rem 0.5rem; font: inherit; color: var(--ink);

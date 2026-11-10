@@ -143,6 +143,13 @@ test("the library compiles and renders in memory, as the command lines do, and n
   assert.ok([root.exports, root.bin["odd-render"]].every((f) => existsSync(join(pocDir, "..", f))));
 });
 
+test("readOdd labels a view by its untagged <desc>, and keeps those with xml:lang as translations", () => {
+  const entities = readOdd(ODD).views.find((v) => v.output === "entities");
+  assert.equal(entities?.label, "Entitäten");
+  assert.equal(entities?.translations?.en?.label, "Entities");
+  assert.match(entities?.translations?.en?.help ?? "", /^Persons, places/);
+});
+
 test("render-unified lays the views over the page, each with a switch", () => {
   const columns = page("unified", "simler-buchstabwechsel");
   assert.match(columns, /<div class="tei-edition" data-web="on" data-manifest="[^"]+"><form class="tei-views"><label><input type="checkbox" data-view="entities"> Entitäten<\/label><label><input type="checkbox" data-view="normalized"> Normalisiert<\/label><\/form>/,
