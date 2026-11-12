@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the XSLT reference implementation end to end with Saxon.
+# Build the XSLT implementation end to end with Saxon.
 #
 #   GENERATE (the XSLT way):  ODD --odd-to-xsl.xsl--> edition.xsl
 #                             ODD --odd-to-css.xsl--> edition.css

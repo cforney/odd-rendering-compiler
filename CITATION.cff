@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite both the software itself and the article it accompanies."
 title: "ODD Rendering Compiler"
 abstract: >-
-  Reference implementations (JavaScript and XSLT) of the define -> generate ->
+  Experimental implementations (JavaScript and XSLT) of the define -> generate ->
   render pattern: compiling a TEI ODD Processing Model into rendering artefacts
   (CSS, XSLT, unified/xast handlers, and CETEIcean behaviours) that produce
   static HTML for scholarly editions.
@@ -25,7 +25,7 @@ keywords:
   - digital scholarly editions
   - static site
   - minimal computing
-date-released: 2026-11-09
+date-released: 2026-11-12
 # Once Zenodo has archived the release: the concept DOI as `doi:`, and the
 # version's DOI under `identifiers:`. `date-released` is the day of the release.
 preferred-citation:

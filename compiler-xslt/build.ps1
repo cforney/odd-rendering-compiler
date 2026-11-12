@@ -1,5 +1,5 @@
 #requires -Version 5
-# Build the XSLT reference implementation end to end with Saxon (Windows / PowerShell).
+# Build the XSLT implementation end to end with Saxon (Windows / PowerShell).
 #
 #   GENERATE (the XSLT way):  ODD --odd-to-xsl.xsl--> edition.xsl
 #                             ODD --odd-to-css.xsl--> edition.css

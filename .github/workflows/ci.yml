@@ -49,7 +49,7 @@ jobs:
           npm run build:xslt
           npm run render:xslt
 
-      # Build the XSLT reference implementation; this also renders every example
+      # Build the XSLT implementation; this also renders every example
       # into output/xslt/, the third render of the gate.
       - name: XSLT — build with Saxon
         working-directory: compiler-xslt

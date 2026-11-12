@@ -1,6 +1,6 @@
 # Example inputs
 
-Shared sample inputs for both reference implementations — the JavaScript one in
+Shared sample inputs for both implementations — the JavaScript one in
 [`../compiler-js`](../compiler-js) and the XSLT one in [`../compiler-xslt`](../compiler-xslt).
 
 ## Files
@@ -76,11 +76,10 @@ reusing these files.**
   the Simler Project Team's under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
   as the ODD's `availability` states and each excerpt's header repeats; so are the
   design tokens of its proofing preview, `design-tokens.css`. The facsimiles
-  come from e-rara (<https://www.e-rara.ch/>), on the terms e-rara states for each image. The tests and the
-  demo's check use `compiler-js/test/fixtures/iiif/e-rara-4049159.json`, e-rara's
-  IIIF manifest of the book cut down to the pages of the excerpts: e-rara's metadata,
-  included only as test input and under e-rara's
-  [terms of use](https://www.e-rara.ch/wiki/termsOfUse).
+  are not in this repository: the pages load them, and the IIIF manifest, from e-rara
+  (<https://www.e-rara.ch/>), on the terms e-rara states for each image. The tests and the
+  demo's check use a made-up manifest instead, `compiler-js/test/fixtures/iiif/simler-pages.json`,
+  which shares only the page ids with e-rara's.
 - **TEI Consortium** — `tei_simplePrint.odd` is the TEI's SimplePrint exemplar
   (<https://github.com/TEIC/TEI>), under CC BY-SA 3.0 as its header states,
   redistributed here for testing.
@@ -90,6 +89,5 @@ reusing these files.**
 The **code** in this repository is under BSD-2-Clause (see the repository
 `LICENSE`). The **example texts above are not covered by that licence**: they
 remain under their originating projects' terms (the Simler transcriptions, registers, ODD
-and design tokens CC BY 4.0, the TEI's SimplePrint CC BY-SA 3.0, e-rara's facsimiles and
-the manifest that describes them e-rara's terms) and are included here only as
-illustrative input.
+and design tokens CC BY 4.0, and the TEI's SimplePrint CC BY-SA 3.0) and are included here only as illustrative
+input. The facsimiles the pages load from e-rara are under e-rara's terms.

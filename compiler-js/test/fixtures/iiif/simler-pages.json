@@ -1,0 +1,286 @@
+{
+ "@context": "http://iiif.io/api/presentation/2/context.json",
+ "@id": "https://iiif.example.org/manifest",
+ "@type": "sc:Manifest",
+ "label": "Test manifest: the pages of the Simler excerpts",
+ "description": "Written for the tests of odd-rendering-compiler. Its page ids are those the excerpts' @facs name; everything else is made up.",
+ "attribution": "Test images, odd-rendering-compiler",
+ "sequences": [
+  {
+   "@id": "https://iiif.example.org/manifest/sequence/normal",
+   "@type": "sc:Sequence",
+   "canvases": [
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049188",
+     "@type": "sc:Canvas",
+     "label": "Page 1",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049188",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049188",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049188",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049188",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049189",
+     "@type": "sc:Canvas",
+     "label": "Page 2",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049189",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049189",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049189",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049189",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049203",
+     "@type": "sc:Canvas",
+     "label": "Page 3",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049203",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049203",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049203",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049203",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049204",
+     "@type": "sc:Canvas",
+     "label": "Page 4",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049204",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049204",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049204",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049204",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049205",
+     "@type": "sc:Canvas",
+     "label": "Page 5",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049205",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049205",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049205",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049205",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049206",
+     "@type": "sc:Canvas",
+     "label": "Page 6",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049206",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049206",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049206",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049206",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049736",
+     "@type": "sc:Canvas",
+     "label": "Page 7",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049736",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049736",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049736",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049736",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049737",
+     "@type": "sc:Canvas",
+     "label": "Page 8",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049737",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049737",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049737",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049737",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049738",
+     "@type": "sc:Canvas",
+     "label": "Page 9",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049738",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049738",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049738",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049738",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "@id": "https://iiif.example.org/manifest/canvas/4049739",
+     "@type": "sc:Canvas",
+     "label": "Page 10",
+     "width": 1000,
+     "height": 1500,
+     "images": [
+      {
+       "@id": "https://iiif.example.org/manifest/annotation/4049739",
+       "@type": "oa:Annotation",
+       "motivation": "sc:painting",
+       "on": "https://iiif.example.org/manifest/canvas/4049739",
+       "resource": {
+        "@id": "https://iiif.example.org/image/full/4049739",
+        "@type": "dctypes:Image",
+        "format": "image/jpeg",
+        "width": 1000,
+        "height": 1500,
+        "service": {
+         "@context": "http://iiif.io/api/image/2/context.json",
+         "@id": "https://iiif.example.org/image/4049739",
+         "profile": "http://iiif.io/api/image/2/level2.json"
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

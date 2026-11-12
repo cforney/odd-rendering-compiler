@@ -8,8 +8,7 @@ A TEI ODD's **Processing Model** already says how each element should be
 presented. This project treats that declaration as **build-time configuration**:
 a compiler reads the ODD and *generates* the rendering artefacts — CSS, an XSLT
 stylesheet, unified/xast handlers, CETEIcean behaviours — which then *render* a
-TEI document into static HTML. No server, no runtime ODD interpreter; just a
-clean clone that builds.
+TEI document into static HTML. No server, no runtime interpreter.
 
 > **Define → generate → render.** The ODD is the single source of truth
 > (*define*); a build tool compiles its behaviours into rendering artefacts
@@ -29,8 +28,8 @@ the idea and reproduce the article, not as production code.
 
 | Directory | What it is |
 |-----------|------------|
-| [`compiler-js/`](compiler-js/) | JavaScript reference implementation (generators, renderers, shared ODD parser, smoke tests) |
-| [`compiler-xslt/`](compiler-xslt/) | XSLT reference implementation (the same chain, built entirely in XSLT + Saxon) |
+| [`compiler-js/`](compiler-js/) | JavaScript implementation (generators, renderers, shared ODD parser, smoke tests) |
+| [`compiler-xslt/`](compiler-xslt/) | XSLT implementation (the same chain, built entirely in XSLT + Saxon) |
 | [`runtime/`](runtime/) | The behaviours both compilers copy into their output: `pm.xsl` (XSLT stylesheets), `pm-runtime.mjs` + `xpath.mjs` (unified handlers), `ceteicean.js` + page (CETEIcean tier, built on those two), `ui.css` (the renderers' own furniture: view switches, notes), and `notes.js` and `facsimile.js` (tooltips for notes and register cards, and page images, on every interactive page) |
 | [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a copy, with a register) with three excerpts adapted from its sources, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an ODD extension |
 

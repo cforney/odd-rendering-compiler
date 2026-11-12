@@ -220,10 +220,10 @@ test("the facsimile finds a page's image in a IIIF manifest, version 2 or 3", ()
   vm.runInNewContext(readFileSync(join(pocDir, "../runtime/facsimile.js"), "utf8"), context);
   const { imageOf } = context.TeiFacsimile;
 
-  const v2 = JSON.parse(readFileSync(join(pocDir, "test/fixtures/iiif/e-rara-4049159.json"), "utf8"));
+  const v2 = JSON.parse(readFileSync(join(pocDir, "test/fixtures/iiif/simler-pages.json"), "utf8"));
   const found = imageOf(v2, "4049203");
-  assert.equal(found.image, "https://www.e-rara.ch/download/webcache/1000/4049203");
-  assert.match(found.credit, /e-rara/);
+  assert.equal(found.image, "https://iiif.example.org/image/full/4049203");
+  assert.equal(found.credit, "Test images, odd-rendering-compiler");
   assert.equal(imageOf(v2, "9203"), null, "an identifier is a whole path segment");
 
   const body = { id: "https://x.org/full/7.jpg", type: "Image", service: [{ id: "https://x.org/img/7", type: "ImageService3" }] };

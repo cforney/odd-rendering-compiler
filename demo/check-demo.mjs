@@ -22,7 +22,7 @@ import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SITE = resolve(dirname(fileURLToPath(import.meta.url)), "site");
-const MANIFEST = readFileSync(resolve(SITE, "../../compiler-js/test/fixtures/iiif/e-rara-4049159.json")).toString("base64");
+const MANIFEST = readFileSync(resolve(SITE, "../../compiler-js/test/fixtures/iiif/simler-pages.json")).toString("base64");
 const VIEWPORT = { width: 1100, height: 900 };
 const RENDER_TIMEOUT = 20_000;
 /** Text rasterises a little differently from one page load to the next; more than this is a real difference. */

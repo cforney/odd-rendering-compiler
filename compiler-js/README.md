@@ -244,6 +244,9 @@ What is particular to this implementation:
 
 ## Dependencies
 
-[`@rgrove/parse-xml`](https://github.com/rgrove/parse-xml) — the only dependency. unified's
-[`xast-util-from-xml`](https://github.com/syntax-tree/xast-util-from-xml) is built on it too, so build-time and rendering trees share one parser.
+- [`@rgrove/parse-xml`](https://github.com/rgrove/parse-xml) reads the ODD and the TEI. unified's
+  [`xast-util-from-xml`](https://github.com/syntax-tree/xast-util-from-xml) is built on it too, so build-time and rendering trees share one parser.
+- [`parse5`](https://github.com/inikulin/parse5) reads rendered HTML for the equivalence check (`byte-identity.mjs`).
+- [`pagefind`](https://pagefind.app), optional, builds the search index (`search-index.mjs`).
+
 `render-xslt.mjs` fetches SaxonJS (`xslt3`) with `npx` when it is not installed.
