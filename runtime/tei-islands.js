@@ -5,8 +5,8 @@
  * [data-page]) and wraps each in a <tei-island type on="load|idle|visible|media(…)">,
  * so a page needs nothing from its build; a renderer may write such an element itself.
  * When a region's strategy fires, its type's behaviour runs. A standard type fetches
- * the shared script of that behaviour, beside this one, which then serves the whole
- * page; so a page without a kind of region never loads its script. Add a type with
+ * its behaviour's shared script, which sits beside this one and then serves the
+ * whole page; a page without that kind of region never loads it. Add a type with
  * TeiIslands.register(name, fn), where fn receives the island.
  *
  * The model mirrors Astro's <astro-island> and its client:load / client:idle /

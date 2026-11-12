@@ -2,8 +2,8 @@
 
 /**
  * Search over an edition: the records of render-plain.mjs as a Pagefind index, with
- * a small page that queries it. Diplomatic text would hide its words from a reader,
- * who types "selig" for "ſelig", so index and query are folded alike: compatibility
+ * a small page that queries it. In diplomatic text, a reader who types "selig"
+ * would not find "ſelig", so index and query are folded alike: compatibility
  * forms and marks go, ß becomes ss. An excerpt therefore shows the folded text, and
  * a result's title the ODD's own. Pagefind runs in the browser and fetches its index,
  * so the page must be served over HTTP.
@@ -83,7 +83,7 @@ const html = `<!DOCTYPE html>
     let pagefind;
     try {
       pagefind = await import("./pagefind/pagefind.js");
-      await pagefind.options({ baseUrl: "/" }); // or a result's URL starts at the index, not at the record's
+      await pagefind.options({ baseUrl: "/" }); // otherwise a result's URL is relative to the index, not to the record
     } catch {
       status.textContent = "The search index could not be loaded: this page must be served over HTTP.";
       input.disabled = true;

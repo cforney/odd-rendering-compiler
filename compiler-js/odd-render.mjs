@@ -7,8 +7,8 @@
  * other: edition.css and the unified handlers out of the ODD, then one
  * rendering tier over the TEI sources. The pages are self-contained; what the
  * compiler generated stays beside them in artefacts/, and --reports adds the
- * build reports. Every step is the same script the repository tests, run as its
- * own process, so the command adds no second implementation of anything.
+ * build reports. Every step runs the same script the repository tests, as its
+ * own process, so the command reimplements nothing.
  *
  * Usage:   odd-render <odd> <tei…> [options]      (odd-render --help for the options)
  * Output:  the pages, what the compiler generated in artefacts/, and with --reports

@@ -17,13 +17,10 @@ clean clone that builds.
 
 The chain is implemented **twice — in JavaScript and in XSLT** — on purpose: the
 *generate* step is generic, not tied to one language. The unified handlers and
-the stylesheets of both XSLT generators render an **equivalent static body**
+the stylesheets of both XSLT generators render an equivalent static body
 (identical up to attribute order and the whitespace next to a block's tags), checked in CI on the examples
 and on conformance fixtures. [docs/capabilities.md](docs/capabilities.md) says what
 each target reads, implements and has executed.
-
-**Online demo:** <https://cforney.github.io/odd-rendering-compiler> — the Simler
-examples through every rendering path, side by side.
 
 ⚠️ **Note.** This is an experimental implementation: it exists to illustrate
 the idea and reproduce the article, not as production code.
@@ -34,8 +31,8 @@ the idea and reproduce the article, not as production code.
 |-----------|------------|
 | [`compiler-js/`](compiler-js/) | JavaScript reference implementation (generators, renderers, shared ODD parser, smoke tests) |
 | [`compiler-xslt/`](compiler-xslt/) | XSLT reference implementation (the same chain, built entirely in XSLT + Saxon) |
-| [`runtime/`](runtime/) | The behaviours both compilers copy into what they generate: `pm.xsl` for the XSLT stylesheets, `pm-runtime.mjs` + `xpath.mjs` for the unified handlers, `ceteicean.js` (+ page) over those two for the CETEIcean tier, `ui.css` for the renderers' own furniture (the view switches, the notes), and `notes.js` and `facsimile.js` for the notes and register cards as tooltips and the page images on every interactive page |
-| [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a copy, with a register) with three excerpts adapted from its sources, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an extension that is not TEI |
+| [`runtime/`](runtime/) | The behaviours both compilers copy into their output: `pm.xsl` (XSLT stylesheets), `pm-runtime.mjs` + `xpath.mjs` (unified handlers), `ceteicean.js` + page (CETEIcean tier, built on those two), `ui.css` (the renderers' own furniture: view switches, notes), and `notes.js` and `facsimile.js` (tooltips for notes and register cards, and page images, on every interactive page) |
+| [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a copy, with a register) with three excerpts adapted from its sources, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an ODD extension |
 
 ## Quick start — JavaScript
 
@@ -64,14 +61,14 @@ tells you what it could not evaluate rather than refusing to build. See
 [`compiler-js/README.md`](compiler-js/README.md#one-command).
 
 **As a package or a library.** `npm install github:cforney/odd-rendering-compiler`
-gives `npx odd-render`, and `compileOdd` and `renderDocument` for a build that renders
-TEI itself (an Astro or Eleventy site, a rehype pipeline). See
+gives the `npx odd-render` command, and the `compileOdd` and `renderDocument` functions
+for a build that renders TEI itself (an Astro or Eleventy site, a rehype pipeline). See
 [`compiler-js/README.md`](compiler-js/README.md#installing-and-the-library).
 
 ## Quick start — XSLT
 
 Requires **Java** and **Saxon HE 12**. Point `SAXON_HOME` at your unpacked Saxon
-HE 12 directory (download it from
+directory (download it from
 <https://www.saxonica.com/download/java.xml>), then:
 
 ```bash
@@ -89,6 +86,8 @@ with an IXSL reading toggle — serve it over HTTP (e.g. `npx http-server compil
 
 ## Demo — compare the rendering paths
 
+**Online demo:** <https://cforney.github.io/odd-rendering-compiler>
+
 A single static page frames the outputs both compilers build, so you can pick an
 example, switch rendering paths, toggle JavaScript, and see the generated
 artefact and its cost beside each result. Build both compilers,
@@ -99,9 +98,7 @@ cd compiler-js && npm run build:demo   # assembles demo/site/ from existing outp
 npx http-server ../demo/site           # then open the printed URL
 ```
 
-CI publishes it to GitHub Pages on every push to `main`:
-<https://cforney.github.io/odd-rendering-compiler>. See
-[`demo/README.md`](demo/README.md) for the build steps and how to extend it.
+See [`demo/README.md`](demo/README.md) for the build steps and how to extend it.
 
 ## Documentation
 

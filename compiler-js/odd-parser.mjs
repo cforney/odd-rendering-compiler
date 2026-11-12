@@ -8,15 +8,15 @@
  * a missing @ident, @behaviour or param @name, or a <modelSequence> with no <model>.
  *
  * Names resolve by namespace, however the ODD spells them: only TEI's elements
- * are its structure, and an XPath prefix the ODD binds becomes Q{uri}local (bound
- * to TEI's namespace, the unprefixed name), so the expression means the same
- * wherever it is carried. A spec with @ns has a `key`, nameOf that namespace and
- * its ident, by which it is matched; otherwise its key is its ident.
+ * are its structure, and an XPath prefix the ODD binds becomes Q{uri}local (for
+ * TEI's namespace, the unprefixed name), so the expression means the same
+ * wherever it is carried. A spec with @ns is matched by its `key`, nameOf that
+ * namespace and its ident; otherwise its key is its ident.
  *
  * `models` are the element's models in document order, model groups flattened.
  * `id` names the model, `<ident>-<n>` by its place among the spec's models, and
- * `odd`/`line` say where it (and, on each param, where that param) was written —
- * what the JSON records and the report of degraded XPath name it by.
+ * `odd`/`line` say where the model was written (on each param, where that param
+ * was), for the JSON records and the report of degraded XPath to name it by.
  * A <modelSequence> is behaviour "sequence" with its models as `parts`; a
  * <model> holding a <modelSequence> (Boot's nested-model proposal) keeps its
  * behaviour and gets `parts` too. A model takes @output and
@@ -33,7 +33,7 @@
  * CHANNELS, which render on their own, and another engine's.
  *
  * `sources` are the ODDs of the chain, base first, with their hashes. `diagnostics`
- * are what the ODD can be read despite, each with a stable `code` and a `severity`.
+ * are the problems found in an ODD that can still be read, each with a stable `code` and a `severity`.
  *
  * An @output may carry an engine's prefix (docs/conventions.md): `orc-` names
  * this compiler's own output, so `orc-web` is `web` here and unknown elsewhere;
@@ -308,8 +308,8 @@ function unrealized({ specs, views }) {
  * ODD, a local file resolved against the ODD and any @xml:base, is read as a
  * chain: the base ODD's specs, where this one's specs with models replace the
  * base spec's models, `mode="delete"` removes a spec, and a new ident is added.
- * Elsewhere than in a chain @mode means nothing, nor do inherited classes or
- * attributes: docs/capabilities.md says what is read.
+ * Outside a chain @mode means nothing, and inherited classes and attributes are
+ * not read: docs/capabilities.md says what is.
  * @param {string} path
  * @returns {Odd}
  */

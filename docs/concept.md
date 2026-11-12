@@ -8,7 +8,7 @@ The pipeline is **define → generate → render**.
    declaration is the single source of truth.
 2. **Generate.** A build tool reads the ODD and writes rendering *artefacts* — a
    CSS stylesheet, an XSLT stylesheet, unified/xast handlers, or CETEIcean
-   behaviours. This is a build step.
+   behaviours.
 3. **Render.** The artefacts turn a TEI document into static HTML.
 
 ## Two implementations

@@ -2,10 +2,9 @@
 
 /**
  * Assemble the comparison demo (demo/site/) from outputs both compilers already
- * produce. It copies each compiler's output/, moves each page's render-info banner
- * into the side panel, so the frame shows the edition alone, measures page weight
- * and client JS per page, and writes a single
- * index.html shell driven by demo/manifest.mjs. For the inspector it records what
+ * produce. It copies each compiler's output/, moves each page's banner into the
+ * side panel, measures page weight and client JS, and writes one index.html shell
+ * driven by demo/manifest.mjs. For the inspector it records what
  * decided each element, from the handlers' own trace. Build the outputs first:
  *
  *   (compiler-js)   npm run build:all && npm run render:all && npm run findings
@@ -38,7 +37,7 @@ const SOURCES = {                          // manifest `dir` → compiler output
 const kb = (bytes) => (bytes / 1024).toFixed(1);
 const sizeOf = (file) => (existsSync(file) ? statSync(file).size : 0);
 
-// A CDN script's size, once per URL; without network it stays a name, with no size.
+// A CDN script's size, once per URL; without network, only its name is kept.
 const weighed = new Map();
 const weighRemote = (url) => {
   if (!weighed.has(url)) {

@@ -19,9 +19,7 @@
       <p>The Simler ODD with one change: a page break with a facsimile renders as a thumbnail of
         the page that links to the full scan. The two images are two behaviours of one element,
         written as a <gi>model</gi> that holds a <gi>modelSequence</gi>: the nested model Boot
-        (2024) proposes. This is not TEI: the ODD is invalid against <ident>tei_odds.rng</ident> and
-        valid against the customisation <ident>poc_odds.odd</ident>. Only this proof of concept
-        renders it.</p>
+        (2024) proposes.</p>
       <p>The ODD chains to the Simler ODD (<att>source</att> on <gi>schemaSpec</gi>): its specs are
         the Simler ODD's, with the models of <gi>pb</gi> replaced.</p>
       <schemaSpec ident="tei_simler_nested_pb" start="TEI" source="../../tei_simler.odd">

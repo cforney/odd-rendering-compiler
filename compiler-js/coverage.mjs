@@ -9,7 +9,7 @@
  * ran, models that can never run because an earlier model of the same output has
  * no predicate, and elements the ODD has models for that no document rendered. What
  * the corpus holds that the ODD never handles — elements with no model at all, and
- * the silent case: elements whose spec has models of which none applied, whose
+ * the silent case: elements whose spec has models but none applied, so their
  * content passes through without a warning. Apart from those, what renders nothing:
  * left out as a model says, or a model that ran and gave nothing.
  *

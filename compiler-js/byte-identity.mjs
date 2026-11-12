@@ -4,10 +4,10 @@
  *
  * The renders of the same ODD must have the same <body> as an HTML parser reads
  * it, so how a serialiser spelled it does not count: attribute order, entities,
- * `<br/>` or `<br>`, comments. Of what the parser keeps, only the whitespace a
- * browser does not render goes, between or at the edge of blocks, and the banner
- * naming the path. A space between inline elements, in text or in an attribute
- * value counts. So the comparison holds whichever engine wrote each file.
+ * `<br/>` or `<br>`, comments. Of what the parser keeps, only two things are
+ * dropped: whitespace a browser does not render (between blocks or at their
+ * edges), and the banner naming the path. A space between inline elements, in
+ * text or in an attribute value, counts. So the comparison holds whichever engine wrote each file.
  *
  *   normaliseRenderedBody(html) → canonical string
  *   firstDifference(htmlA, htmlB) → null, or { kind, where, a, b }; kind is structure, text or attribute

@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Check in a real browser what the assembled demo claims: that the renderings show
- * the same edition. In headless Chrome, for each example and rendering, with and
- * without the views on, and without JavaScript where a rendering can do without,
- * the visible text and each text run's place, font and colour must equal those of
- * the first rendering, and the pixels nearly so. It also holds the manifest's other
- * claims to what the pages do, the inspector's records to what they render, and the
- * search to what it should find. The IIIF manifest comes from a stored copy.
+ * Check in a real browser that the renderings of the assembled demo show the same
+ * edition. In headless Chrome, for each example and rendering (with and without the
+ * views, and without JavaScript where possible), the visible text and each text
+ * run's place, font and colour must equal the first rendering's, and the pixels
+ * nearly so. It also checks the manifest's other claims, the inspector's records and
+ * the search. The IIIF manifest comes from a stored copy.
  *
  * Writes site/verified.json, which the demo's comparison reads, and exits 1 on a difference.
  *

@@ -12,8 +12,8 @@
  * fails the build instead, with the element and model named.
  *
  * Usage:   node odd-to-unified.mjs --odd <path> [--out <dir>] [--strict] [--fail-on <severity>] [--lock <file>]
- * With --fail-on <severity> a diagnostic of that severity or above fails it,
- * once all of them are written to diagnostics.json.
+ * With --fail-on <severity>, a diagnostic of that severity or above fails the
+ * build, after all diagnostics are written to diagnostics.json.
  *
  * Output:  <dir>/tei-handlers.mjs, with pm-runtime.mjs, xpath.mjs, odd-unsupported.json and diagnostics.json
  * Read by: render-unified*.mjs and render-plain.mjs (--handlers)

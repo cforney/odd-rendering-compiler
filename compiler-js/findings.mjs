@@ -3,7 +3,7 @@
 /**
  * Build-time findings: what the ODD does not foresee in the encoding.
  *
- * A root element outside the TEI namespace. In a document's text: attribute values outside the ODD's value lists,
+ * In a document: a root element outside the TEI namespace. In its text: attribute values outside the ODD's value lists,
  * renditions it does not declare, elements it has no model for, note ranges
  * (@targetEnd) whose start is missing and anchors no range starts at, and page
  * images without the IIIF manifest to resolve them (by the root's model for

@@ -22,8 +22,8 @@ output, `--strict` fails on XPath outside the subset instead of degrading it. A
 missing ODD, a missing source or a glob that matches nothing is an error before
 anything is written.
 
-Each step is the script below, run as its own process, so the command adds no
-second implementation of anything.
+Each step runs one of the scripts below as its own process, so the command
+reimplements nothing.
 
 ## Installing, and the library
 
@@ -46,8 +46,9 @@ const { html, hast, notes, page } = renderDocument(edition, xml);   // page: tit
 ```
 
 An ODD it cannot read throws an `OddError`; XPath outside the subset is degraded
-and listed in `unsupported`. Pages, the index, enhancers and reports stay with the
-command lines. CI installs the packed package in an empty project and runs both.
+and listed in `unsupported`. Pages, the index, enhancers and reports remain
+command-line only. CI installs the packed package in an empty project and runs
+both the command and the library.
 
 ## Generators (ODD → artefacts)
 
@@ -61,8 +62,8 @@ command lines. CI installs the packed package in an empty project and runs both.
 The ODD's CSS may read design tokens, custom properties such as `--c-muted`.
 `odd-to-css.mjs` puts the tokens file given with `--tokens` first in
 `edition.css`, and reports any custom property that neither the tokens, the ODD's
-CSS nor a `--…` param defines. It also counts the models the stylesheet alone
-cannot render, which the renderers must: a behaviour that is not silent and has no
+CSS nor a `--…` param defines. It also counts the models that CSS alone
+cannot render, so the renderers must: a behaviour that is not silent and has no
 HTML element of its own in the behaviour table, or a predicate that tests more than
 the element's ancestry.
 
@@ -82,15 +83,15 @@ the element's ancestry.
 CETEIcean generate + render happen in one step (`odd-to-ceteicean.mjs`, into
 `ceteicean/`). `render-unified.mjs` and `render-xslt.mjs` take `--output <name>`,
 the PM output to render (default `web`). The `web` page has the ODD's views laid
-over it, each with a switch, and the index shows each page's title, page images
-and IIIF manifest as the ODD's model for output `page` gives them (see
+over it, each with a switch. The index shows each page's title, page images
+and IIIF manifest, as the ODD's model for output `page` gives them (see
 [`../docs/behaviour-table.md`](../docs/behaviour-table.md)).
 
 **JSON records.** `render-json.mjs` writes the render itself, as data, from the
 runtime's trace: a tree in which every element reached names the model that won —
-`{ element, model, behaviour, classes, params, parts, outcome, children }`, a child a
-record or the text as it renders — and a side table giving each model that ran its
-predicate, its `<desc>` and the ODD it was written in. So an element a `content`
+`{ element, model, behaviour, classes, params, parts, outcome, children }`, each child
+a record or the rendered text — and a side table that gives, for each model that ran,
+its predicate, its `<desc>` and the ODD it was written in. So an element a `content`
 param leaves out has no record, and one it selects twice has two. `parts` names the
 parts of a sequence that ran. `outcome` is one of:
 
@@ -127,10 +128,9 @@ leaving a reading unrendered is a decision.
 
 **Unrunnable XPath degrades.** A predicate or param outside the XPath subset is
 not a build error: it compiles to what a failing evaluation returns — `false()`
-for a predicate, nothing for a param — and lands in `odd-unsupported.json`
-beside the generated artefacts, with its element, model, ODD and line. Someone
-else's ODD therefore runs here, with a report of what was dropped. `--strict`
-fails the build instead, and every script that compiles *our* ODDs passes it.
+for a predicate, nothing for a param — and is listed in `odd-unsupported.json`
+with its element, model, ODD and line. `--strict` fails the build instead, and
+every script that compiles *our* ODDs passes it.
 See [`../docs/predicate-grammar.md`](../docs/predicate-grammar.md).
 
 > **Enhancers.** `--enhance` adds scripts of `../runtime/` to the finished page, as
@@ -171,8 +171,8 @@ read `../examples/tei_simler.odd`, and `build` adds its tokens,
 `render:script`, `render:islands`, `render:petite-vue`, `render:xslt`, `render:ceteicean`,
 `render:plain`, `render:json`) render every example.
 
-**Diagnostics.** What an ODD is read despite has a stable code, a severity and a
-place. `odd-to-unified.mjs` writes all of it to `diagnostics.json` and prints the
+**Diagnostics.** Each problem in an ODD that can still be read has a stable code,
+a severity and a place. `odd-to-unified.mjs` writes all of it to `diagnostics.json` and prints the
 warnings; `--fail-on warning` makes them fail a publication build. `--lock <file>`
 holds the ODD chain to the hashes the first run wrote. `odd-render` passes both
 on. [`../docs/capabilities.md`](../docs/capabilities.md) lists the codes, and what
@@ -244,6 +244,6 @@ What is particular to this implementation:
 
 ## Dependencies
 
-[`@rgrove/parse-xml`](https://github.com/rgrove/parse-xml) — the only dependency, and the parser unified's
-[`xast-util-from-xml`](https://github.com/syntax-tree/xast-util-from-xml) is built on, so build-time and rendering trees share one engine.
+[`@rgrove/parse-xml`](https://github.com/rgrove/parse-xml) — the only dependency. unified's
+[`xast-util-from-xml`](https://github.com/syntax-tree/xast-util-from-xml) is built on it too, so build-time and rendering trees share one parser.
 `render-xslt.mjs` fetches SaxonJS (`xslt3`) with `npx` when it is not installed.

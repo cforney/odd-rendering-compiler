@@ -50,7 +50,6 @@ export function checkXPath(specs) {
   };
 }
 
-/** What was degraded, as diagnostics of the shape readOdd gives. */
 /** The specs' models as the generated handlers hold them, by element: XPath compiled as `grammar` allows, templates parsed. */
 export function compileModels(specs, grammar) {
   const compile = (m) => ({
@@ -63,6 +62,7 @@ export function compileModels(specs, grammar) {
   return Object.fromEntries(specs.filter((s) => s.models.length).map((s) => [s.key, s.models.map(compile)]));
 }
 
+/** What was degraded, as diagnostics of the shape readOdd gives. */
 export const asDiagnostics = (entries) => entries.map((e) => ({
   code: "xpath-unsupported", severity: "warning", message: `${e.where}: XPath "${e.expression}": ${e.reason}`,
   odd: e.odd, line: e.line, element: e.element, model: e.model,

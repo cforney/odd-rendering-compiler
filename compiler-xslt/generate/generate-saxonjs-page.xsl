@@ -2,10 +2,10 @@
 <!--
   generate-saxonjs-page.xsl — the host page for the client-side SaxonJS render.
 
-  Emits a small static page that loads the SaxonJS runtime from a CDN, then runs
+  Emits a small static page that loads the self-hosted SaxonJS runtime, then runs
   the compiled stylesheet (edition-saxonjs.sef.json) in the browser to render the
-  TEI named in $tei. IXSL swaps the apparatus readings; notes.js opens the notes,
-  as on every interactive page. Point -s: at the ODD (only its title is read).
+  TEI named in $tei. IXSL swaps the apparatus readings; notes.js and facsimile.js
+  open the notes and page images, as on every interactive page. Point -s: at the ODD (only its title is read).
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/generate-saxonjs-page.xsl
               -o:output/saxonjs/simler-psalmen.html  tei=simler-psalmen.xml

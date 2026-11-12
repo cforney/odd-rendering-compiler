@@ -45,11 +45,11 @@ with them, and are meant to stay as they are:
 
 ### What was changed
 
-The ODD is the project's, slightly adapted as well: it renders the register (with
-a link from each name to its entry, which a page may open as a card), and an
-indented line in the two-column layout steps further, and an even page's number
-stands at the left, as the print does. A
-document without a `standOff` renders as with the project's ODD.
+The ODD is the project's, also slightly adapted: it renders the register (with
+a link from each name to its entry, which a page may open as a card); an
+indented line in the two-column layout is indented further; and an even page's
+number stands at the left, as in the print. A document without a `standOff`
+renders as it does with the project's ODD.
 
 ## Validate
 

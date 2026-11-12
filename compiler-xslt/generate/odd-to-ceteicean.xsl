@@ -8,8 +8,7 @@
   element's model with the unified handlers' own runtime and XPath
   (pm-runtime.mjs, xpath.mjs); all three are inlined as classic scripts, and the
   ODD's models follow as JSON, with predicates and params as XPath, then its
-  views. The same file
-  odd-to-ceteicean.mjs writes.
+  views. It writes the same file as odd-to-ceteicean.mjs.
 
   Run:  saxon -s:../examples/tei_simler.odd -xsl:generate/odd-to-ceteicean.xsl \
               -o:output/ceteicean/tei-ceteicean-behaviours.js "tei=simler-psalmen.xml simler-todtenklang.xml"

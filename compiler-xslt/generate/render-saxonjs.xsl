@@ -4,12 +4,12 @@
      Reuses every element template from the generated edition.xsl (imported), so
      the body is rendered by the SAME XSLT 3.0 stylesheet that Saxon runs at build
      time — here compiled to a SEF (with xslt3) and executed in the browser by
-     SaxonJS. This is what completes the template-matching axis on the client side:
-     one stylesheet, two entry points (Saxon HE at build, SaxonJS in the browser).
+     SaxonJS. So one stylesheet has two entry points: Saxon HE at build time,
+     SaxonJS in the browser.
 
      Apparatus readings swap by an IXSL event template (mode="ixsl:onclick"),
-     the SaxonJS-native counterpart of the build path's small script. Notes open
-     as tooltips by the shared notes.js, as on every interactive page. -->
+     the SaxonJS-native counterpart of the build path's small script. As on every
+     interactive page, the shared notes.js opens notes as tooltips. -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
                 xmlns:tei="http://www.tei-c.org/ns/1.0"

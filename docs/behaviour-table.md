@@ -10,7 +10,7 @@ follow. The behaviours themselves
 are implemented once per runtime: [`runtime/pm-runtime.mjs`](../runtime/pm-runtime.mjs)
 for the unified handlers and [`runtime/pm.xsl`](../runtime/pm.xsl) for the
 generated stylesheets, and the two render the same HTML. The CETEIcean tier
-chooses models by `pm-runtime.mjs` in the browser and renders the same HTML
+chooses models with `pm-runtime.mjs` in the browser and renders the same HTML
 with [`runtime/ceteicean.js`](../runtime/ceteicean.js).
 
 | Behaviour | HTML | Flow | Params |
@@ -68,8 +68,8 @@ holds, and the element's id goes on the first.
 model of that output whose predicate holds, else the first model without
 `@output`; models of other outputs are skipped. The edition's root carries
 `data-<output>="on"`, and the CSS of a model with `@output` applies only where
-that output is on. An `@output` prefixed `orc-` names this compiler's own output,
-and one prefixed `opm-`, OPM's, is never rendered ([conventions.md](conventions.md)).
+that output is on. An `@output` prefixed `orc-` names an output of this compiler;
+one prefixed `opm-` names OPM's and is never rendered ([conventions.md](conventions.md)).
 Three outputs have a fixed meaning:
 
 | Output | What it is |
@@ -80,8 +80,8 @@ Three outputs have a fixed meaning:
 
 **Views.** Every other output the ODD declares is a view, laid over the `web`
 page (the Simler ODD's `normalized`, the reading text, and `entities`). For each
-element the renderers ask the view's first model whose predicate holds, for a
-sequence part by part:
+element (for a sequence, each part), the renderers take the view's first model
+whose predicate holds:
 
 - an `omit` adds the class `<view>-omit`;
 - a model of the same behaviour adds its classes;
@@ -97,18 +97,18 @@ views work on the CSS floor, without JavaScript.
 
 **Joined line ends.** The text is rendered as encoded, with one exception that
 lets a model set the hyphen of a word the print divides: where an element's model
-has a param `join`, the spaces around it go, and a last character of the line's text
-that the param names. A model of `type` `line` ends the line without joining. The
+has a param `join`, the spaces around the element are removed, and so is the last
+character of the line's text if the param names it. A model of `type` `line` ends the line without joining. The
 line's text is found across inline elements, not across a block.
 
 **Compound (Boot 2024), an extension.** A `<model>` that holds a
-`<modelSequence>` is not TEI. The PoC renders it as its parts, with a `link` part
+`<modelSequence>`. The PoC renders it as its parts, with a `link` part
 wrapping the others, for the example in
 [`examples/extensions/nested-pb/`](../examples/extensions/nested-pb/).
 
-**TEI Publisher extensions.** Two things TEI Publisher adds to the Processing
-Model, which real ODDs use, run here with its semantics but for one difference
-named below; neither is TEI.
+**TEI Publisher extensions.** TEI Publisher adds two things to the Processing
+Model that real ODDs use. Neither is TEI. Both run here with TEI Publisher's
+semantics, except for one difference named below.
 
 - **`pass-through`** renders the content alone, like `text`, but has no flow of
   its own: the element is transparent, as one without a model is.

@@ -7,7 +7,7 @@
  * order) as a map of its behaviour, classes and params; and the views laid over
  * the page, as $pm:views. Predicates and params pass through as XPath, so XSLT
  * evaluates them natively. The behaviours are the runtime ../runtime/pm.xsl,
- * copied in, as compiler-xslt's odd-to-xsl.xsl does too.
+ * copied in, as compiler-xslt's odd-to-xsl.xsl does.
  *
  * Usage:   node odd-to-xslt.mjs --odd <path> [--out <dir>]
  * Output:  <dir>/edition.xsl (stylesheet params: output, interactive), with
@@ -57,7 +57,7 @@ function map(m, part = false) {
   return `map { ${entries.filter(Boolean).join(", ")} }`;
 }
 
-/** An element's first model of the output asked for ('' the models without @output) whose predicate holds. */
+/** An element's first model of the output asked for ('' for the models without @output) whose predicate holds. */
 function template({ key, models }) {
   const test = (m) => [`$output = ${q(m.output ?? "")}`, m.predicate && `(${m.predicate})`].filter(Boolean).join(" and ");
   return [

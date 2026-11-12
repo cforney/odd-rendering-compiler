@@ -13,9 +13,9 @@
  * than one item on a side throws when evaluated, as in XPath. Regular expressions
  * are JavaScript's.
  *
- * A name means what XSLT's xpath-default-namespace makes it mean: unprefixed, or
- * prefixed tei:, it is TEI's; another namespace is written Q{uri}local, which
- * readOdd makes of the ODD's prefixes. Any other prefix does not compile.
+ * A name means what XSLT's xpath-default-namespace makes it mean: unprefixed or
+ * prefixed tei:, it is TEI's. Another namespace is written Q{uri}local, which is
+ * what readOdd turns the ODD's prefixes into. Any other prefix does not compile.
  *
  * A position is `{ node, up }`: the node and its ancestor elements, outermost
  * first. Attributes evaluate to their string values.

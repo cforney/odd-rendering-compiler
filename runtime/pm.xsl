@@ -2,11 +2,11 @@
 <!--
   pm.xsl — the runtime of a generated edition.xsl. Both XSLT generators
   (compiler-js/odd-to-xslt.mjs, compiler-xslt/generate/odd-to-xsl.xsl) copy its
-  declarations into the stylesheet they generate. Theirs are the ODD's models:
-  per TEI element a template in mode pm:select, which gives the element's first
-  model of an output ('' the models without @output) whose predicate holds, as
-  a map with its params evaluated there, and $pm:views, the outputs laid over
-  the page.
+  declarations into the stylesheet they generate, and add the ODD's models:
+  for each TEI element a template in mode pm:select, which gives the element's
+  first model of an output ('' for the models without @output) whose predicate
+  holds, as a map with its params evaluated there; and $pm:views, the outputs
+  laid over the page.
 
   It renders as pm-runtime.mjs does for the unified/xast handlers,
   so the two produce the same body. The generated stylesheet declares
@@ -179,7 +179,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
     <xsl:sequence select="(pm:select($e, $output), pm:select($e, ''))[1]"/>
   </xsl:function>
 
-  <!-- The first model of exactly $out ('' the models without @output) whose predicate holds. -->
+  <!-- The first model of exactly $out ('' for the models without @output) whose predicate holds. -->
   <xsl:function name="pm:select" as="map(*)?">
     <xsl:param name="e" as="element()"/>
     <xsl:param name="out" as="xs:string"/>
@@ -187,7 +187,7 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
   </xsl:function>
 
   <!-- Text: indentation is dropped, other whitespace collapsed. -->
-  <!-- At a joined line end the spaces go, and a last character the model's join names, as the model sets its own hyphen. -->
+  <!-- At a joined line end the spaces are removed, and so is a last character the model's join names: the model sets its own hyphen. -->
   <xsl:template match="text()">
     <xsl:choose>
       <!-- The nearest xml:space decides. -->

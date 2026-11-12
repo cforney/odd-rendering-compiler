@@ -30,9 +30,9 @@ with their sources and credits.
 ## Run it
 
 Requires **Java** and **Saxon HE 12**. Point `SAXON_HOME` at your unpacked Saxon
-HE 12 directory (the one with `saxon-he-12*.jar` and `lib/xmlresolver-*.jar`);
+directory (the one with `saxon-he-12*.jar` and `lib/xmlresolver-*.jar`);
 download it from <https://www.saxonica.com/download/java.xml>. Without `SAXON_HOME`
-the scripts try `./vendor/SaxonHE12-9J`, otherwise failing with instructions.
+the scripts try `./vendor/SaxonHE12-9J`, and otherwise fail with instructions.
 
 The optional **SaxonJS** step (below) also needs **Node.js** (for `npx xslt3`); if
 Node is absent the build prints a notice and skips it — everything else still runs.
@@ -66,9 +66,9 @@ Export File (`edition-saxonjs.sef.json`), and the pages in `saxonjs/` run that S
 in the browser with the SaxonJS runtime. So the **same** template-matching
 stylesheet has two entry points — **Saxon HE at build time, SaxonJS in the
 browser** — and the reading toggle is *interactive XSLT* (IXSL), the
-SaxonJS-native counterpart of the build path's small script. Notes open as
-tooltips by `notes.js`, and page breaks their image by `facsimile.js`, as on every
-interactive page.
+SaxonJS-native counterpart of the build path's small script. As on every
+interactive page, `notes.js` opens notes as tooltips, and `facsimile.js` opens
+a page break's image.
 
 Two tool notes: the SEF compiler is **`xslt3`** (the Node SaxonJS compiler), not
 Saxon HE — Saxon HE cannot emit a SaxonJS-runnable SEF, and only `xslt3`
@@ -117,15 +117,15 @@ the same stylesheet from the same runtime.
 each view over the page.
 `generate/odd-to-ceteicean.xsl` emits a third target: a CETEIcean behaviour map
 (the runtime `../runtime/ceteicean.js` and the models as JSON) and a page
-rendering in the browser, over `pm-runtime.mjs` and `xpath.mjs`: the same file
-as the JS `odd-to-ceteicean.mjs`.
+that renders in the browser over `pm-runtime.mjs` and `xpath.mjs`. It writes the
+same file as the JS `odd-to-ceteicean.mjs`.
 
 ## Notes
 
 - **Source appearance & layout** ride on `@rendition`: where a model sets
   `@useSourceRendition`, the element's pointer list becomes `r-<id>` classes that
-  `edition.css` (from `<tagsDecl>`) styles. The *Buchstabwächsel* reconstructs its
-  interleaved columns so: the `#twocol` rendition makes the CSS grid, and the
+  `edition.css` (from `<tagsDecl>`) styles. This is how the *Buchstabwächsel*
+  reconstructs its interleaved columns: the `#twocol` rendition makes the CSS grid, and the
   `l-twocol` model's params (`--acro`, `--fin`, `--indent`) set each line's
   marginal letters and indent.
 - **The enhancers are the unified path's.** `enhance=script|islands` adds the same

@@ -72,14 +72,14 @@ looks. The message names the explicit way to a default rendering: chain one, wit
 `<schemaSpec source="tei_simplePrint.odd">`, and copy that ODD beside yours.
 
 `tei_simplePrint.odd` references `#simplechanges`, a `specGrp` it does not hold.
-Nothing is lost by skipping it: all 119 specs are read. It is left as vendored,
-and is the one warning that ODD gives.
+Nothing is lost by skipping it: all 119 specs are read. The ODD is left as vendored;
+this is its only warning.
 
 ## Diagnostics
 
 | Feature | JS | XSLT |
 |---|---|---|
-| A code, severity and place for what an ODD is read despite | ✓ | ◐ code in the message, no place |
+| A code, severity and place for each problem in an ODD that can still be read | ✓ | ◐ code in the message, no place |
 | `diagnostics.json`, `--fail-on` | ✓ | ✗ |
 | An error while rendering names its expression, model and document | ✓ | ◐ Saxon's message, at the line of the generated stylesheet |
 
@@ -93,6 +93,6 @@ and is the one warning that ODD gives.
 | `group-fallback` | info | a model after a group, which applies only because groups are flattened |
 
 An ODD that cannot be read at all raises an error instead, with each problem and
-its line. What the ODD does not foresee in a document is the business of
-`findings.mjs`, and an element no model takes, of `coverage.mjs`; both are
-intended fallbacks, not diagnostics.
+its line. `findings.mjs` reports what the ODD does not foresee in a document, and
+`coverage.mjs` reports elements no model takes. Both are intended fallbacks,
+not diagnostics.

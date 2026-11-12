@@ -1,7 +1,7 @@
 # A shared conformance suite for the Processing Model
 
-**A proposal.** Several implementations now read TEI ODD Processing Models: for
-example, TEI Publisher, OPM, and this compiler.
+**A proposal.** Several implementations now read TEI ODD Processing Models, such
+as TEI Publisher, OPM and this compiler.
 Each answers the questions the Guidelines leave open in its own way, and each
 tests only itself. What is missing is not another implementation, but a way to
 see where the implementations agree. This compiler's conformance fixtures are

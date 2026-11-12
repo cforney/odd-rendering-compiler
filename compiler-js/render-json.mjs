@@ -2,14 +2,14 @@
 
 /**
  * Render the ODD's decisions as data: for each TEI source the render itself as a
- * tree of records, from the runtime's trace, and a side table giving each model
- * that ran its predicate, its <desc> and the ODD it was written in. Downstream
+ * tree of records, from the runtime's trace, and a side table that gives, for
+ * each model that ran, its predicate, its <desc> and the ODD it was written in. Downstream
  * tools — a site generator, a search index, a coverage report — read what the
  * ODD decided without re-implementing it.
  *
  * A record is PmRecord in ../runtime/pm-runtime.mjs: { element, model, behaviour,
- * classes, params, parts, outcome, children }; a child is a record, or the text as
- * it renders. Only what the render reached has a record: an element a `content`
+ * classes, params, parts, outcome, children }; a child is a record or the
+ * rendered text. Only what the render reached has a record: an element a `content`
  * param leaves out has none, and one it selects twice has two.
  * Predicates and params the XPath subset cannot evaluate are degraded as in the
  * other generators, and listed under `unsupported`.

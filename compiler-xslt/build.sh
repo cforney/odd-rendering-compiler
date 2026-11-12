@@ -78,8 +78,7 @@ for enhancer in script islands; do
 done
 
 # ③ SaxonJS (client side): the SAME edition.xsl, compiled to a Stylesheet Export
-#    File (SEF) and run in the browser — completing the template-matching axis on
-#    the client. The SEF compiler is xslt3 (SaxonJS, Node): Saxon HE cannot emit a
+#    File (SEF) and run in the browser. The SEF compiler is xslt3 (SaxonJS, Node): Saxon HE cannot emit a
 #    SaxonJS-runnable SEF, and only xslt3 understands the IXSL toggle templates.
 #    render-saxonjs.xsl imports edition.xsl and adds the IXSL handlers; the runtime
 #    is self-hosted next to the pages so the demo works offline.

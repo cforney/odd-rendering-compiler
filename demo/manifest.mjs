@@ -1,6 +1,6 @@
 // Source of truth for the comparison demo. Each entry frames one already-rendered
-// page in an <iframe>; the shell needs nothing else. Add a path here, rebuild, and
-// a new tab appears — the page is never hand-maintained.
+// page in an <iframe>; the shell needs nothing else. Add a path here and rebuild:
+// a new tab appears.
 
 // One-line concept shown in the header.
 export const concept =

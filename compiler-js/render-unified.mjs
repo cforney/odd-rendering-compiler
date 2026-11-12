@@ -5,8 +5,8 @@
  * the TEI is parsed into xast, the generated teiToHast() turns it into hast, and
  * the result is serialised. The ODD-generated edition.css (odd-to-css.mjs) is
  * inlined, so all element styling comes from the ODD; this script owns only the
- * page around it. --enhance adds an enhancer: scripts of ../runtime, as pm.xsl adds
- * them in the XSLT path, which read only what every renderer writes. The edition
+ * page around it. --enhance adds an enhancer: scripts from ../runtime that read
+ * only what every renderer writes, as pm.xsl adds them in the XSLT path. The edition
  * stays as it is, except with petite-vue, an example of what a framework takes.
  *
  * --tei takes a file, a directory, a glob, a comma-separated list, or repeated

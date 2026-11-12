@@ -3,9 +3,9 @@
  * page. A click on a page break ([data-page], from the ODD) opens a panel with its
  * image, which steps to the previous or next page; Escape closes it. Without
  * JavaScript the break stays a plain marker. The image is the one the ODD names
- * (data-image); else it comes from the IIIF manifest the edition names (data-manifest),
- * version 2 or 3, fetched at the first opening, where the page's identifier is the end
- * of its canvas, image or image service id.
+ * (data-image), or else comes from the IIIF manifest (version 2 or 3) the edition
+ * names (data-manifest), fetched on first opening; in it, the page's identifier is
+ * the end of its canvas, image or image service id.
  * TeiFacsimile.resolve(id, manifestUrl) may be replaced, for another way to find an
  * image: it returns a promise of { image, credit, rights }, or of null. The page may
  * render its text later (SaxonJS, CETEIcean), so breaks are watched for.

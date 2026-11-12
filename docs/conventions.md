@@ -6,7 +6,7 @@ This compiler fills those gaps with the conventions below. None of them is TEI.
 They are declared here so that an ODD written for this compiler still reads
 correctly to another tool, and so that another tool can adopt them.
 
-Each one says what a tool that does not know it does with the ODD. The ODD stays
+Each one says what a tool that does not know it does with the ODD instead. The ODD stays
 valid TEI either way. A tool that knows none of these conventions renders the
 models without `@output`, which is why nothing the text needs should be hidden
 in a view.
@@ -109,8 +109,8 @@ XPath, ODD resolution and diagnostics, by target.
   marker, or without one on its body, so links into the source keep a target.
 - **Line breaks.** A `break` of type `line` where a line already starts renders
   nothing. Where a model has a param `join`, on any element and of any behaviour, the
-  line joins: the spaces around it go, and a last character of the line's text that
-  `join` names; the model sets the hyphen. Without `join`, no text changes.
+  line joins: the spaces around the element are removed, and so is the last
+  character of the line's text if `join` names it; the model sets the hyphen. Without `join`, no text changes.
 - **Page metadata.** The params of the root's model for output `page`: `title`
   names the page (else its file name does), `lang` gives its language, `credit`
   closes the edition as `footer.tei-credit` (on the page only), and `manifest`
@@ -133,8 +133,10 @@ XPath, ODD resolution and diagnostics, by target.
   1. the image its param `data-image` names;
   2. the one in the IIIF manifest (Presentation 2 or 3) whose canvas, image or
      image service id ends with the `data-page` value;
-  3. with no manifest, the `data-page` value itself, if it is a URL. A project with another scheme
-  replaces `TeiFacsimile.resolve`. A static page keeps the plain marker.
+  3. with no manifest, the `data-page` value itself, if it is a URL.
+
+  A project with another scheme replaces `TeiFacsimile.resolve`. A static page
+  keeps the plain marker.
 - **Search.** `search-index.mjs` indexes the `plain` output, with text and query
   folded: compatibility forms and marks removed, `ß` as `ss`, so `selig` finds
   `ſelig`. An excerpt shows the folded text. The result is a document, not a place
@@ -157,8 +159,7 @@ An enhancer adds scripts to a finished page, whichever renderer wrote it (`runti
 Each is labelled as an extension wherever it is used; see
 [behaviour-table.md](behaviour-table.md).
 
-- **`compound`:** a `<model>` holding a `<modelSequence>` (Boot 2024). Not TEI,
-  and no other tool reads it.
+- **`compound`:** a `<model>` holding a `<modelSequence>` (Boot 2024).
 - **`pass-through`** and **`<pb:template>`:** TEI Publisher's, with its semantics
   but for one difference noted in the behaviour table.
 
@@ -166,7 +167,7 @@ Each is labelled as an extension wherever it is used; see
 
 A `<modelGrp>` is flattened here: a model after a group is a fallback, and the
 conformance case `groups` pins it. TEI Publisher, OPM and the Simler preview are
-reported to choose the group as a unit, which has not been run against pinned
+reported to choose the group as a unit. This has not been checked against pinned
 versions, so selection stays as it is until it has. The boundary is kept as the
 model's `group`, and a model that depends on flattening is diagnosed as
 `group-fallback`.

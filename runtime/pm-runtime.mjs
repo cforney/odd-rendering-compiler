@@ -2,7 +2,7 @@
  * The runtime of the generated tei-handlers.mjs: renders a TEI xast tree to hast
  * by the models the generator took from the ODD. It ships beside the handlers,
  * with xpath.mjs, which evaluates their predicates and params. The CETEIcean
- * pages inline both, and choose models by createResolver in the browser.
+ * pages inline both, and choose models with createResolver in the browser.
  *
  * Each element takes the first model of the output being rendered whose
  * predicate holds, else the first such model without @output; with none, its
@@ -196,8 +196,8 @@ export function createResolver(models, output, views = []) {
 
   /**
    * A text node as it renders ("" drops it): whitespace collapsed; at a joined
-   * line end the spaces around the break go, and a last character the model's
-   * `join` names, as the model sets its own hyphen.
+   * line end the spaces around the break are removed, and so is a last character
+   * the model's `join` names: the model sets its own hyphen.
    */
   function renderedText(pos) {
     const { node, up } = pos;
@@ -232,9 +232,9 @@ const strings = (v) => seq(v).map((item) => str([item]));
  * renders alone. `page` holds the params of the root's model for output "page", as
  * strings; its `manifest`, for the facsimile, goes on the edition too, and its `credit`
  * closes the page. With `trace`, `sources` maps each element rendered to the position and
- * the model that gave it, and `record` is the render itself as data: a record for
- * each element it reached, as often as it reached it, whose children are the
- * records and the text it rendered inside; see Record.
+ * the model that gave it, and `record` is the render itself as data: a record each
+ * time it reached an element, whose children are the records and the text rendered
+ * inside; see PmRecord.
  * @param {Record<string, Model[]>} models  by element name
  * @param {View[]} [views]
  */

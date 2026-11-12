@@ -7,8 +7,7 @@ With a facsimile, a page break renders as a thumbnail of the page that links to
 the full scan: a `compound` of a `link` and a `graphic`, the link wrapping the
 graphic. Both IIIF image URLs are built in the ODD from `@facs`, which is the
 bare image id that Simler Digital encodes, and the IIIF manifest in the header.
-Without a facsimile, the page break is its number. The example is the Psalms
-excerpt one level up, `../../simler-psalmen.xml`.
+Without a facsimile, the page break is its number.
 
 ## Files
 
@@ -20,9 +19,10 @@ excerpt one level up, `../../simler-psalmen.xml`.
 
 ## Chaining
 
-The compilers read `schemaSpec/@source` as a minimal ODD chain: the specs of the
-source ODD, where a spec of this ODD that has models replaces the source spec's
-models, `mode="delete"` removes a spec, and a new ident is added.
+The compilers read `schemaSpec/@source` as a minimal ODD chain. This ODD starts
+from the source ODD's specs: a spec here that has models replaces the source
+spec's models, `mode="delete"` removes a spec, and a spec with a new ident is
+added.
 
 ## Render
 

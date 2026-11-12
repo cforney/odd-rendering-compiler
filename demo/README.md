@@ -2,8 +2,7 @@
 
 One static page that frames the outputs both compilers already build, so a visitor
 can pick an example, switch rendering paths, turn JavaScript off, and see the
-generated artefact and its cost next to each result. Nothing is re-rendered here:
-the page only frames existing files.
+generated artefact and its cost next to each result. Nothing is re-rendered here.
 
 - **The frame** shows the edition alone. `build-demo` moves the banner each
   renderer puts on its page into *How it works* in the side panel, under a line
@@ -59,34 +58,41 @@ cd compiler-js
 npm run check:demo       # needs Chrome (CHROME names it) and network for the CDN scripts
 ```
 
-`check-demo.mjs` opens every rendering of every example in headless Chrome, as it
-opens, with the views on, and without JavaScript. The visible text and each text
+`check-demo.mjs` opens every rendering of every example in headless Chrome three ways:
+as it opens, with the views on, and without JavaScript. The visible text and each text
 run's place, font and colour must equal the first rendering's, and the pixels
-nearly so. It also holds the manifest's claims to the pages (`interactive`,
-`needsJs`) and the inspector's records to the elements rendered, opens a page image
+nearly so. It also checks the manifest's claims (`interactive`, `needsJs`)
+against the pages and the inspector's records against the elements rendered, opens a page image
 on each path against a stored copy of the IIIF manifest, and runs the search. It writes
 `site/verified.json`, from which the comparison says whether every rendering shows the
 same edition, and exits 1 on a difference. CI runs it; a demo built without it says
 "Not checked" there.
 
 The table's bars share one scale, so a page and a script can be compared. `build-demo`
-fetches each CDN script to weigh it; without network it stays a name, and out of the bar.
+fetches each CDN script to weigh it; without network, the script is listed by name only and left out of the bar.
 
 ## Using it
 
 A line under the header opens into a short introduction for anyone, which links the
 ODD (`guide` in `manifest.mjs`); the side panel links it too. The views are labelled
 in English where the ODD translates its `<desc>` (`xml:lang="en"`), and a report
-that is a text or JSON file is framed in a page of its own. A first visit opens what `opening` in `manifest.mjs` names: the unified page with
+that is a text or JSON file is framed in a page of its own.
+
+A first visit opens what `opening` in `manifest.mjs` names: the unified page with
 the small script, and the entities view on. The tabs choose who builds the page;
-*Interaction* chooses how a prebuilt page is enhanced, and stays chosen across tabs. The text looks the same on every path, so
-a line beside the tabs says which path rendered it, once it is there. On the
-interactive paths a click on a page break opens that page's image. Each combination has its own entry in the URL,
-in `verified.json` and in the comparison table, which nests them by builder, and whose sizes count a linked stylesheet
-as part of the page, as an inlined one is. The URL holds the document, rendering, views, JavaScript setting and picked element,
-so a state can be shared. The views are switched from the panel for every rendering
-at once: the pages' own switches are hidden here, and work as ever elsewhere. A link
-to another site (a dictionary, an authority file) opens in a new tab, as most such
+*Interaction* chooses how a prebuilt page is enhanced, and stays chosen across tabs.
+The text looks the same on every path, so once it has loaded, a line beside the
+tabs says which path rendered it. On the interactive paths a click on a page break
+opens that page's image.
+
+Each combination has its own entry in the URL, in `verified.json` and in the
+comparison table. The table nests them by builder, and its sizes count a linked
+stylesheet as part of the page, as they do an inlined one. The URL holds the
+document, rendering, views, JavaScript setting and picked element, so a state can
+be shared.
+
+The views are switched from the panel for every rendering at once: the pages' own
+switches are hidden here, and work as usual elsewhere. A link to another site (a dictionary, an authority file) opens in a new tab, as most such
 sites refuse to be framed; on the pages themselves it is an ordinary link.
 
 ## Files

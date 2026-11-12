@@ -10,9 +10,9 @@
  * text is set as it renders. The behaviours then reshape every custom element
  * into the HTML the other renderers emit, with the same classes, so edition.css
  * styles it alike; the notes are collected after the text, as they collect
- * them, and a switch for each view goes before it. Reshaped, a custom element is
- * only a wrapper, which would split the text the other renderers keep in one piece
- * and so place its glyphs a little differently: teiUnwrap takes them out.
+ * them, and a switch for each view goes before it. Once reshaped, a custom element
+ * is only a wrapper. It would split text the other renderers keep in one piece,
+ * and so place its glyphs a little differently, so teiUnwrap removes it.
  */
 
 const TEI_PHRASING = ["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"];
@@ -209,7 +209,7 @@ function teiEdition(ct, source, models, views, done) {
         img.alt = "";
         return [img];
       }
-      case "compound": { // a <model> holding a <modelSequence> (Boot 2024): an extension, not TEI
+      case "compound": { // a <model> holding a <modelSequence> (Boot 2024): an extension
         const link = e.parts.find((p) => p.m.behaviour === "link");
         const rest = e.parts.filter((p) => p !== link).flatMap((p) => render(el, c, p, p === e.parts[0], content));
         return link ? render(el, c, link, link === e.parts[0], content, rest) : rest;

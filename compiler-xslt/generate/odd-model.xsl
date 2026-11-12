@@ -26,12 +26,12 @@
   model's <pb:template>, a TEI Publisher extension, is kept as XML (see
   pm:template). The views are all outputs but those rendering alone and another
   engine's (see $pm:channels), each labelled by the first <desc> of its models. An @output prefixed
-  orc-, this compiler's own, names the output itself; one prefixed opm-, OPM's,
-  is never rendered here (docs/conventions.md).
+  orc- is this compiler's own and names the output without the prefix; one
+  prefixed opm- is OPM's and is never rendered here (docs/conventions.md).
 
   An XPath prefix the ODD binds becomes Q{uri}local (see pm:xpath). A spec with
-  @ns has it, and a key of {ns}ident, by which it is matched; otherwise its key
-  is its ident.
+  @ns keeps it and is matched by a key of {ns}ident; otherwise its key is its
+  ident.
 
   An ODD it cannot read raises the error pm:odd, naming each problem as
   odd-parser.mjs names it, but without the line (see pm:problems).
