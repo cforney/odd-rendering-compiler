@@ -96,7 +96,7 @@ for (const [dir, src] of Object.entries(SOURCES)) {
   }
   cpSync(src, resolve(SITE, dir), { recursive: true });
 }
-for (const asset of ["shell.css", "shell.js", "robots.txt"]) copyFileSync(resolve(DEMO, asset), resolve(SITE, asset));
+for (const asset of ["shell.css", "shell.js"]) copyFileSync(resolve(DEMO, asset), resolve(SITE, asset));
 const oddFile = `odd/${basename(inspected.odd)}.xml`;
 mkdirSync(resolve(SITE, "odd"), { recursive: true });
 copyFileSync(resolve(ROOT, inspected.odd), resolve(SITE, oddFile));
