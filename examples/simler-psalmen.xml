@@ -11,7 +11,7 @@
       </titleStmt>
       <publicationStmt>
         <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
-          transcription and the register: Simler Project Team, licensed under CC BY 4.0,
+          transcription: Simler Project Team, licensed under CC BY 4.0,
           https://creativecommons.org/licenses/by/4.0/.</p>
       </publicationStmt>
       <sourceDesc>
@@ -65,11 +65,11 @@
             <head rendition="#aq #c"><num>III.</num></head>
             <lb/>
             <lg type="poem">
-            <l>Der <rs type="person" key="person_049">David</rs> ſetzt auf Gott ſein hoffnung und vertrauen/</l>
+            <l>Der David ſetzt auf Gott ſein hoffnung und vertrauen/</l>
             <lb/>
             <l rendition="#et">alß ihn von ſeinem reich vertriben in die flucht</l>
             <lb/>
-            <l rendition="#et">ſein ſohn/ der <anchor xml:id="k1.1"/><rs type="person" key="person_053">Abſolon</rs><note type="annotation" targetEnd="k1.1"><p>Abschalom, Davids Sohn; vgl. 2 Sam 15–18 und die Überschrift von Ps 3.</p></note>/ der ihn zu to&#x364;den ſucht:</l>
+            <l rendition="#et">ſein ſohn/ der <anchor xml:id="k1.1"/>Abſolon<note type="annotation" targetEnd="k1.1"><p>Abschalom, Davids Sohn; vgl. 2 Sam 15–18 und die Überschrift von Ps 3.</p></note>/ der ihn zu to&#x364;den ſucht:</l>
             <lb/>
             <l>mit bitt/ daß Gottes hülff er würklich mo&#x364;ge ſchauen.</l>
             </lg>
@@ -374,19 +374,4 @@
   </div>
   </body>
   </text>
-  <standOff>
-    <listPerson>
-      <head>Personen</head>
-      <person xml:id="person_049">
-        <persName>David</persName>
-        <note>Biblische Figur, König von Israel</note>
-        <idno type="GND">118523929</idno>
-      </person>
-      <person xml:id="person_053">
-        <persName>Abschalom</persName>
-        <note>Dritter Sohn von König David und Halbbruder von Salomon</note>
-        <idno type="GND">120527057</idno>
-      </person>
-    </listPerson>
-  </standOff>
 </TEI>
