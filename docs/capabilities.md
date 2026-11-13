@@ -88,7 +88,7 @@ this is its only warning.
 | `behaviour-unknown` | warning | rendered inline |
 | `spec-group-unresolved` | warning | a `specGrpRef` skipped |
 | `schema-spec-several` | warning | see above |
-| `view-unrealized` | warning | a view's model a view cannot lay over the page |
+| `view-unrealized` | warning | a view's model that cannot be laid over the page |
 | `xpath-unsupported` | warning | degraded; an error under `--strict` |
 | `group-fallback` | info | a model after a group, which applies only because groups are flattened |
 

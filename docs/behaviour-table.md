@@ -102,7 +102,7 @@ character of the line's text if the param names it. A model of `type` `line` end
 line's text is found across inline elements, not across a block.
 
 **Compound (Boot 2024), an extension.** A `<model>` that holds a
-`<modelSequence>`. The PoC renders it as its parts, with a `link` part
+`<modelSequence>`. This compiler renders it as its parts, with a `link` part
 wrapping the others, for the example in
 [`examples/extensions/nested-pb/`](../examples/extensions/nested-pb/).
 

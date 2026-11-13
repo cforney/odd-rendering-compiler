@@ -61,7 +61,7 @@ Outputs, in `output/`:
 
 The build-time stylesheet runs *client-side* too. `render-saxonjs.xsl` imports the
 generated `edition.xsl` (reusing every TEI template) and adds an IXSL event
-template for the apparatus toggle; `xslt3` compiles it to a Stylesheet
+template for the reading toggle; `xslt3` compiles it to a Stylesheet
 Export File (`edition-saxonjs.sef.json`), and the pages in `saxonjs/` run that SEF
 in the browser with the SaxonJS runtime. So the **same** template-matching
 stylesheet has two entry points — **Saxon HE at build time, SaxonJS in the
@@ -134,6 +134,5 @@ same file as the JS `odd-to-ceteicean.mjs`.
   `:aria-checked`) are not valid XML attribute names, so a standards XSLT generator
   cannot emit them.
 - **Fidelity.** The body of each static page in `xslt/` is **equivalent** to the
-  unified render and to that of the stylesheet from `odd-to-xslt.mjs`: identical
-  up to attribute order and the whitespace next to a block's tags. `compiler-js`'s `npm test` checks this on
-  the examples and on the conformance fixtures.
+  unified render and to that of the stylesheet from `odd-to-xslt.mjs`;
+  `compiler-js`'s `npm test` checks this (see [concept.md](../docs/concept.md)).

@@ -16,10 +16,10 @@ TEI document into static HTML. No server, no runtime interpreter.
 
 The chain is implemented **twice — in JavaScript and in XSLT** — on purpose: the
 *generate* step is generic, not tied to one language. The unified handlers and
-the stylesheets of both XSLT generators render an equivalent static body
-(identical up to attribute order and the whitespace next to a block's tags), checked in CI on the examples
-and on conformance fixtures. [docs/capabilities.md](docs/capabilities.md) says what
-each target reads, implements and has executed.
+the stylesheets of both XSLT generators render an equivalent static body, checked
+in CI (see [docs/concept.md](docs/concept.md)).
+[docs/capabilities.md](docs/capabilities.md) says what each target reads,
+implements and has executed.
 
 ⚠️ **Note.** This is an experimental implementation: it exists to illustrate
 the idea and reproduce the article, not as production code.
@@ -30,8 +30,8 @@ the idea and reproduce the article, not as production code.
 |-----------|------------|
 | [`compiler-js/`](compiler-js/) | JavaScript implementation (generators, renderers, shared ODD parser, smoke tests) |
 | [`compiler-xslt/`](compiler-xslt/) | XSLT implementation (the same chain, built entirely in XSLT + Saxon) |
-| [`runtime/`](runtime/) | The behaviours both compilers copy into their output: `pm.xsl` (XSLT stylesheets), `pm-runtime.mjs` + `xpath.mjs` (unified handlers), `ceteicean.js` + page (CETEIcean tier, built on those two), `ui.css` (the renderers' own furniture: view switches, notes), and `notes.js` and `facsimile.js` (tooltips for notes and register cards, and page images, on every interactive page) |
-| [`examples/`](examples/) | Shared inputs for both compilers — the **Simler** edition's own ODD (a copy, with a register) with three excerpts adapted from its sources, and the TEI's **simplePrint** exemplar — with provenance and credits; [`examples/extensions/`](examples/extensions/) holds the nested page-break model, an ODD extension |
+| [`runtime/`](runtime/) | The behaviours both compilers copy into their output (`pm.xsl`, `pm-runtime.mjs` + `xpath.mjs`, `ceteicean.js`), and the scripts and styles of the interactive pages; see [docs/concept.md](docs/concept.md) |
+| [`examples/`](examples/) | Shared inputs: the **Simler** edition's ODD with three excerpts, and the TEI's **simplePrint** exemplar; [`extensions/`](examples/extensions/) holds an ODD extension, the nested page-break model |
 
 ## Quick start — JavaScript
 
@@ -110,27 +110,20 @@ See [`demo/README.md`](demo/README.md) for the build steps and how to extend it.
 ## Examples, licensing, and credits
 
 - The **code** is licensed **BSD-2-Clause** (see [`LICENSE`](LICENSE)).
-- The **example texts** in [`examples/`](examples/) are **not** covered by it —
-  they keep their originating projects' terms and are included only as
-  illustration. See [`examples/README.md`](examples/README.md) for provenance and
-  credits (Simler Digital's transcriptions and ODD, CC BY 4.0; e-rara's facsimiles on
-  e-rara's terms; the TEI Consortium's simplePrint exemplar, CC BY-SA 3.0).
+- The **example texts** in [`examples/`](examples/) are **not** covered by it:
+  they keep their originating projects' terms. See
+  [`examples/README.md`](examples/README.md) for provenance and credits.
 
 ## Acknowledgements
 
-Several decisions here come from e-editiones' [Open Processing
+Several decisions follow e-editiones' [Open Processing
 Model](https://github.com/eeditiones/open-processing-model) (OPM): XPath a target
-cannot run is compiled out and reported rather than failing the build;
-`render-json.mjs` writes the Processing Model's decisions as records in OPM's
-shape, and `coverage.mjs` reads them back against the ODD, as OPM's coverage
-report does; and a prefix on `@output` (`opm-`, `orc-`) keeps an engine's own
-models apart. The Processing Model itself comes from TEI Simple and its
-implementation in TEI Publisher.
-
-The islands tier follows the [islands
-architecture](https://jasonformat.com/islands-architecture/) (a term coined by
-Katie Sylor-Miller, described by Jason Miller), and its `on="load|idle|visible|media()"`
-values follow [Astro](https://astro.build)'s `client:*` directives.
+cannot run is compiled out and reported rather than failing the build; the render
+can be written as records in OPM's shape and read back as a coverage report; and
+an engine prefix on `@output` keeps engine-specific models apart. The Processing
+Model itself comes from TEI Simple and TEI Publisher. The islands tier follows the
+[islands architecture](https://jasonformat.com/islands-architecture/) and
+[Astro](https://astro.build)'s `client:*` directives.
 
 ## How to cite
 

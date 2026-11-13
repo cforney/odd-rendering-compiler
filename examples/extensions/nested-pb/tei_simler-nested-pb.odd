@@ -7,7 +7,7 @@
         <title>TEI Simler with a nested page-break model (an extension)</title>
       </titleStmt>
       <publicationStmt>
-        <p>Part of the ODD Rendering Compiler proof of concept.</p>
+        <p>Part of the ODD Rendering Compiler, an experimental implementation.</p>
       </publicationStmt>
       <sourceDesc>
         <p>Changes one element of ../../tei_simler.odd.</p>

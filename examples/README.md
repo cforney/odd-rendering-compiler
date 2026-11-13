@@ -7,7 +7,7 @@ Shared sample inputs for both implementations — the JavaScript one in
 
 | File | What it is |
 |------|------------|
-| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-13 and slightly adapted (see [below](#what-was-changed)). The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the project's file |
+| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-13 and slightly adapted (see [below](#what-was-changed)) |
 | `design-tokens.css` | the custom properties the ODD's CSS reads (fonts, sizes, colours); the CSS generators put them at the top of `edition.css` |
 | `simler-buchstabwechsel.xml` | poems VI and VII of the dedicatory poems: two interleaved two-column pages, whose acrostics the `l-twocol` params lay out; the poet's name |
 | `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–XXI: running headers, page numbers and catchwords, a page break inside a stanza, joined line ends; a commentary note |
@@ -25,10 +25,8 @@ with them, and are meant to stay as they are.
 
 ### What was changed
 
-The ODD is the project's, also slightly adapted: it renders the register (with
-a link from each name to its entry, which a page may open as a card), and its
-views have English labels for the demo. A document without a `standOff` renders
-as it does with the project's ODD.
+The ODD renders the register (with a link from each name to its entry, which a
+page may open as a card), and its views have English labels for the demo.
 
 ## Validate
 
@@ -42,31 +40,24 @@ It compiles `tei_simler.odd` with the TEI Stylesheets (`odd2odd` against TEI
 SchXslt2, and validates every excerpt with jing and the transpiled rules. It lists
 the Schematron warnings and fails on an invalid excerpt or a Schematron error.
 
-## Sources & credits
+## Sources, credits and licensing
 
-The sample texts are reused, by permission, as illustrative examples; each file's
-header records its source. **Please credit the originating projects when
-reusing these files.**
+The **code** in this repository is under BSD-2-Clause (see the repository
+`LICENSE`); the **example texts are not covered by it**. They are reused, by
+permission, as illustrative input and keep their originating projects' terms;
+each file's header records its source. **Please credit the originating projects
+when reusing these files.**
 
 - **Simler Digital** — <https://www.simler.unibe.ch/> — Johann Wilhelm Simler,
   *Teutsche Gedichte* (1663). The ODD, the design tokens and the excerpts come
   from the project's repository, [DHBern/simler_data](https://github.com/DHBern/simler_data).
-  The transcriptions, the registers and the ODD, with the schema and rendering generated from it, are
-  the Simler Project Team's under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
-  as the ODD's `availability` states and each excerpt's header repeats; so are the
-  design tokens of its proofing preview, `design-tokens.css`. The facsimiles
-  are not in this repository: the pages load them, and the IIIF manifest, from e-rara
-  (<https://www.e-rara.ch/>), on the terms e-rara states for each image. The tests and the
+  The transcriptions, registers, ODD (with the schema and rendering generated
+  from it) and design tokens are the Simler Project Team's, under
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (see each file's header).
+  The facsimiles are not in this repository: the pages load them, and the IIIF
+  manifest, from e-rara (<https://www.e-rara.ch/>), on e-rara's terms. The tests and the
   demo's check use a made-up manifest instead, `compiler-js/test/fixtures/iiif/simler-pages.json`,
   which shares only the page ids with e-rara's.
 - **TEI Consortium** — `tei_simplePrint.odd` is the TEI's SimplePrint exemplar
   (<https://github.com/TEIC/TEI>), under CC BY-SA 3.0 as its header states,
   redistributed here for testing.
-
-## Licensing
-
-The **code** in this repository is under BSD-2-Clause (see the repository
-`LICENSE`). The **example texts above are not covered by that licence**: they
-remain under their originating projects' terms (the Simler transcriptions, registers, ODD
-and design tokens CC BY 4.0, and the TEI's SimplePrint CC BY-SA 3.0) and are included here only as illustrative
-input. The facsimiles the pages load from e-rara are under e-rara's terms.

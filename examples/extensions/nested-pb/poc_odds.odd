@@ -7,7 +7,7 @@
         <title>poc_odds: TEI for authoring ODD, with nested models</title>
       </titleStmt>
       <publicationStmt>
-        <p>Part of the ODD Rendering Compiler proof of concept. Its schema specification follows
+        <p>Part of the ODD Rendering Compiler, an experimental implementation. Its schema specification follows
           the TEI's <ident>tei_odds.odd</ident> (TEI P5 4.12.0, by Sebastian Rahtz, © TEI
           Consortium, CC BY 3.0 / BSD-2-Clause).</p>
       </publicationStmt>
