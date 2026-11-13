@@ -56,7 +56,9 @@ node odd-render.mjs <odd> <tei...> [--out dir] [--tier name] [--reports] [--sear
 ```
 
 It compiles `edition.css` and the handlers, renders every source with them, and
-tells you what it could not evaluate rather than refusing to build. See
+tells you what it could not evaluate rather than refusing to build. For a
+publication build, add `--strict`: XPath outside the subset then fails the build
+instead of silently becoming a false predicate or an empty param. See
 [`compiler-js/README.md`](compiler-js/README.md#one-command).
 
 **As a package or a library.** `npm install github:cforney/odd-rendering-compiler`

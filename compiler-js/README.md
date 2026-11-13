@@ -42,6 +42,7 @@ reads the ODD and renders in memory, writes no files and never exits the process
 ```js
 import { compileOdd, renderDocument } from "odd-rendering-compiler";
 const edition = compileOdd("tei_simler.odd", { tokens });   // { odd, css, unsupported, teiToHast }
+if (edition.unsupported.length) throw new Error("XPath outside the subset");   // a strict build
 const { html, hast, notes, page } = renderDocument(edition, xml);   // page: title, lang, credit, …
 ```
 
