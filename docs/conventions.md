@@ -106,7 +106,9 @@ XPath, ODD resolution and diagnostics, by target.
 - **Notes.** A note whose `place` is `end` or `foot` gets a numbered marker, its
   body collected in a `tei-footnotes` section; a note elsewhere is collected in
   `section.tei-notes[data-place]`, without a marker. A note's `xml:id` goes on its
-  marker, or without one on its body, so links into the source keep a target.
+  marker, or without one on its body, so links into the source keep a target. A
+  numbered note's body is `note-<n>`, or the first free `note-<n>-<k>` where the
+  source already uses that id.
 - **Line breaks.** A `break` of type `line` where a line already starts renders
   nothing. Where a model has a param `join`, on any element and of any behaviour, the
   line joins: the spaces around the element are removed, and so is the last

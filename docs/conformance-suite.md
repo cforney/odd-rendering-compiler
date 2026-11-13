@@ -25,7 +25,7 @@ here:
 | `structure` | a spec's only model; a model group with an inherited `@useSourceRendition`; `@cssClass`; document order (the first model wins, the next predicate is never asked); a `modelSequence` with the id on its first part; a block inside phrasing content |
 | `outputs` | `@output`: an output's models take precedence, a view laid over the page (`omit`, added classes, an `alternate`'s readings), a model marked `web` |
 | `params` | params as CSS custom properties and attributes; node-valued params, one selecting the element itself; predicates with positions, value comparisons and conditionals; breaks, labels, the hyphen at a joined line end; `link` and `graphic` |
-| `notes` | notes numbered in document order, the outer before the inner; a note in the margin, without a marker; a range closed by `@targetEnd`; a note's `xml:id` on its marker, or on its body without one |
+| `notes` | notes numbered in document order, the outer before the inner; a note in the margin, without a marker; a range closed by `@targetEnd`; a note's `xml:id` on its marker, or on its body without one; a generated id that skips the source's |
 | `groups` | a group's first member that holds wins; with none, a model after it is the fallback; a group's `@output`; a sequence in a group |
 | `namespaces` | a prefixed TEI source renders as an unprefixed one; a same-named element of another namespace is distinct; `elementSpec/@ns`; prefixes in a predicate |
 | `whitespace` | the nearest `xml:space` decides, through alternating `preserve` and `default` |

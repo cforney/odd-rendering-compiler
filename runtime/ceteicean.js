@@ -48,6 +48,8 @@ function teiEdition(ct, source, models, views, done) {
   const choices = [];      // per element, by its data-pm: its ident, position and evaluated models
   const marks = new Map(); // xast element → its data-pm
   let notes = 0;
+  // the source's xml:ids, which a note's generated id must not repeat
+  const taken = new Set(Array.from(doc.getElementsByTagName("*"), (n) => n.getAttributeNS("http://www.w3.org/XML/1998/namespace", "id")).filter(Boolean));
 
   /** The k-th part of an element's model at the element: its params evaluated, what the views lay over it, and what its behaviour needs to know there. */
   function evaluate(m, pos, k = 0) {
@@ -169,7 +171,7 @@ function teiEdition(ct, source, models, views, done) {
         const aside = document.createElement("aside");
         aside.className = "tei-note-body";
         if (e.n) {
-          aside.id = `note-${e.n}`;
+          aside.id = teiPm.noteId(e.n, taken);
           const num = aside.appendChild(document.createElement("span"));
           num.className = "tei-note-num";
           num.textContent = `${e.n}.`;
@@ -182,7 +184,7 @@ function teiEdition(ct, source, models, views, done) {
           return [];
         }
         const ref = make("a", [String(e.n)], ["tei-note-ref"]);
-        ref.href = `#note-${e.n}`;
+        ref.href = `#${teiPm.noteId(e.n, taken)}`;
         if ("range" in params) ref.dataset.range = str(params.range).replace(/^#/, "");
         return [ref];
       }

@@ -223,6 +223,13 @@ export const SILENT = ["omit", "metadata"];
 /** The tei- classes the renderers write for themselves, not for an element of the source; every renderer writes the same. */
 export const FURNITURE = ["tei-edition", "tei-views", "tei-footnotes", "tei-notes", "tei-credit", "tei-note-body", "tei-note-num", "tei-toc", "tei-tooltip", "tei-alternate-default", "tei-alternate-alt"];
 
+/** The id of the n-th numbered note's body: note-n, or the first free note-n-1, note-n-2, … where the source's xml:ids (taken) already hold it. Every renderer allocates the same. */
+export function noteId(n, taken) {
+  let id = `note-${n}`;
+  for (let k = 1; taken.has(id); k++) id = `note-${n}-${k}`;
+  return id;
+}
+
 /** A param's value as strings, one per item. */
 const strings = (v) => seq(v).map((item) => str([item]));
 
@@ -246,6 +253,11 @@ export function createRenderer(models, views = []) {
    */
   return function teiToHast(tree, { output = "web", trace = false } = {}) {
     const notes = [];
+    const taken = new Set(); // the source's xml:ids, which a note's generated id must not repeat
+    (function ids(n) {
+      if (n.type === "element" && n.attributes["xml:id"]) taken.add(n.attributes["xml:id"]);
+      if ("children" in n) n.children.forEach(ids);
+    })(tree);
     const sources = new Map();
     const open = [{ children: [] }]; // the records being written, innermost last
     /** Text the page shows, as a node. */
@@ -357,7 +369,7 @@ export function createRenderer(models, views = []) {
           note.body = content(false);
           if (note.place !== "end") return [];
           const range = "range" in params ? str(params.range).replace(/^#/, "") : undefined;
-          return [h("a", { ...props, className: [...props.className, "tei-note-ref"], href: `#note-${note.n}`, "data-range": range }, [text(String(note.n))])];
+          return [h("a", { ...props, className: [...props.className, "tei-note-ref"], href: `#${noteId(note.n, taken)}`, "data-range": range }, [text(String(note.n))])];
         }
         case "break": {
           const line = "type" in params && str(params.type) === "line";
@@ -395,7 +407,7 @@ export function createRenderer(models, views = []) {
     const body = top.flatMap((node) => render({ node, up: [] }, false));
 
     const ends = notes.filter((n) => n.place === "end").map((n) =>
-      h("aside", { className: ["tei-note-body"], id: `note-${n.n}` }, [h("span", { className: ["tei-note-num"] }, [text(`${n.n}.`)]), text(" "), ...n.body]));
+      h("aside", { className: ["tei-note-body"], id: noteId(n.n, taken) }, [h("span", { className: ["tei-note-num"] }, [text(`${n.n}.`)]), text(" "), ...n.body]));
     const sections = [...new Set(notes.map((n) => n.place))].map((place) =>
       place === "end"
         ? h("section", { className: ["tei-footnotes"] }, ends)

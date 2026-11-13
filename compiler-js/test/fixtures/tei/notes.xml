@@ -8,6 +8,8 @@
       <p>A note<note xml:id="n1">The first, with <note>a nested note</note> inside.</note>, a margin
         note<note xml:id="m1" place="margin">In the margin.</note> and a <anchor xml:id="a1"/>commented
         range<note targetEnd="#a1">On the range.</note>.</p>
+      <p xml:id="note-4">A paragraph with the id of the next note<note>The fourth.</note>, and a note
+        with the id of its own body<note xml:id="note-5">The fifth.</note>.</p>
     </body>
   </text>
 </TEI>

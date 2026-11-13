@@ -90,6 +90,8 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
   <xsl:template name="pm:edition">
     <xsl:param name="doc" select="/"/>
     <xsl:variable name="text"><xsl:apply-templates select="$doc/*"/></xsl:variable>
+    <!-- the source's xml:ids, which a note's generated id must not repeat -->
+    <xsl:variable name="taken" select="distinct-values($doc//@xml:id)" as="xs:string*"/>
     <div class="tei-edition">
       <xsl:attribute name="data-{$output}" select="'on'"/>
       <xsl:variable name="manifest" select="string((pm:select($doc/*, 'page')?params?manifest)[1])"/>
@@ -102,16 +104,20 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
           </xsl:for-each>
         </form>
       </xsl:if>
-      <xsl:apply-templates select="$text/node()" mode="pm:page"/>
+      <xsl:apply-templates select="$text/node()" mode="pm:page">
+        <xsl:with-param name="taken" select="$taken" tunnel="yes"/>
+      </xsl:apply-templates>
       <xsl:for-each-group select="$text//pm:note" group-by="@place">
         <xsl:choose>
           <xsl:when test="current-grouping-key() = 'end'">
             <section class="tei-footnotes">
               <xsl:for-each select="current-group()">
-                <aside class="tei-note-body" id="note-{pm:number(.)}">
+                <aside class="tei-note-body" id="{pm:note-id(pm:number(.), $taken)}">
                   <span class="tei-note-num"><xsl:value-of select="pm:number(.)"/>.</span>
                   <xsl:text> </xsl:text>
-                  <xsl:apply-templates select="pm:body/node()" mode="pm:page"/>
+                  <xsl:apply-templates select="pm:body/node()" mode="pm:page">
+                    <xsl:with-param name="taken" select="$taken" tunnel="yes"/>
+                  </xsl:apply-templates>
                 </aside>
               </xsl:for-each>
             </section>
@@ -119,7 +125,9 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
           <xsl:otherwise>
             <section class="tei-notes" data-place="{current-grouping-key()}">
               <xsl:for-each select="current-group()">
-                <aside class="tei-note-body"><xsl:copy-of select="*:a/@id"/><xsl:apply-templates select="pm:body/node()" mode="pm:page"/></aside>
+                <aside class="tei-note-body"><xsl:copy-of select="*:a/@id"/><xsl:apply-templates select="pm:body/node()" mode="pm:page">
+                  <xsl:with-param name="taken" select="$taken" tunnel="yes"/>
+                </xsl:apply-templates></aside>
               </xsl:for-each>
             </section>
           </xsl:otherwise>
@@ -136,8 +144,17 @@ body { max-width: 42em; margin: 2em auto; padding: 0 1em; font-family: 'Palatino
     <xsl:sequence select="count($note/(preceding::pm:note | ancestor::pm:note)[@place = 'end']) + 1"/>
   </xsl:function>
 
+  <!-- The id of the n-th numbered note's body: note-n, or the first free note-n-1, note-n-2, …
+       where the source's xml:ids already hold it, as pm-runtime.mjs's noteId allocates. -->
+  <xsl:function name="pm:note-id" as="xs:string">
+    <xsl:param name="n" as="xs:integer"/>
+    <xsl:param name="taken" as="xs:string*"/>
+    <xsl:sequence select="head((('note-' || $n), (for $k in 1 to count($taken) + 1 return 'note-' || $n || '-' || $k))[not(. = $taken)])"/>
+  </xsl:function>
+
   <xsl:template match="pm:note[@place = 'end']" mode="pm:page">
-    <a href="#note-{pm:number(.)}">
+    <xsl:param name="taken" as="xs:string*" tunnel="yes"/>
+    <a href="#{pm:note-id(pm:number(.), $taken)}">
       <xsl:copy-of select="*:a/@*"/>
       <xsl:value-of select="pm:number(.)"/>
     </a>
