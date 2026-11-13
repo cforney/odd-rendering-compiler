@@ -7,7 +7,7 @@ Shared sample inputs for both implementations — the JavaScript one in
 
 | File | What it is |
 |------|------------|
-| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-08 and slightly adapted (see [below](#what-was-changed)). The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the project's file |
+| `tei_simler.odd` | the ODD of **Simler Digital**, a real diplomatic edition, the primary example: `schema/tei_simler.odd` of [DHBern/simler_data](https://github.com/DHBern/simler_data), copied on 2026-11-13 and slightly adapted (see [below](#what-was-changed)). The project's own build (`simler_data/preview`, an interpreter) renders its whole corpus from the project's file |
 | `design-tokens.css` | the custom properties the ODD's CSS reads (fonts, sizes, colours); the CSS generators put them at the top of `edition.css` |
 | `simler-buchstabwechsel.xml` | poems VI and VII of the dedicatory poems: two interleaved two-column pages, whose acrostics the `l-twocol` params lay out; the poet's name |
 | `simler-psalmen.xml` | *Haubtbegriff des erſten Pſalms*, Psalms I–XXI: running headers, page numbers and catchwords, a page break inside a stanza, joined line ends; a commentary note |
@@ -19,17 +19,16 @@ Shared sample inputs for both implementations — the JavaScript one in
 ## The excerpts
 
 Each `simler-*.xml` is an excerpt of a source file of Simler Digital, *Teutsche
-Gedichte* (C, 1663), copied from simler_data on 2026-11-08 and **slightly
+Gedichte* (C, 1663), copied from simler_data on 2026-11-08 (checked against it on 2026-11-13) and **slightly
 adapted**. The project's files are work in progress; the excerpts are not synced
 with them, and are meant to stay as they are.
 
 ### What was changed
 
 The ODD is the project's, also slightly adapted: it renders the register (with
-a link from each name to its entry, which a page may open as a card); an
-indented line in the two-column layout is indented further; and an even page's
-number stands at the left, as in the print. A document without a `standOff`
-renders as it does with the project's ODD.
+a link from each name to its entry, which a page may open as a card), and its
+views have English labels for the demo. A document without a `standOff` renders
+as it does with the project's ODD.
 
 ## Validate
 

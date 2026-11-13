@@ -34,7 +34,7 @@ function run(script, args) {
   return execFileSync(process.execPath, [script, ...args], { cwd: pocDir, encoding: "utf8" });
 }
 const page = (dir, name) => readFileSync(join(outDir, dir, `${name}.html`), "utf8");
-/** A printing error and its correction, which no excerpt has, rendered by the Simler handlers into `dir`. */
+/** A printing error and its correction, in a minimal document, rendered by the Simler handlers into `dir`. */
 function readings(dir, args = []) {
   const tei = join(outDir, "readings.xml");
   writeFileSync(tei, `<TEI xmlns="http://www.tei-c.org/ns/1.0"><text><body><lg><l>Ein <choice><sic>Fehlr</sic><corr>Fehler</corr></choice> im Druck</l></lg></body></text></TEI>`);
@@ -69,7 +69,7 @@ test("odd-to-css adds the design tokens and reports custom properties nothing de
 
   const css = readFileSync(join(outDir, "edition.css"), "utf8");
   assert.match(css, /--c-muted: 106 102 95;/, "the tokens come first");
-  assert.equal((css.match(/^\.r-/gm) || []).length, 22, "the 22 source renditions of <tagsDecl>");
+  assert.equal((css.match(/^\.r-/gm) || []).length, 23, "the 23 source renditions of <tagsDecl>");
   assert.match(css, /^\.r-twocol \{[^}]*display: grid/m, "the two-column grid rendition");
   assert.match(css, /^\.pb-group \{[^}]*display: flex/m, "a model group's rendition on its class");
   assert.match(css, /^\.pb-rule::before \{/m, "a scoped rendition as a pseudo-element");
