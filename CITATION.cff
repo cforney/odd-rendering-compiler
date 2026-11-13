@@ -25,7 +25,7 @@ keywords:
   - digital scholarly editions
   - static site
   - minimal computing
-date-released: 2026-11-12
+date-released: 2026-11-13
 # Once Zenodo has archived the release: the concept DOI as `doi:`, and the
 # version's DOI under `identifiers:`. `date-released` is the day of the release.
 preferred-citation:
