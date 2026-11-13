@@ -25,8 +25,12 @@ keywords:
   - static site
   - minimal computing
 date-released: 2026-11-13
-# Once Zenodo has archived the release: the concept DOI as `doi:`, and the
-# version's DOI under `identifiers:`. `date-released` is the day of the release.
+# doi: every version (resolves to the latest); identifiers: each version's own DOI.
+doi: 10.5281/zenodo.24193138
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24193139
+    description: "Version 1.0.0, archived on Zenodo"
 preferred-citation:
   type: article
   title: "The TEI ODD as Static-Build Configuration: Compiling the Processing Model into Edition Rendering"

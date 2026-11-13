@@ -129,4 +129,6 @@ Model itself comes from TEI Simple and TEI Publisher. The islands tier follows t
 
 ## How to cite
 
-See [`CITATION.cff`](CITATION.cff).
+Archived on Zenodo: <https://doi.org/10.5281/zenodo.24193138> (all versions;
+version 1.0.0: <https://doi.org/10.5281/zenodo.24193139>). See
+[`CITATION.cff`](CITATION.cff).
