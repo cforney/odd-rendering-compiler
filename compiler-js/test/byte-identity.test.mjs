@@ -45,6 +45,8 @@ test("the comparison ignores serialisation, not what renders", () => {
   assert.ok(!same(`<p class="a b">x</p>`, `<p class="b a">x</p>`), "the order of classes, which an attribute value keeps");
   assert.ok(!same("<p><span>a</span> <span>b</span></p>", "<p><span>a</span><span>b</span></p>"), "a word separator");
   assert.ok(!same("<pre>a  b</pre>", "<pre>a b</pre>"), "a preserved space");
+  assert.ok(!same(`<div style="white-space:pre"> <span>x</span> </div>`, `<div style="white-space:pre"><span>x</span></div>`), "spaces at a block's edges that an inline style preserves");
+  assert.ok(!same("<pre> <span>x</span> </pre>", "<pre><span>x</span></pre>"), "spaces at the edges of a pre");
   assert.ok(!same(`<a href="#a  b">x</a>`, `<a href="#a b">x</a>`), "an attribute value");
   assert.ok(!same(`<a href="#a">x</a>`, `<a href="#b">x</a>`), "a link");
 

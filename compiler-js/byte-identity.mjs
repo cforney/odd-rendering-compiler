@@ -5,9 +5,12 @@
  * The renders of the same ODD must have the same <body> as an HTML parser reads
  * it, so how a serialiser spelled it does not count: attribute order, entities,
  * `<br/>` or `<br>`, comments. Of what the parser keeps, only two things are
- * dropped: whitespace a browser does not render (between blocks or at their
- * edges), and the banner naming the path. A space between inline elements, in
- * text or in an attribute value, counts. So the comparison holds whichever engine wrote each file.
+ * dropped: whitespace between blocks or at their edges, and the banner naming
+ * the path. That whitespace is kept inside a `pre` or `textarea`, or below an
+ * inline style that sets `white-space: pre…`; whitespace a stylesheet preserves
+ * cannot be seen from the HTML, so it is still dropped there. A space between
+ * inline elements, in text or in an attribute value, counts. So the comparison
+ * holds whichever engine wrote each file.
  *
  *   normaliseRenderedBody(html) → canonical string
  *   firstDifference(htmlA, htmlB) → null, or { kind, where, a, b }; kind is structure, text or attribute
@@ -21,17 +24,22 @@ import { parse } from "parse5";
 const BLOCK = new Set("article aside blockquote body div figcaption figure form h1 h2 h3 h4 h5 h6 li nav p section table td tr ul".split(" "));
 const VOID = new Set("area base br col embed hr img input link meta source track wbr".split(" "));
 
+/** Whitespace is rendered as written inside these, and below an inline white-space: pre…. */
+const PRESERVE = new Set(["pre", "textarea", "listing", "plaintext"]);
+const preserves = (n) => PRESERVE.has(n.nodeName) || n.attrs.some((a) => a.name === "style" && /white-space\s*:\s*(pre|break-spaces)/i.test(a.value));
+
 const isBlank = (n) => n.nodeName === "#text" && !/[^ \t\n\r\f]/.test(n.value);
 const isBanner = (n) => n.tagName === "div" && n.attrs.some((a) => a.name === "class" && a.value === "render-info");
 
 /** A parsed element as { tag, attrs, children }, a child such an element or its text as a string. */
-function canonical(el) {
+function canonical(el, inPre = false) {
+  const keep = inPre || preserves(el);
   const kept = el.childNodes.filter((n) => n.nodeName !== "#comment" && !isBanner(n));
   const blockAt = (n, edge) => (n ? BLOCK.has(n.nodeName) : edge);
   const edge = BLOCK.has(el.nodeName);
   const children = kept
-    .filter((n, i) => !isBlank(n) || !(blockAt(kept[i - 1], edge) || blockAt(kept[i + 1], edge)))
-    .map((n) => (n.nodeName === "#text" ? n.value : canonical(n)));
+    .filter((n, i) => keep || !isBlank(n) || !(blockAt(kept[i - 1], edge) || blockAt(kept[i + 1], edge)))
+    .map((n) => (n.nodeName === "#text" ? n.value : canonical(n, keep)));
   const attrs = el.attrs.map((a) => [a.name, a.value]).sort(([a], [b]) => (a < b ? -1 : 1));
   return { tag: el.tagName, attrs, children };
 }
