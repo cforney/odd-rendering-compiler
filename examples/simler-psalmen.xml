@@ -10,7 +10,8 @@
         <title type="main">Haubtbegriff des erſten Pſalms, Psalms I–XXI (C 1663, pp. 4–7)</title>
       </titleStmt>
       <publicationStmt>
-        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
+        <p>Simler Digital, https://www.simler.unibe.ch/: a provisional excerpt, adapted as an example; not the
+          edition's final text. The
           transcription: Simler Project Team, licensed under CC BY 4.0,
           https://creativecommons.org/licenses/by/4.0/.</p>
       </publicationStmt>
@@ -134,7 +135,7 @@
             <head rendition="#aq #c"><num>VII.</num></head>
             <lb/>
             <lg type="poem">
-            <l>Der David von dem Saul der aufruhr falſch gezigen/</l>
+            <l>Der David von dem Saul der aufruhr falſch <anchor xml:id="k1.2"/>gezigen<note type="annotation" targetEnd="k1.2"><p>Partizip von ‹zeihen›: fälschlich des Aufruhrs beschuldigt (Genitiv der Sache), <ref target="https://fwb-online.de/lemma/gezeihen.s.3vu">FWB</ref></p></note>/</l>
             <lb/>
             <l rendition="#et">beym Herꝛen ſuchet ſchirm: ſein' unſchuld ihm er-<lb
             break="no"/>weißt:</l>
@@ -184,7 +185,7 @@
             <lb/>
             <l rendition="#et">ab Sauls zu groſſem ſtoltz/ betrug und tyranney:</l>
             <lb/>
-            <l rendition="#et">ru&#x364;fft Gott um rettung an/ und tro&#x364;ſtet fich darbey</l>
+            <l rendition="#et">ru&#x364;fft Gott um rettung an/ und tro&#x364;ſtet ſich darbey</l>
             <lb/>
             <l>er werde/ wie ſchon offt/ der ſeinen ſich erbarmen.</l>
             </lg>
@@ -236,7 +237,7 @@
             <lb/>
             <l rendition="#et">und werden groſſen ſigs die feinde ru&#x364;hmen ſich:</l>
             <lb/>
-            <l rendition="#et">deß ru&#x364;ffet er zu Gott ſo gar <anchor xml:id="k1.2"/>eynbrünſtiglich<note type="annotation" targetEnd="k1.2"><p>‹inbrünstig›: von religiöser Hingabe erfüllt, <ref target="https://fwb-online.de/lemma/inbr%C3%BCnstig.s.4adj">FWB</ref></p></note>/</l>
+            <l rendition="#et">deß ru&#x364;ffet er zu Gott ſo gar <anchor xml:id="k1.3"/>eynbrünſtiglich<note type="annotation" targetEnd="k1.3"><p>‹inbrünstig›: von religiöser Hingabe erfüllt, <ref target="https://fwb-online.de/lemma/inbr%C3%BCnstig.s.4adj">FWB</ref></p></note>/</l>
             <lb/>
             <l>gelobet dank/ und kan nun widerum troſt faſſen.</l>
             </lg>

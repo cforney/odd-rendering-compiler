@@ -10,7 +10,8 @@
         <title type="main">Dorothea, and Sonnet/ oder Trauriger Todtenklang, poems 141–144 (C 1663, pp. 537–540)</title>
       </titleStmt>
       <publicationStmt>
-        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
+        <p>Simler Digital, https://www.simler.unibe.ch/: a provisional excerpt, adapted as an example; not the
+          edition's final text. The
           transcription and the register: Simler Project Team, licensed under CC BY 4.0,
           https://creativecommons.org/licenses/by/4.0/.</p>
       </publicationStmt>
@@ -24,10 +25,9 @@
   <div n="1">
                 <pb n="537" facs="4049736"/>
                 <div n="2" xml:id="n213">
-                    <head>
-                        <hi rendition="#b #c">141. <hi rendition="#aq #g">DOROTHEA</hi><hi
-                                rendition="#aq">,<lb/></hi> oder <lb/>Anbindungs-Gesang: <lb/>Auf
-                            <lb/>den 6. tag Hornungs <lb/>1659.</hi></head>
+                    <head rendition="#b #c">141. <hi rendition="#aq #g">DOROTHEA</hi><hi
+                            rendition="#aq">,</hi><lb/> oder <lb/>Anbindungs-Gesang: <lb/>Auf
+                        <lb/>den 6. tag Hornungs <lb/>1659.</head>
                     <lb/>
                     <p rendition="#c">In der weise: Galathee laß mich preisen.</p>
                     <lb/>
@@ -40,7 +40,7 @@
                             <l>auß demselben dir zuweisen</l>
                             <lb/>
                             <pb n="538" facs="4049737"/>
-                            <l rendition="#et">was mir mein gemu&#x364;th erfreut/</l>
+                            <l rendition="#et">was mir mein gemu&#x364;ht erfreut/</l>
                             <lb/>
                             <l n="5" rendition="#et2">Eine freye Gottes-gab</l>
                             <lb/>
@@ -100,7 +100,7 @@
                             <lb/>
                             <l>werden wir gleich oft vertriben/</l>
                             <lb/>
-                            <l rendition="#et">seind wir doch/ d<choice><sic>n</sic><corr>u</corr></choice>rch Treu/ vereint:</l>
+                            <l rendition="#et">seind wir doch/ d<choice><sic>n</sic><corr>u</corr></choice>rch Tre<choice><sic>n</sic><corr>u</corr></choice>/ vereint:</l>
                             <lb/>
                             <l rendition="#et2">Bleib nur immer wie du bist/</l>
                             <lb/>
@@ -141,11 +141,10 @@
                     <lb/>
                 </div>
                 <div n="2" xml:id="n214">
-                    <head>
-                        <hi rendition="#b #c">142. Klingendes Traur- und Trostgeticht: über
+                    <head rendition="#b #c">142. Klingendes Traur- und Trostgeticht: über
                             <lb/>Herren <rs type="person" key="person_168">D. Zwingers</rs> zu <rs
                                 type="place" key="place_002">Basel</rs>/ seliges
-                            <lb/>Absterben.</hi></head>
+                            <lb/>Absterben.</head>
                     <lb/>
                     <lg type="poem">
                         <l><hi rendition="#larger"><rs type="person" key="person_168">Herr
@@ -183,11 +182,10 @@
                     <lb/>
                 </div>
                 <div n="2" xml:id="n215">
-                    <head>
-                        <hi rendition="#b #c">143. Auf Herren <rs type="person" key="person_169"
+                    <head rendition="#b #c">143. Auf Herren <rs type="person" key="person_169"
                                 >Joh. Jakob Genathen</rs>/ beru&#x364;hm<lb break="no"/>ten Trukker
                             und Bu&#x366;chhändlers in <rs type="place" key="place_002">Basel</rs>/
-                            <lb/>Begräbnus.</hi></head>
+                            <lb/>Begräbnus.</head>
                     <lb/>
                     <lg type="poem">
                         <l>Nun ists mit Ihm gethan; nun fahrt Er hin im Friden;</l>
@@ -204,11 +202,10 @@
                 </div>
                 <pb n="540" facs="4049739"/>
                 <div n="2" xml:id="n216">
-                    <head>
-                        <hi rendition="#b #c">144. Sonnet/ <lb/>oder <lb/>Trauriger Todtenklang/
+                    <head rendition="#b #c">144. Sonnet/ <lb/>oder <lb/>Trauriger Todtenklang/
                             <lb/>über <lb/>Herren Lands-Haubtmann <rs type="person" key="person_003"
                                 >Meinrad <lb/>Buolen</rs>/ ihme seliges; dem Vatterland<lb/>
-                            höchstschädliches Ab<lb break="no"/>leiben.</hi></head>
+                            höchstschädliches Ab<lb break="no"/>leiben.</head>
                     <lb/>
                     <lg type="poem">
                         <l><hi rendition="#larger">Ach!</hi> armes <hi rendition="#larger"
@@ -235,7 +232,7 @@
                         <lb/>
                         <l n="10" rendition="#et">und/ selig/ Gottes Lob im Himmel hoch erhebt/</l>
                         <lb/>
-                        <l>erwartend auch des Leibs. <anchor xml:id="k216.3"/>Die Ehrgedächtnuß<note type="annotation" targetEnd="k216.3"><p>der feminine Artikel im Fnhd. nicht ungewöhnlich, <ref target="https://fwb-online.de/lemma/ged%C3%A4chtnis.s.1f?q=ged%C3%A4chtnis&amp;page=1">FWB</ref></p></note> bleibet/</l>
+                        <l>erwartend auch des Leibs. <anchor xml:id="k216.3"/>Die Ehrgedächtnuß<note type="annotation" targetEnd="k216.3"><p>der feminine Artikel im Fnhd. nicht ungewöhnlich, <ref target="https://fwb-online.de/lemma/ged%C3%A4chtnis.s.1f">FWB</ref></p></note> bleibet/</l>
                         <lb/>
                         <l rendition="#et">sein weltbekantes Lob verschwindet nimmermehr/</l>
                         <lb/>

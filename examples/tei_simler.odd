@@ -2,7 +2,8 @@
 <?xml-model href="https://www.tei-c.org/release/xml/tei/custom/schema/relaxng/tei_odds.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <!--
   Adapted from DHBern/simler_data, schema/tei_simler.odd, 2026-11-13 (bbc9563): the register of
-  persons and places in standOff, which the examples carry; examples/README.md lists the changes.
+  persons and places in standOff, which the examples carry, and without the constraint of the
+  commentary import and two clean-up checks; examples/README.md lists the changes.
 -->
 <TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:eg="http://www.tei-c.org/ns/Examples">
   <teiHeader>
@@ -258,8 +259,7 @@
             <desc>Some renditions describe single letters or a position within a line: an
               initial, superscript, subscript, an acrostic's first or last letter. They stand on
               the <gi>hi</gi> that holds those letters, never on a block. The letter tokens of
-              <gi>tagsDecl</gi> are listed here once; the block tokens in
-              <ident>hi-block-rendition</ident>.</desc>
+              <gi>tagsDecl</gi> are listed here once.</desc>
             <constraint>
               <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron"
                 context="tei:*[not(self::tei:hi)][@rendition]">
@@ -929,35 +929,6 @@
             <val>#right</val>) and indent (<val>#et</val>, <val>#et2</val>, <val>#et3</val>) — are
             recorded on the block, not on <gi>hi</gi>.</desc>
           <content><macroRef key="macro.simlerInline"/></content>
-          <constraintSpec ident="hi-block-rendition" scheme="schematron">
-            <desc>Alignment, indent and the other block renditions are properties of a line or
-              block: they are recorded on the block element, where they take effect. The block
-              tokens of <gi>tagsDecl</gi> are listed here once.</desc>
-            <constraint>
-              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron"
-                context="tei:hi[tokenize(@rendition, '\s+') = ('#c', '#right', '#et', '#et2', '#et3', '#hang', '#hr', '#twocol', '#acrostic')]">
-                <sch:report role="warning" test="true()">[S-HI] Alignment, indent and the other
-                  block renditions (#c, #right, #et, #et2, #et3, #hang, #hr, #twocol, #acrostic) belong on
-                  the enclosing block (head, p, l, lg, milestone, …), not on hi.</sch:report>
-              </sch:rule>
-            </constraint>
-          </constraintSpec>
-          <constraintSpec ident="hi-spanning-rendition" scheme="schematron">
-            <desc>A <gi>hi</gi> that covers the whole content of a block describes the block: its
-              <att>rendition</att> goes on the block, merged with the block's own tokens (in
-              <gi>tagsDecl</gi> order), and the <gi>hi</gi> goes. Only empty milestones may stand
-              beside it. Positional renditions (initials, superscript, acrostic letters) stay on
-              <gi>hi</gi>.</desc>
-            <constraint>
-              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron"
-                context="tei:hi[@rendition][ancestor::tei:text]">
-                <sch:report role="warning" test="parent::tei:*[local-name() = ('head', 'p', 'ab', 'signed', 'salute', 'closer', 'opener', 'dateline', 'postscript', 'argument', 'epigraph', 'trailer', 'docTitle', 'titlePart', 'docAuthor', 'docEdition', 'docImprint', 'l', 'lg', 'label', 'speaker', 'stage', 'item', 'cell', 'note', 'fw')] and not(../text()[normalize-space()]) and count(../*[not(self::tei:lb or self::tei:pb or self::tei:cb or self::tei:milestone or self::tei:anchor or self::tei:gap)]) = 1 and count(@*) = 1 and node() and not(tokenize(@rendition, '\s+') = ('#in', '#sup', '#sub', '#acroInit', '#acroFin'))">[S-HIB]
-                  This hi covers the whole &lt;<sch:value-of select="local-name(..)"/>&gt;: its
-                  rendition belongs on the &lt;<sch:value-of select="local-name(..)"/>&gt;
-                  (merged with the block's own, in tagsDecl order), and the hi can go.</sch:report>
-              </sch:rule>
-            </constraint>
-          </constraintSpec>
           <constraintSpec ident="hi-adjacent" scheme="schematron">
             <desc>Two <gi>hi</gi> with the same <att>rendition</att> that only line ends separate are
               one <gi>hi</gi> across them: always across a joined line end (the word goes on), and
@@ -1441,18 +1412,6 @@
               </sch:rule>
             </constraint>
           </constraintSpec>
-          <constraintSpec ident="note-commentary" scheme="schematron">
-            <desc>A commentary note is an annotation; its range starts at an anchor
-              <val>k</val> + work + <val>.</val> + number (<val>k135.2</val>).</desc>
-            <constraint>
-              <sch:rule xmlns:sch="http://purl.oclc.org/dsdl/schematron" context="tei:note[@subtype = 'commentary']">
-                <sch:assert test="@type = 'annotation'">[S-NC] A commentary note has
-                  type="annotation".</sch:assert>
-                <sch:assert test="not(@targetEnd) or matches(@targetEnd, '^#?k.+\.\d+$')">[S-NC] A
-                  commentary range starts at an anchor k + work + . + number.</sch:assert>
-              </sch:rule>
-            </constraint>
-          </constraintSpec>
           <attList>
             <attDef ident="type" mode="change" usage="opt">
               <valList type="closed" mode="replace">
@@ -1461,14 +1420,6 @@
                 <valItem ident="speaker"><desc>a speaker designation in dialogue verse</desc></valItem>
                 <valItem ident="marginalia"><desc>a marginal note printed in the source</desc></valItem>
                 <valItem ident="remarkResponsibility"><desc>a note on editorial responsibility</desc></valItem>
-              </valList>
-            </attDef>
-            <attDef ident="subtype" mode="add" usage="opt">
-              <desc>Only for the commentary, which is imported from the editors' Word documents and
-                replaced on every import; other notes have none.</desc>
-              <datatype><dataRef key="teidata.enumerated"/></datatype>
-              <valList type="closed">
-                <valItem ident="commentary"><desc>a comment from the edition's commentary</desc></valItem>
               </valList>
             </attDef>
             <attDef ident="place" mode="change" usage="opt">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Simler Digital, C 1663: Uber Herꝛn Tichters namen Bu&#x366;chſtabwa&#x364;chſel, poems VI–VII of the dedicatory poems (fol. A vii r–v).
+  Simler Digital, C 1663: Uber Herꝛn Tichters namen Buͦchſtabwaͤchſel, poems VI–VII of the dedicatory poems (fol. A vii r–v).
   Adapted from DHBern/simler_data, C_1663_dok.xml, 2026-11-08; see examples/README.md.
 -->
 <TEI xmlns="http://www.tei-c.org/ns/1.0" type="simler-framework">
@@ -10,7 +10,8 @@
         <title type="main">Uber Herꝛn Tichters namen Bu&#x366;chſtabwa&#x364;chſel, poems VI–VII of the dedicatory poems (C 1663, fol. A vii r–v)</title>
       </titleStmt>
       <publicationStmt>
-        <p>Simler Digital, https://www.simler.unibe.ch/: an excerpt, adapted as an example. The
+        <p>Simler Digital, https://www.simler.unibe.ch/: a provisional excerpt, adapted as an example; not the
+          edition's final text. The
           transcription and the register: Simler Project Team, licensed under CC BY 4.0,
           https://creativecommons.org/licenses/by/4.0/.</p>
       </publicationStmt>
@@ -83,7 +84,7 @@
             <lb/>
             <l rendition="#et2">und flieſſen ohne fehl.</l>
             <lb/>
-            <l rendition="#acrostic"><hi rendition="#acroInit">N</hi>ur immer friſsch daran;</l>
+            <l rendition="#acrostic"><hi rendition="#acroInit">N</hi>ur immer friſch daran;</l>
             <lb/>
             <l rendition="#acrostic"><hi rendition="#acroInit">L</hi>aßt ſparen uns kein mu&#x364;h<hi rendition="#acroFin">E</hi></l>
             <lb/>
@@ -127,7 +128,7 @@
             <lb/>
             <l rendition="#et">ſich Himmelhoch erſchwingt:</l>
             <lb/>
-            <l rendition="#et">und Nydhart zo&#x364;rnt darob.</l>
+            <l rendition="#et">und <anchor xml:id="kxii.1"/>Nydhart<note type="annotation" targetEnd="kxii.1"><p>‹Neidhart›: der personifizierte Neid, wie im Folgenden ‹Tadelgern›, ‹Grimmefol› und ‹Nyder›, <ref target="https://fwb-online.de/lemma/neidhard.s.0m">FWB</ref></p></note> zo&#x364;rnt darob.</l>
             <lb/>
             <l>Jn einem kurtzen</l>
             <lb/>
@@ -155,7 +156,7 @@
             <lb/>
             <l>Es wachßt hier an dem ſe</l>
             <lb/>
-            <l rendition="#acrostic"><hi rendition="#acroInit">E</hi>y an dem Zürichſe<hi rendition="#acroFin">E</hi></l>
+            <l rendition="#acrostic"><hi rendition="#acroInit">E</hi><anchor xml:id="kxii.2"/>y<note type="annotation" targetEnd="kxii.2"><p>Im Digitalisat scheinen die Unterlänge des ‹y› und die zwei Punkte darüber mit anderer, rötlicher Tinte nachgetragen.</p></note> an dem Zürichſe<hi rendition="#acroFin">E</hi></l>
             <lb/>
             <l rendition="#et">ſo gu&#x366;t alß irgend wo</l>
             <lb/>
