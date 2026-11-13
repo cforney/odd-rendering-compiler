@@ -28,6 +28,8 @@ import { FURNITURE } from "../runtime/pm-runtime.mjs";
 const DEMO = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(DEMO, "..");
 const SITE = resolve(DEMO, "site");
+// The repository, as the package names it ("github:owner/name"), linked from the header.
+const REPO = `https://github.com/${JSON.parse(readFileSync(resolve(DEMO, "../package.json"), "utf8")).repository.replace(/^github:/, "")}`;
 const LANG = "en"; // the shell's language: its <html lang>, and the views' labels where the ODD translates them
 const SOURCES = {                          // manifest `dir` → compiler output
   js: resolve(ROOT, "compiler-js", "output"),
@@ -215,7 +217,6 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
   <title>ODD Rendering Compiler — compare the rendering paths</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%2316a34a%22%2F%3E%3Cpath%20d%3D%22M9%208h10l5%205v11H9z%22%20fill%3D%22%23fff%22%2F%3E%3Cpath%20d%3D%22M12%2016h9M12%2020h9%22%20stroke%3D%22%2316a34a%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E">
   <link rel="stylesheet" href="shell.css">
@@ -224,7 +225,7 @@ writeFileSync(resolve(SITE, "index.html"), `<!DOCTYPE html>
   <header class="bar">
     <div>
       <h1>The TEI ODD as static-build configuration</h1>
-      <p>${data.concept}</p>
+      <p>${data.concept} <a href="${REPO}" target="_blank" rel="noopener">Source code on GitHub</a></p>
       <details class="guide"><summary>${guide.summary}</summary>${guide.text.map((t) => `<p>${t.replace("{odd}", `<a href="${oddFile}">${basename(inspected.odd)}</a>`)}</p>`).join("")}</details>
     </div>
     <div class="controls">
